@@ -10,10 +10,26 @@
   
 }
 
+.centerT{
+  text-align: center;
+}
+.Ccontainer{
+  border: 4px;
+  border-radius: 3px;
+  background: white;
+  border-color: #ff0055;
+}
 body {
   margin: 0;
 }
-
+.botonI {
+  background-color: transparent;
+  border: none;      
+  cursor: pointer;
+  line-height: 0;
+  width: 24px;  
+  height: 24px;
+}
 h1,
 h2 {
   margin: 0 0 1rem 0;
@@ -40,6 +56,7 @@ button {
   border: none;
   cursor: pointer;
   background: transparent;
+  max-width:  100px
 }
 
 button:hover,
