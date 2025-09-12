@@ -2,29 +2,12 @@
   box-sizing: border-box;
 }
 
-.centerC {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh; 
-  
-}
 
-.centerT{
-  text-align: center;
-}
-.Ccontainer{
-  border: 4px;
-  border-radius: 3px;
-  background: white;
-  border-color: #ff0055;
-}
 body {
   margin: 0;
 }
 .botonI {
   background-color: transparent;
-  border: none;      
   cursor: pointer;
   line-height: 0;
   width: 24px;  
@@ -50,7 +33,6 @@ a:hover {
 }
 
 button {
-  padding: 1rem;
   color: #ff0055;
   font: inherit;
   border: none;
