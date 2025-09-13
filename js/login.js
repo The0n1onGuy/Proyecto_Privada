@@ -1,27 +1,33 @@
 const textAU = document.getElementById('textAU');
 const textAC = document.getElementById('textAC');
-const botonVis = document.getElementById('butonI');
+const Contra = document.getElementById('campoContra');
 
-alternarVisLab();
-function OcultaAlertas(){
-    textAC.classList.toggle('hidden');
-}
+alternarVisLab(); //Ejecuta 1 vez, para que siempre esten ocultas
+function AlternarVisContras(){
+    if (Contra.type === "password") {
+    Contra.type = "text";
+
+  } else {
+    Contra.type = "password";
+}}
 
 function alternarVisLab(){
     let x = textAU;
     let y = textAC;
-    if (x.style.display === "none") {
-        x.style.display = "block";
+    if (x.style.visibility  === "hidden") {
+        x.style.visibility = "visible";
     } else {
-        x.style.display = "none";
+        x.style.visibility = "hidden";
     }
-    if (y.style.display === "none") {
-        y.style.display = "block";
+    
+    if (y.style.visibility === "hidden") {
+        y.style.visibility = "visible";
     } else {
-        y.style.display = "none";
+        y.style.visibility = "hidden";
     }
 }
 function RevisarYDir(){
+
     window.location.href = "paginas/pagina.php";
 }
 
