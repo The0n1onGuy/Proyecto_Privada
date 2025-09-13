@@ -22,8 +22,8 @@
               <form><!--Sugerencia: Puedes centrar todo por centerC-->
                   
                   <label for="Usuario">Usuario</br>
-                    <input type="text"></br> 
-                    <label id= "textAU"> Por favor, ingrese su usuario.</label></br>                 
+                    <input id="campoUsuario" type="text"></br> 
+                    <label id= "textAU">Por favor, ingrese su usuario.</label></br>                 
                   </label>
                   
                   <label for="Contraseña">Contraseña</br> 
@@ -33,14 +33,14 @@
                     <button type="button" id="notabtn" onclick="AlternarVisContras()"> <!-- Arreglo temporal de estilo ya que la img es grande,limitalo como gustes -->
                       <img style="width: 14px; height: 14px;" id = "" src="assets\images\show.svg" alt="mostrar/ocultar contraseña">
                     </button></br> 
-                    <label id= "textAC"> Por favor, ingrese su contraseña.  </br></label>
+                    <label id= "textAC"> Por favor, ingrese su contraseña.</br></label>
                   </label>
               </form>
               
               <button               
               id="btn"
               onclick="RevisarYDir()"
-              type="submit" class="btn" >Iniciar Sesión</button></br>
+              type="button" class="btn" >Iniciar Sesión</button></br>
           </div>
     </div>
     
