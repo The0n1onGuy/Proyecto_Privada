@@ -1,0 +1,37 @@
+h1{
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+  text-align: right;
+
+}
+#butn.btn{
+  position: absolute;
+  top: 50px;
+  right: 50px;
+  display: flex;
+  justify-content: flex-end;
+  text-align: right;
+  background-color: green;
+  padding: 5px 5px;
+  font-size: 1rem;
+  margin: 1rem 1px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+
+#butn.btn:hover{
+    background-color:rgb(2, 192, 2);
+}
+
+#butn.btn:active{
+    background-color: rgb(2, 96, 1);
+}
+
+.mi-imagen {
+      width: 40px; /* Define el ancho de la imagen */
+      height: 40px; /* Define la altura de la imagen */
+    }
