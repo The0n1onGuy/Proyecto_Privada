@@ -9,3 +9,27 @@
   border-radius: 10px;
   padding: 2rem;
 }
+.Ccontainer{
+  margin: 0 auto;
+  border: 6px solid red;
+  border-radius: 3px;
+  padding: 0 20px 20px 20px;
+  background: rgb(248, 255, 146);
+  
+}
+.flexible{
+  display: flex;
+}
+.passwordC{
+  align-items: center;   
+  gap: 8px;              
+  margin-bottom: 1rem;   /* Espacio debajo del contenedor de la contraseña. */
+}
+
+.botonI {
+  background-color: transparent;
+  cursor: pointer;
+  line-height: 0;
+  width: 24px;  
+  height: 24px;
+}
