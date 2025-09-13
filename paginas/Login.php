@@ -30,18 +30,14 @@
                     <!-- Una pequeña modificacion de input
                     type text a password para que "censure" la contraseña y tambien algo en el CSS que lo modifica-->
                     <input type="password"> 
-                    <button id="botonI"> <!-- Arreglo temporal de estilo ya que la img es grande,limitalo como gustes -->
+                    <button type="button" id="notabtn" onclick="alternarVisLab()"> <!-- Arreglo temporal de estilo ya que la img es grande,limitalo como gustes -->
                       <img style="width: 14px; height: 14px;" src="assets\images\show.svg" alt="mostrar/ocultar contraseña">
                     </button></br> 
                     <label id= "textAC"> Por favor, ingrese su contraseña.  </br></label>
                   </label>
-             </form>
-             <button id="btn" type="submit" class="btn" >Iniciar Sesión</button></br>
-             
+                  <button id="btn" onclick="RevisarYDir()" type="submit" class="btn" >Iniciar Sesión</button></br>
+              </form>
           </div>
-
-            
-
     </div>
     
 <script src="js/login.js"> </script>
