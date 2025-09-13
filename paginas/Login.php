@@ -35,8 +35,12 @@
                     </button></br> 
                     <label id= "textAC"> Por favor, ingrese su contraseña.  </br></label>
                   </label>
-                  <button id="btn" onclick="RevisarYDir()" type="submit" class="btn" >Iniciar Sesión</button></br>
+                  <button               
+              onclick="RevisarYDir()"
+              type="submit" class="btn" >Iniciar Sesión</button></br>
               </form>
+              <!-- id="btn" -->
+              
           </div>
     </div>
     
