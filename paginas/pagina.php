@@ -19,7 +19,7 @@
           
           <div class="contenedor">
            
-             <button id="butn" type="submit" class="btn" > <a href="<?php echo $Starter-> getwhatsApplink("Gay");?>" target="_blank"><img class="mi-imagen" src="../styles/WhatsApp.jpg" alt="Una ilustración colorida"></a></button></br>
+             <button id="butn" type="submit" class="btn" > <a href="<?php echo $Starter-> getwhatsApplink("Gay");?>" target="_blank"><img class="mi-imagen" src="../estilos/WhatsApp.jpg" alt="Una ilustración colorida"></a></button></br>
           </div>
 
             

@@ -45,6 +45,17 @@ function AlternarVisContras(){
     Contra.type = "password";
 }}
 
+const openButton = document.getElementById('open-button');
+const closeButton = document.getElementById('close-button');
+const popoutBox = document.querySelector('.popout-box');
+
+openButton.addEventListener('click', () => {
+  popoutBox.classList.add('activo'); 
+});
+
+closeButton.addEventListener('click', () => {
+  popoutBox.classList.remove('activo');
+});
 
 //  Referncia de julio
 //document.getElementById('btn').addEventListener('click', () => {

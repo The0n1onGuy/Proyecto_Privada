@@ -9,44 +9,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privada Residencial - Inico</title>
   <link href="estilos/login.css" rel="stylesheet">
-  <link href="estilos/login.js" rel="stylesheet">
+  <link href="estilos/info.css" rel="stylesheet"> <!--Contiene pop outs  -->  
 </head>
-
-<body class ="centerC">
-  <div class="container">
-
-      <h1 class="title">Bienvenido a la Privada Residencial</h1>  
+<body>
+  <div class="centerC">
+    <div class="container">
+        <h1 class="title">Bienvenido a la Privada Residencial</h1>  
           <h3 class="subtitle">Inicio de Sesión</h3>
-          
           <div class="contenedor">
-              <form><!--Sugerencia: Puedes centrar todo por centerC-->
-                  
-                  <label for="Usuario">Usuario</br>
-                    <input id="campoUsuario" type="text"></br> 
-                    <label id= "textAU">Por favor, ingrese su usuario.</label></br>                 
-                  </label>
-                  
-                  <label for="Contraseña">Contraseña</br> 
-                    <!-- Una pequeña modificacion de input
-                    type text a password para que "censure" la contraseña y tambien algo en el CSS que lo modifica-->
-                    <input id ="campoContra" type="password"></input>
-                    <button type="button" id="notabtn" onclick="AlternarVisContras()"> <!-- Arreglo temporal de estilo ya que la img es grande,limitalo como gustes -->
-                      <img style="width: 14px; height: 14px;" id = "" src="assets\images\show.svg" alt="mostrar/ocultar contraseña">
-                    </button></br> 
-                    <label id= "textAC"> Por favor, ingrese su contraseña.</br></label>
-                  </label>
-              </form>
-              
-              <button               
-              id="btn"
-              onclick="RevisarYDir()"
-              type="button" class="btn" >Iniciar Sesión</button></br>
-          </div>
-    </div>
-    
+          <form><!--Sugerencia: Puedes centrar todo por centerC-->
+            <label for="Usuario">Usuario</br>
+              <input id="campoUsuario" type="text"></br> 
+              <label id= "textAU">Por favor, ingrese su usuario.</label></br>                 
+            </label>        
+            <label for="Contraseña">Contraseña</br> 
+              <!-- Una pequeña modificacion de input
+              type text a password para que "censure" la contraseña y tambien algo en el CSS que lo modifica-->
+              <input id ="campoContra" type="password"></input>
+              <button type="button" id="notabtn" onclick="AlternarVisContras()"> <!-- Arreglo temporal de estilo ya que la img es grande,limitalo como gustes -->
+                <img style="width: 14px; height: 14px;" id = "" src="assets\images\show.svg" alt="mostrar/ocultar contraseña">
+              </button></br> 
+              <label id= "textAC"> Por favor, ingrese su contraseña.</br></label>
+            </label>
+          </form>
+                <button id="open-button">Popout alert</button>              
+                <button               
+                  id="btn" onclick="RevisarYDir()" type="button" class="btn" >
+                  Iniciar Sesión
+                </button></br>
+                  <!--Pop out-->
+            </div>
+      </div>
+  </div>
+<div class="popout-box">
+  <h2>ALERTA</h2>
+  <p>Inicio de sesion exitoso.....</p>
+  <button id="close-button">Close</button>
+</div>
 <script src="js/login.js"> </script>
 </body>
-
 </html>
 
 
