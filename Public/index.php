@@ -6,5 +6,4 @@ use App\Core\Router;
 
 $router = new Router();
 
-$router->handleRequest()
-;
+$router->handleRequest();
