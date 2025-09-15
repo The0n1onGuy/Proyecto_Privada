@@ -37,7 +37,6 @@
                   id="btn" onclick="RevisarYDir()" type="button" class="btn" >
                   Iniciar Sesión
                 </button></br>
-                  <!--Pop out-->
             </div>
       </div>
   </div>

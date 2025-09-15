@@ -1,5 +1,6 @@
 const textAU = document.getElementById('textAU');
 const textAC = document.getElementById('textAC');
+const popoutBox = document.querySelector('.popout-box');
 let Contra = document.getElementById('campoContra');
 let Usuario = document.getElementById('campoUsuario');
 let UsuText, ConText;
@@ -21,7 +22,13 @@ function RevisarYDir(){
     }else{
         VisibiLab(2,"hidden");
     }
-    window.location.href = "paginas/pagina.php";
+    popoutBox.classList.add('active'); 
+    setTimeout(function() {
+        popoutBox.classList.remove('active');
+    }, 2000); // (3 segundos) El tiempo que le toma en redireccionandolo
+    setTimeout(function() {
+        window.location.href = "paginas/pagina.php";
+    }, 3000);
 }
 
 function VisibiLab(tipoCam,status){
@@ -44,18 +51,6 @@ function AlternarVisContras(){
   } else {
     Contra.type = "password";
 }}
-
-const openButton = document.getElementById('open-button');
-const closeButton = document.getElementById('close-button');
-const popoutBox = document.querySelector('.popout-box');
-
-openButton.addEventListener('click', () => {
-  popoutBox.classList.add('activo'); 
-});
-
-closeButton.addEventListener('click', () => {
-  popoutBox.classList.remove('activo');
-});
 
 //  Referncia de julio
 //document.getElementById('btn').addEventListener('click', () => {
