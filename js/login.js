@@ -1,13 +1,13 @@
-const textAU = document.getElementById('textAU');
-const textAC = document.getElementById('textAC');
-const popoutBox = document.querySelector('.popout-box');
+const textAU = document.getElementById('textAU'); //"AU" = alerta usuario
+const textAC = document.getElementById('textAC'); // "AC" = alerta contraseña
+const popoutBox = document.querySelector('.popout-box'); 
 let Contra = document.getElementById('campoContra');
 let Usuario = document.getElementById('campoUsuario');
 let UsuText, ConText;
 
 VisibiLab(1,"hidden"); //Ejecutan unica vez, para que siempre esten ocultas al refrescar
 VisibiLab(2,"hidden");
-function RevisarYDir(){
+function RevisarYDir(){ 
     UsuText = Usuario.value.trim();
     ConText = Contra.value.trim();
     if (UsuText === "") {        
