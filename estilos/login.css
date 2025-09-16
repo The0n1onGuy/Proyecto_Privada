@@ -36,7 +36,7 @@ body {
     margin: 30px;
 }
 
-input[type=text] {
+input[type=text],input[type=password] {
   width: 400px;
   padding: 12px 20px;
   margin: 20px 0;
@@ -53,7 +53,7 @@ label[for=Contraseña]:focus-within {
   color: blue;
 }
     
-#btn{
+.btn{
     background-color: coral;
     border: none;
     padding: 1rem 2rem;
@@ -69,4 +69,3 @@ label[for=Contraseña]:focus-within {
 .btn:active{
     background-color: var(--primary-active);
 }
-    
