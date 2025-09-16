@@ -1,12 +1,32 @@
-function toggleMenu() {
-      document.getElementById("sidebar").classList.toggle("active");
-    }
+document.addEventListener("DOMContentLoaded", function() {
 
-function cerrarSesion() {
-      // Aquí se simula el cierre de sesión
-      alert("Sesión cerrada correctamente.");
-      window.location.href = "../index.php"; // Redirección al login
-    }
+  // Menú lateral
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+
+  window.toggleMenu = function() {
+    sidebar.classList.toggle("active");
+    overlay.classList.toggle("active");
+  }
+
+  window.cerrarSesion = function() {
+    alert("Sesión cerrada correctamente.");
+    window.location.href = "../index.php";
+  }
+
+  // Mostrar tablas
+  window.showTable = function(idTabla) {
+    const tablas = document.querySelectorAll(".data-table");
+    tablas.forEach(tabla => tabla.style.display = "none");
+    const tablaSeleccionada = document.getElementById(idTabla);
+    if (tablaSeleccionada) tablaSeleccionada.style.display = "table";
+  }
+
+  // Mostrar la primera tabla por defecto
+  showTable('tabla1');
+
+});
+
 
 /* Esperar a que cargue el DOM
 document.addEventListener("DOMContentLoaded", function() {

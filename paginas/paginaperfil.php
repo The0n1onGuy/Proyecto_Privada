@@ -23,7 +23,6 @@
       <h2>Menú</h2>
     </div>
     <div herf="#">👤</div>
-    <div herf="#">👤</div>
     <a href="#">JUANITOPRO</a>
     <a href="pagina.php">Home</a>
     <a href="paginaperfil.php">Perfil</a>
