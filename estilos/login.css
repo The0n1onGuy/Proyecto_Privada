@@ -53,7 +53,7 @@ label[for=Contraseña]:focus-within {
   color: blue;
 }
     
-#btn{
+.btn{
     background-color: coral;
     border: none;
     padding: 1rem 2rem;
