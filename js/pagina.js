@@ -1,4 +1,14 @@
-// Esperar a que cargue el DOM
+function toggleMenu() {
+      document.getElementById("sidebar").classList.toggle("active");
+    }
+
+function cerrarSesion() {
+      // Aquí se simula el cierre de sesión
+      alert("Sesión cerrada correctamente.");
+      window.location.href = "../index.php"; // Redirección al login
+    }
+
+/* Esperar a que cargue el DOM
 document.addEventListener("DOMContentLoaded", function() {
     const btn = document.getElementById("butn");
 
@@ -15,4 +25,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-});
+});*/
+
+ 

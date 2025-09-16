@@ -1,11 +1,10 @@
-
+   
     body {
       margin: 0;
       font-family: Arial, sans-serif;
     }
 
-
-    .topbar {
+   .topbar {
       background: #3a4f65;
       padding: 10px 20px;
       display: flex;
@@ -26,9 +25,54 @@
       border: 1px solid #5ea2d5;
       border-radius: 5px;
     }
+ 
+ .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      margin: 20px auto;
+      max-width: 700px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .card h5 {
+      margin-bottom: 20px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      background: #ddd;
+      border-radius: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 40px;
+      color: #999;
+      margin: 10px auto;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .btn-primary {
+      background-color: #3a4f65;
+      color: #fff;
+    }
+    .btn-secondary {
+      background-color: #ccc;
+      color: #000;
+    }
 
-    /* ======== MENÚ LATERAL ======== */
-    .sidebar {
+       .sidebar {
       width: 220px;
       background: #3a4f65;   
       color: rgb(239, 234, 234);          
@@ -69,17 +113,11 @@
       background: #4e6986;   
     }
 
-    /* ======== CONTENIDO PRINCIPAL ======== */
-    .main {
-      padding: 20px;
-    }
-
     .sidebar.active {
       left: 0; 
     }
 
      /* Botón hasta abajo en el menú lateral */
-    /* Botón hasta abajo en el menú lateral */
 .logout-btn {
   position: absolute;
   bottom: 20px;
