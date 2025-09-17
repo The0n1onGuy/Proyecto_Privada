@@ -1,22 +1,13 @@
-<<<<<<< HEAD
 const textAU = document.getElementById('textAU'); //"AU" = alerta usuario
 const textAC = document.getElementById('textAC'); // "AC" = alerta contraseña
 const popoutBox = document.querySelector('.popout-box'); 
-=======
-const textAU = document.getElementById('textAU');
-const textAC = document.getElementById('textAC');
->>>>>>> Pruebas
 let Contra = document.getElementById('campoContra');
 let Usuario = document.getElementById('campoUsuario');
 let UsuText, ConText;
 
 VisibiLab(1,"hidden"); //Ejecutan unica vez, para que siempre esten ocultas al refrescar
 VisibiLab(2,"hidden");
-<<<<<<< HEAD
-function RevisarYDir(){ 
-=======
 function RevisarYDir(){
->>>>>>> Pruebas
     UsuText = Usuario.value.trim();
     ConText = Contra.value.trim();
     if (UsuText === "") {        
@@ -31,7 +22,6 @@ function RevisarYDir(){
     }else{
         VisibiLab(2,"hidden");
     }
-<<<<<<< HEAD
     popoutBox.classList.add('active'); 
     setTimeout(function() {
         popoutBox.classList.remove('active');
@@ -39,9 +29,6 @@ function RevisarYDir(){
     setTimeout(function() {
         window.location.href = "paginas/pagina.php";
     }, 3000);
-=======
-    window.location.href = "paginas/pagina.php";
->>>>>>> Pruebas
 }
 
 function VisibiLab(tipoCam,status){
@@ -65,10 +52,6 @@ function AlternarVisContras(){
     Contra.type = "password";
 }}
 
-<<<<<<< HEAD
-=======
-
->>>>>>> Pruebas
 //  Referncia de julio
 //document.getElementById('btn').addEventListener('click', () => {
 //     window.location.href = "paginas/pagina.php";

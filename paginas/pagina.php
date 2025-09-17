@@ -11,26 +11,11 @@
   <div class="topbar">
     <button class="menu-btn" onclick="toggleMenu()">☰</button>
 
-<<<<<<< HEAD
-<body class ="center">
-  <div class="container">
-
-      <h1 class="title">Contactanos</h1><br>
-          
-          <div class="contenedor">
-           
-             <button id="butn" type="submit" class="btn" > <a href="<?php echo $Starter-> getwhatsApplink("Gay");?>" target="_blank"><img class="mi-imagen" src="../estilos/WhatsApp.jpg" alt="Una ilustración colorida"></a></button></br>
-          </div>
-
-            
-
-=======
     <!-- Botones para mostrar tablas, integrados en la barra -->
     <div class="topbar-buttons">
       <button onclick="showTable('tabla1')">Tabla 1</button>
       <button onclick="showTable('tabla2')">Tabla 2</button>
       <button onclick="showTable('tabla3')">Tabla 3</button>
->>>>>>> Pruebas
     </div>
 
     <div class="search-box">
