@@ -27,6 +27,9 @@ function RevisarYDir(){
         popoutBox.classList.remove('active');
     }, 2000); // (3 segundos) El tiempo que le toma en redireccionandolo
     setTimeout(function() {
+        document.body.classList.add('fade-out');
+    }, 2500); 
+    setTimeout(function() {
         window.location.href = "paginas/pagina.php";
     }, 3000);
 }

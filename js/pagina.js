@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 
 // Esperar a que cargue el DOM
-=======
 document.addEventListener("DOMContentLoaded", function() {
 
   // Menú lateral
@@ -9,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const overlay = document.getElementById("overlay");
 
   window.toggleMenu = function() {
+    // tipo.style.visibility.toggle("");
     sidebar.classList.toggle("active");
     overlay.classList.toggle("active");
   }
@@ -33,7 +32,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 /* Esperar a que cargue el DOM
->>>>>>> Pruebas
 document.addEventListener("DOMContentLoaded", function() {
     const btn = document.getElementById("butn");
 

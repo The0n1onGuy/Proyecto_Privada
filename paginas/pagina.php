@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PÁGINA PRINCIPAL</title>
   <link rel="stylesheet" href="../estilos/pagina.css">
+  <link rel="stylesheet" href="../estilos/info.css">
 </head>
 <body>
   <!-- Barra superior -->
   <div class="topbar">
     <button class="menu-btn" onclick="toggleMenu()">☰</button>
-
     <!-- Botones para mostrar tablas, integrados en la barra -->
     <div class="topbar-buttons">
       <button onclick="showTable('tabla1')">Tabla 1</button>
@@ -28,11 +28,12 @@
 
   <!-- Menú lateral -->
   <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <button onclick="toggleMenu()">×</button>
-      <h2>Menú</h2>
-    </div>
-    <div>👤</div>
+    <button class="sidebar-header" onclick="toggleMenu()">
+        <span class="menu-icon">☰</span>
+        <h2>Menú</h2>
+    </button>
+
+    <div class="IMG-PERFIL PH">👤</div>
     <a href="#">JUANITOPRO</a>
     <a href="pagina.php">Inicio</a>
     <a href="paginaperfil.php">Perfil</a>

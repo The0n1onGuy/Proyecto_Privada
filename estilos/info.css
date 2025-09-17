@@ -9,6 +9,14 @@
   border-radius: 10px;
   padding: 2rem;
 }
+  
+body {
+  transition: opacity 0.5s ease-in-out;
+  
+}
+body.fade-out {
+  opacity: 0;
+}
 
 /* .popout-box {   ---ESTILO EXPANDIR Y ENCOJER---
   position: fixed; 

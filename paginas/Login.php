@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privada Residencial - Inico</title>
   <link href="estilos/login.css" rel="stylesheet">
-  <link href="estilos/info.css" rel="stylesheet"> <!--Contiene pop outs  -->  
+  <link href="estilos/info.css" rel="stylesheet"> <!--Contiene pop outs y transacciones  -->  
 </head>
 <body>
   <div class="centerC">
@@ -43,7 +43,7 @@
     </div>
   </div>
 <div class="popout-box">
-  <h2>ALERTA</h2>
+  <h2>EXITOSO</h2>
   <p>Inicio de sesion exitoso.....</p>
   <button id="close-button">Close</button>
 </div>

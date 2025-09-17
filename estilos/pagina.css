@@ -19,6 +19,7 @@
       cursor: pointer;
       border: none;
       background: none;
+      visibility: visible;
     }
 
     .search-box input {
@@ -41,26 +42,36 @@
       font-family: Verdana, sans-serif;
     }
 
+
     .sidebar-header {
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      padding: 0 10px 20px 10px;
-    }
-
-    .sidebar-header button {
-      font-size: 20px;
-      margin-right: 10px;
+      padding: 10px 15px 15px 15px; 
+      width: 100%; 
       background: none;
       border: none;
       color: white;
       cursor: pointer;
+      text-align: left; 
+      font-size: 25px;
     }
 
+    .sidebar-header:hover {
+      background: #4e6986;   
+    }
+
+    .sidebar-header .menu-icon {
+      margin-right: 10px;
+    }
+    .sidebar-header h2 {
+        margin: 0;
+        font-size: 25px;
+    }
     .sidebar a {
-      display: block;
+      display: flex;
       color: rgb(11, 222, 250);          
-      padding: 12px 20px;
+      padding: 10px 20px;
       text-decoration: none;
       transition: 0.3s;
     }
@@ -117,12 +128,10 @@
   transition: background 0.3s ease;
 }
 
-<<<<<<< HEAD
 .mi-imagen {
       width: 40px; /* Define el ancho de la imagen */
       height: 40px; /* Define la altura de la imagen */
 }
-=======
 .topbar-buttons button:hover {
   background: #0794bf;
 }
@@ -150,4 +159,3 @@
   background: #3a4f65;
   color: white;
 }
->>>>>>> Pruebas
