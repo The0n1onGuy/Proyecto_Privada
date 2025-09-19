@@ -1,10 +1,3 @@
-<?php 
-    require_once "class/class.starter.php";
-    require_once "class/Properties.php";
-    require_once "class/Connection.php";
-    require_once "class/Customers.php";
-
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,12 +15,9 @@
 <table id="myTable" class="display">
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Position</th>
-            <th>Office</th>
-            <th>Age</th>
-            <!-- <th>Start date</th>
-            <th>Salary</th> -->
+            <th>Nombre del Cliente</th>
+            <th>Teléfono</th>
+            <th>Ciudad</th>
         </tr>
     </thead>    
     <tbody>

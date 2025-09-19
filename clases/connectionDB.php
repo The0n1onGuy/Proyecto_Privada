@@ -1,6 +1,6 @@
 <?php
 
-    class Connection {
+    class connectionDB {
 
             private $connectionConfig ;
 
@@ -8,7 +8,7 @@
                 $this->connectionConfig = Properties::Db() ;
             }
 
-            public function  connect() {
+            public function connect() {
                 $host = $this->connectionConfig['host'] ;
                 $database = $this->connectionConfig['database'] ;
                 $dsn = "mysql:host=$host;dbname=$database" ;
@@ -18,7 +18,7 @@
                     $pdo->setAttribute( PDO::ATTR_ERRMODE , PDO::ERRMODE_EXCEPTION ) ;
 
                     if( $pdo ) {
-                        echo "Connected..." ;
+                        // echo "Connected..." ;
                         return $pdo ;
                     }
                 } catch( PDOException $e ) {
@@ -34,4 +34,4 @@
 
     }
 
-    $conn = new Connection() ;
+    // $connC = new connectionDB() ;
