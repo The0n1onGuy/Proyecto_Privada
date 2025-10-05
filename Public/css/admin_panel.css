@@ -1,0 +1,279 @@
+/* public/css/admin_dashboard.css */
+
+/* --- Variables Globales --- */
+:root {
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 88px;
+    --header-height: 80px;
+    --dark-blue: #0b1b2b;
+    --muted-bg: #f7f9fc;
+    --card-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+    --hover-bg: rgba(255, 255, 255, 0.1);
+    --sidebar-transition-duration: 0.3s; /* Variable para sincronizar animaciones */
+}
+
+/* --- Reset Básico y Estilos del Body --- */
+body {
+    margin: 0;
+    background: var(--muted-bg);
+    color: #1f2a37;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* --- Barra Lateral (Sidebar) --- */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: linear-gradient(180deg, #071026 0%, #0b2a4a 100%);
+    color: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    /* CAMBIO: Usando la variable de transición */
+    transition: width var(--sidebar-transition-duration) ease;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+/* --- Contenedores y Alineación --- */
+.sidebar-header, .profile-sm, .nav-link {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    margin-bottom: 0;
+}
+
+/* --- VISIBILIDAD DE SCROLL BAR - OLAN 270925 --- */
+.sidebar::-webkit-scrollbar {
+    display: none; /*Navegadores generales */
+}
+.sidebar {
+    scrollbar-width: none; /* Para Firefox "auto" or "thin" are other options */
+    -ms-overflow-style: none; /* Para browsers viejos IE/Edge (legacy)  Hides the scrollbar  THIS MIGHT NOT WORK PLACE ON ANOTHER .sidebar STYLE*/
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 12px;
+    transition: background 0.2s ease;
+}
+
+.menu-toggle svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Perfil */
+.profile-sm {
+    gap: 16px;
+    height: 48px;
+}
+.sidebar.collapsed .profile-sm {
+    gap: 0;
+}
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    background: #12324a;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* Links de Navegación */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+    gap: 16px;
+    height: 48px;
+    box-sizing: border-box;
+}
+
+.nav-link svg {
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed .nav-link {
+    width: 48px;
+}
+
+/* --- CAMBIO: Lógica de transición de texto mejorada --- */
+/* Esta es la transición para DESVANECER (al colapsar) */
+.sidebar.collapsed .profile-text,
+.sidebar.collapsed .nav-link-text {
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+    transition: opacity 0.1s ease, width var(--sidebar-transition-duration) ease;
+}
+
+/* Esta es la transición para APARECER (al expandir) */
+.profile-text, .nav-link-text {
+    white-space: nowrap;
+    /* La opacidad tiene un retraso para que el texto aparezca cuando ya hay espacio */
+    transition: opacity 0.2s ease 0.1s, width var(--sidebar-transition-duration) ease;
+}
+
+/* --- Efectos Hover y Active Unificados --- */
+.menu-toggle:hover,
+.nav-link:hover,
+.nav-link.active {
+    background: var(--hover-bg);
+}
+
+/* --- Barra Superior (Topbar) y Contenido Principal --- */
+.topbar, .content-wrap {
+    margin-left: var(--sidebar-width);
+    /* CAMBIO: Usando la variable para sincronizar con el sidebar */
+    transition: margin-left var(--sidebar-transition-duration) ease;
+}
+
+.topbar.main-collapsed, 
+.content-wrap.main-collapsed {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+.topbar {
+    height: var(--header-height);
+    background: linear-gradient(90deg, var(--dark-blue), #11304b);
+    color: white;
+    display: flex;
+    vertical-align: middle;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.topbar-start, .topbar-end {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.logo-text {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+/* .content-wrap { padding: 20px; } */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid #dee2e6; margin-bottom: 20px; }
+.tab-link { padding: 10px 15px; border: 1px solid transparent; border-bottom: 0; border-radius: 4px 4px 0 0; cursor: pointer; background: none; color: #0d6efd; text-decoration: none; }
+.tab-link.active { background-color: #fff; border-color: #dee2e6; color: #495057; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+/* Movi el contenido de section-card y h6 a sectionLayout */
+/* --- Estilos del Popup de Carga --- */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.popup-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.popup-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    width: 90%;
+    max-width: 380px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    transform: scale(0.9);
+    transition: transform 0.3s ease-in-out;
+}
+
+@keyframes popup-spring-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+}
+.popup-overlay.visible .popup-content {
+    animation: popup-spring-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.popup-content .popup-title {
+    margin-top: 0;
+    font-size: 1.5em;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #e2e8f0; /* Gris claro del borde */
+    border-top: 5px solid #1e40af; /* Azul principal */
+    border-radius: 50%;
+    margin: 20px auto 0;
+    animation: spin 1s linear infinite;
+}
+
+/* Animación de rotación */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
