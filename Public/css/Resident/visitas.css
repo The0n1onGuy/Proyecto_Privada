@@ -1,0 +1,136 @@
+.visitas-container {
+    width: 85%;
+    margin: 50px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 20px 30px;
+}
+
+.header-visitas {
+    background: linear-gradient(180deg, #071026 0%, #0b2a4a 100%);
+    padding: 15px 20px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #fff;
+    font-size: 18px;
+}
+
+.btn-agregar {
+    background: #2b3c4e;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-agregar:hover {
+    background: #2b3c4e;
+}
+
+.lista-visitas {
+    background: #fff;
+    border-radius: 0 0 12px 12px;
+    padding: 20px;
+}
+
+.visita-card {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 15px;
+    transition: box-shadow 0.2s;
+}
+
+.visita-card:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.visita-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.visita-info h3 {
+    margin: 0;
+    color: #333;
+}
+
+.visita-info p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.estado {
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    text-transform: lowercase;
+}
+
+.estado.activo {
+    background: #d1f7d1;
+    color: #207920;
+}
+
+.estado.inactivo {
+    background: #f9d1d1;
+    color: #a30000;
+}
+
+.toggle-detalle {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #555;
+}
+
+.visita-detalle {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+    color: #333;
+}
+
+.form-visita {
+    display: none;
+    margin: 15px 0;
+    background: #f8f8f8;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+}
+
+.form-visita input, .form-visita select {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.btn-guardar {
+    background: linear-gradient(180deg, #071026 0%, #0b2a4a 100%);
+    color: #fff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-guardar:hover {
+    background: linear-gradient(180deg, #071026 0%, #0b2a4a 100%);
+}

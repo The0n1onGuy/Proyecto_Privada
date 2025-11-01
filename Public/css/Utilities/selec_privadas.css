@@ -1,0 +1,254 @@
+/* =============================
+   ESTILOS GENERALES DEL SITIO
+   ============================= */
+body {
+    margin: 0;
+    background-color: white; /* dark blue */ /* Fondo*/
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #132a76;
+    text-align: center;
+    height: 100vh;
+    overflow: hidden; /* Evita el scroll vertical */
+}
+
+/* =============================
+   ENCABEZADO SUPERIOR
+   ============================= */
+.header {
+    display: flex; /* Coloca logo y texto en línea */
+    align-items: center;
+    gap: 10px; /* Espacio entre logo y texto */
+    padding: 15px 30px;
+    background-color: #0b1b2b; /* Fondo semi-transparente */
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.logo {
+    width: 45px;
+    height: 40px;
+}
+
+.titulo-header {
+    color: #ffffff; /* Texto blanco */
+}
+
+/* =============================
+   CONTENEDOR PRINCIPAL
+   ============================= */
+.main-container {
+    display: flex;
+    flex-direction: column; /* Elementos en columna */
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 80px); /* Altura total menos el encabezado */
+}
+
+.titulo-principal {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+/* =============================
+   TARJETAS DE PRIVADAS
+   ============================= */
+.privadas-container {
+    display: flex;
+    flex-wrap: wrap; /* Permite que las tarjetas salten a otra fila */
+    justify-content: center;
+    gap: 40px; /* Espacio entre tarjetas */
+    margin-bottom: 50px;
+}
+
+/* Cada tarjeta (privada) */
+.privada-card {
+    background-color: transparent;
+    border: 3px solid transparent;
+    border-radius: 12px;
+    width: 160px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* Imagen dentro de la tarjeta */
+.privada-card img {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: transform 0.3s ease; /* Efecto al pasar el cursor */
+}
+
+/* Efecto al pasar el ratón sobre la tarjeta */
+.privada-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Resalta el borde en color azul al pasar el ratón */
+.privada-card:hover {
+    border-color: #3c09e5;
+}
+
+/* Cuando se selecciona una privada (checked) */
+input[type="radio"]:checked + label {
+    border-color: #09a3e5; /* Borde rojo */
+    box-shadow: 0 0 20px rgba(9, 68, 229, 0.6); /* Efecto de brillo */
+}
+
+/* Texto del nombre de la privada */
+.privada-nombre {
+    font-size: 1rem;
+    color: #132a76;;
+    font-weight: 500;
+}
+
+/* =============================
+   BOTÓN "CONTINUAR"
+   ============================= */
+.btn-continuar {
+    background-color: #0b1b2b; /* Rojo característico de Netflix */
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    font-size: 1.1rem;
+    border-radius: 6px;
+    transition: 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-regresar {
+    background-color: #0b1b2b; /* Rojo característico de Netflix */
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    font-size: 1.1rem;
+    border-radius: 6px;
+    transition: 0.3s ease;
+    cursor: pointer;
+}
+
+/* Efecto al pasar el cursor sobre el botón */
+.btn-continuar:hover {
+    background-color: #0674b0;
+}
+
+.btn-regresar:hover {
+    background-color: #0674b0;
+}
+/* =============================
+   MENSAJE DE ERROR
+   ============================= */
+.error-message {
+    color: #000000; /* negro brillante */
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 1rem;
+}
+
+/* =============================
+   DISEÑO RESPONSIVO (para móviles)
+   ============================= */
+@media (max-width: 768px) {
+    .privadas-container {
+        gap: 20px;
+    }
+
+    .privada-card {
+        width: 120px;
+        height: 150px;
+    }
+
+    .privada-card img {
+        width: 80px;
+        height: 80px;
+    }
+
+    .titulo-principal {
+        font-size: 1.6rem;
+    }
+}
+
+
+/* --- Estilos del Popup de Carga --- */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.popup-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.popup-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    width: 90%;
+    max-width: 380px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    transform: scale(0.9);
+    transition: transform 0.3s ease-in-out;
+}
+
+@keyframes popup-spring-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+}
+.popup-overlay.visible .popup-content {
+    animation: popup-spring-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.popup-content .popup-title {
+    margin-top: 0;
+    font-size: 1.5em;
+}
+
+/* Estilos para el círculo de carga */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #e2e8f0; /* Gris claro del borde */
+    border-top: 5px solid #1e40af; /* Azul principal */
+    border-radius: 50%;
+    margin: 20px auto 0;
+    animation: spin 1s linear infinite;
+}
+
+/* Animación de rotación */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

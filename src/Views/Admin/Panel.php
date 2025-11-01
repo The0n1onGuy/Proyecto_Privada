@@ -1,14 +1,41 @@
+<?php
+use App\Core\PopupHelper;
+?>
+<?php
+// --- INICIO DE LÓGICA DE DATOS DE PRIVADA ---
+// Definimos variables por defecto
+$current_privada_name = "Seleccionar Privada";
+$current_privada_img = "/images/default_privada.png";
+
+// Verificamos si la variable $privada_actual fue cargada por el controlador
+if (isset($privada_actual) && $privada_actual) {
+    $current_privada_name = htmlspecialchars($privada_actual['nombre']);
+    
+    // Construimos la ruta de la imagen
+    $nombre_archivo_img = strtolower(str_replace(' ', '_', $privada_actual['nombre'])) . '.jpg';
+    $ruta_imagen_privada = "/images/privadas/" . $nombre_archivo_img;
+    
+    // Usamos la imagen de la privada, pero con un fallback a la default
+    $current_privada_img = $ruta_imagen_privada;
+}
+// --- FIN DE LÓGICA DE DATOS DE PRIVADA ---
+?>
+
 <!doctype html>
 <html lang="es">
 <head>
+
+
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard - Administrador</title>
   
-  <link href="/css/admin_panel.css" rel="stylesheet">
-  <!-- Nuevo estilo para poder manejar mejor la distribucion de elementos-->
-  <link href="/css/admin_sectionLayout.css" rel="stylesheet">
-  
+  <link href="/css/Admin/admin_panel.css" rel="stylesheet">
+  <link href="/css/Admin/admin_movil.css" rel="stylesheet">
+  <!-- Estilo para manejar la distribucion de elementos-->
+  <link href="/css/Admin/admin_sectionLayout.css" rel="stylesheet">
+  <link href="/css/utilities/popup.css" rel="stylesheet">
+
     <?php
     // Carga los estilos específicos que el controlador haya definido para la sección
     if (isset($assets['styles'])) {
@@ -38,20 +65,11 @@
         <svg fill="#ffffff" width="24px" height="24px" viewBox="0 0 24.00 24.00" xmlns="http://www.w3.org/2000/svg" id="dashboard-alt" class="icon glyph" stroke="#ffffff" stroke-width="0"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M14,10V22H4a2,2,0,0,1-2-2V10Z"></path><path d="M22,10V20a2,2,0,0,1-2,2H16V10Z"></path><path d="M22,4V8H2V4A2,2,0,0,1,4,2H20A2,2,0,0,1,22,4Z"></path></g></svg>
         <span class="nav-link-text">Dashboard</span>
       </a>
-      <a class="nav-link" href="#" data-view ="privada" title="Privada">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"> <path d="M2 22H22" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/> <path d="M2.94995 22L2.99995 9.96999C2.99995 9.35999 3.28995 8.78004 3.76995 8.40004L10.77 2.95003C11.49 2.39003 12.5 2.39003 13.23 2.95003L20.23 8.39003C20.72 8.77003 21 9.34999 21 9.96999V22" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linejoin="round"/> <path d="M15.5 11H8.5C7.67 11 7 11.67 7 12.5V22H17V12.5C17 11.67 16.33 11 15.5 11Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/> </svg>
-        <span class="nav-link-text">Privada</span>
-      </a>
       
-      <a class="nav-link" href="/admin/users" data-view="users" title="Gestión de Usuarios">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      
+      <a class="nav-link" href="/admin/residents" data-view="residents" title="Gestión de Residentes">
+        <svg width="24px" height="24px" viewBox="-1.6 -1.6 19.20 19.20" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" class="bi bi-people-fill"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path> <path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"></path> <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path> </g></svg>
         <span class="nav-link-text">Residentes</span>
-      </a>
-      <a class="nav-link" href="#" data-view="proveedores" title="Proveedores">
-        <svg width="24" height="24" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="m 12.666667,7.666665 -1.666667,0 0,2 -0.666667,-0.44375 -0.6666663,0.44375 0,-2 -1.6666667,0 c -0.1833333,0 -0.3333333,0.15 -0.3333333,0.33334 l 0,4 c 0,0.18333 0.15,0.33333 0.3333333,0.33333 l 4.666667,0 C 12.85,12.333335 13,12.183335 13,12.000005 l 0,-4 c 0,-0.18334 -0.15,-0.33334 -0.333333,-0.33334 z m -8.0000003,-1.33333 4.6666666,0 c 0.1833334,0 0.3333334,-0.15 0.3333334,-0.33333 l 0,-4 c 0,-0.18334 -0.15,-0.33334 -0.3333334,-0.33334 l -1.6666666,0 0,2 L 7,3.222915 l -0.6666667,0.44375 0,-2 -1.6666666,0 c -0.1833334,0 -0.3333334,0.15 -0.3333334,0.33334 l 0,4 c 0,0.18333 0.15,0.33333 0.3333334,0.33333 z M 6,7.666665 l -1.6666667,0 0,2 L 3.6666667,9.222915 3,9.666665 l 0,-2 -1.6666667,0 C 1.15,7.666665 1,7.816665 1,8.000005 l 0,4 c 0,0.18333 0.15,0.33333 0.3333333,0.33333 l 4.6666667,0 c 0.1833333,0 0.3333333,-0.15 0.3333333,-0.33333 l 0,-4 c 0,-0.18334 -0.15,-0.33334 -0.3333333,-0.33334 z"/>
-        </svg>
-        <span class="nav-link-text">Proveedores</span>
       </a>
       <a class="nav-link" href="/admin/servicios" data-view="servicios" title="Servicios">
         <svg width="24" height="24" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -71,10 +89,10 @@
         </svg>
         <span class="nav-link-text">Avisos</span>
       </a>
-      <a class="nav-link" href="/admin/reportes" data-view="reportes" title="Reportes">
+      <a class="nav-link" href="/admin/visitas" data-view="visitas" title="visitas">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"/></svg>
-        <span class="nav-link-text">Reportes</span>
+        <span class="nav-link-text">Visitas</span>
       </a>
       <a class="nav-link" href="/admin/configs" data-view="configs" title="Configuración">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
@@ -90,11 +108,34 @@
 
   <header class="topbar" id="topbar">
     <div class="topbar-start">
-        <div class="logo-icon">
-            <img src="/images/MenuIcon.png" alt="Logo" style="width:50px; height:40px; margin-top: 10px;">
-        </div>
-        <div class="logo-text">Nexus Access</div>
+    <button id="mobileMenuBtn" class="mobile-menu-btn">&#9776;</button> 
+    <div class="logo-icon">
+        <img src="/images/MenuIcon.png" alt="Logo" style="width:50px; height:40px; margin-top: 10px;">
     </div>
+    <div class="logo-text">Nexus Access</div>
+<div class="private-dropdown">
+  <!-- <button class="private-btn" id="privateBtn">
+    <img src="/images/default_privada.png" alt="" class="private-avatar" id="privateAvatar">
+    <span class="private-name" id="privateName">Seleccionar Privada</span>
+    <svg class="dropdown-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="white"/></svg>
+  </button> -->
+  <button class="private-btn" id="privateBtn">
+    <img 
+        src="<?php echo $current_privada_img; ?>" 
+        alt="Logo Privada" 
+        class="private-avatar" 
+        id="privateAvatar"
+        onerror="this.src='/images/default_privada.png'">
+    <span class="private-name" id="privateName">
+        <?php echo $current_privada_name; ?>
+    </span>
+  </button>
+  <div class="private-menu" id="privateMenu"></div>
+</div>
+</div>
+
+</div>
+
     <div class="topbar-end">
         </div>
   </header>
@@ -122,12 +163,21 @@
         <div class="spinner"></div>
     </div>
   </div>
-
-  <script src="/js/jquery-3.7.1.min.js"></script>
-  <script src="/js/dataTables.js"></script>
-  <script src="/js/admin_dashboard.js"></script>
-  <script src="/js/admin_content.js"></script>
+  <div id="resultPopup" class="popup-overlay">
+    <div class="popup-content">
+        <h2 id="resultPopupTitle" class="popup-title"></h2>
+        <p id="resultPopupMessage" class="popup-message"></p>
+        <button id="resultPopupCloseBtn" class="popup-close-btn">Entendido</button>
+    </div>
+  </div>
+  <!-- SIEMPRE COLOCA ESTE PRIMERO ANTES DEL dataTables, CONFIA!-->
+  <script src="/js/Utilities/jquery-3.7.1.min.js"></script> 
+  <script src="/js/Utilities/dataTables.js"></script>
+  <script src="/js/Admin/admin_panel.js"></script>
+  <script src="/js/Admin/admin_movil.js"></script>
   
+  <script src="/js/Utilities/popup.js"></script>
+
     <?php
     // Carga los scripts específicos que el controlador haya definido
     if (isset($assets['scripts'])) {
@@ -138,3 +188,7 @@
     ?>
 </body>
 </html>
+
+
+<!-- THE CODE END HERE   REFERENCE -->
+

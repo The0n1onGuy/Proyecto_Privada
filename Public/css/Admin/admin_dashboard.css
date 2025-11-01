@@ -1,0 +1,13 @@
+:root { font-family: 'Inter', sans-serif; }
+
+/* Clases de estado dinámicas para la TABLA DE RESIDENTES */
+.status-al-corriente { color: #10B981; } /* Verde */
+.status-pendiente { color: #F59E0B; } /* Amarillo */
+.status-moroso { color: #EF4444; } /* Rojo */
+
+.status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 0.5rem; }
+.status-al-corriente .status-dot { background-color: #10B981; }
+.status-pendiente .status-dot { background-color: #F59E0B; }
+.status-moroso .status-dot { background-color: #EF4444; }
+
+.avisos-container { max-height: 400px; overflow-y: auto; }

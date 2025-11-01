@@ -1,0 +1,147 @@
+@import "datatables_modificacion.css";
+@import "fomularios_modificacion.css";
+
+:root {
+    --color-fondo: #f2f4f8;
+    --color-texto: #333;
+    --color-card: #ffffff;
+    --tamano-fuente: 16px;
+}
+
+/* GENERAL */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    font-size: var(--tamano-fuente);
+    color: var(--color-texto);
+    background-color: var(--color-fondo);
+    transition: all 0.3s ease;
+}
+
+.config-container {
+    max-width: 850px;
+    margin: 50px auto;
+    background: var(--color-card);
+    border-radius: 16px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    padding: 30px 40px;
+    transition: background 0.3s, color 0.3s;
+    position: relative;
+}
+
+/* MENÚ INTERNO */
+.config-menu {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+    position: sticky;
+    top: 0;
+    background: var(--color-card);
+    padding: 10px 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    z-index: 10;
+}
+
+.config-menu .menu-btn {
+    background: #f3f5f9;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.config-menu .menu-btn:hover { background: #e2e7f1; }
+.config-menu .menu-btn.active { background: #0078d7; color: #fff; }
+
+/* SECCIONES */
+.section-container { display: none; }
+.section-container.active { display: block; }
+
+.section-title {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: #444;
+    font-size: 18px;
+    font-weight: 600;
+    border-left: 4px solid #0078d7;
+    padding-left: 10px;
+}
+
+/* BOTONES PRINCIPALES */
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 20px;
+}
+
+.config-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f3f5f9;
+    border: none;
+    border-radius: 12px;
+    padding: 25px 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    color: #333;
+}
+
+.config-btn:hover { background-color: #e2e7f1; transform: scale(1.05); }
+.config-btn span { font-size: 30px; margin-bottom: 8px; }
+
+/* PANEL DE OPCIONES */
+.option-panel {
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 12px;
+}
+
+.option-panel .option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f3f5f9;
+    padding: 12px 15px;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.option-panel .option:hover { background: #e6e9f0; }
+.option-panel .option span { font-size: 22px; margin-right: 10px; }
+
+input[type="color"], input[type="range"], input[type="file"], select, input[type="checkbox"] {
+    cursor: pointer;
+}
+
+body.dark-mode {
+    --color-fondo: #1c1f26;
+    --color-texto: #f5f5f5;
+    --color-card: #2a2f3a;
+}
+
+.background-preview {
+    width: 100%;
+    height: 120px;
+    border-radius: 10px;
+    border: 2px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 14px;
+    margin-top: 10px;
+    background-size: cover;
+    background-position: center;
+}
+

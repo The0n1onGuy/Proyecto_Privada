@@ -1,0 +1,147 @@
+/* ================================================================= */
+/* Estilos Base de Popup (Adaptados de admin_panel.css)     */
+/* ================================================================= */
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.popup-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.popup-content {
+    background: white;
+    padding: 30px 35px; /* Padding generoso */
+    border-radius: 12px;
+    width: 90%;
+    max-width: 420px; /* Ancho consistente */
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    text-align: left; /* Alineamos a la izquierda para el header */
+    
+    /* Variables para animación */
+    transform: scale(0.7);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+}
+
+/* Animación 'spring' al aparecer */
+.popup-overlay.visible .popup-content {
+    opacity: 1;
+    transform: scale(1);
+    /* Descomenta la línea de abajo si prefieres la animación @keyframe */
+    /* animation: popup-spring-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; */
+}
+
+/* Animación Keyframe (Opcional si usas la transición de arriba) */
+@keyframes popup-spring-in {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ================================================================= */
+/* Estilos para el contenido (Header, Body, Footer)         */
+/* ================================================================= */
+
+#globalPopup .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0; /* slate-200 */
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+#globalPopup .popup-title {
+    margin: 0;
+    font-size: 1.35rem; /* ~22px */
+    font-weight: 700;
+    color: #1e293b; /* slate-800 */
+}
+
+#globalPopup .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    line-height: 1;
+    color: #64748b; /* slate-500 */
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+#globalPopup .modal-close:hover {
+    opacity: 1;
+}
+
+#globalPopup .popup-message {
+    font-size: 1.05rem; /* ~17px */
+    color: #475569; /* slate-600 */
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+#globalPopup .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+    border-top: 1px solid #e2e8f0; /* slate-200 */
+    padding-top: 20px;
+}
+
+/* Estilo base del botón, adaptado de admin_panel.css */
+#globalPopup .popup-close-btn {
+    padding: 10px 25px;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+#globalPopup .popup-close-btn:hover {
+     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+
+/* ================================================================= */
+/* Estilos dinámicos por Tipo de Popup                */
+/* ================================================================= */
+
+/* --- Tipo: Notificación (Azul - Default) --- */
+#globalPopup .popup-content.notification .popup-title { color: #2563eb; } /* blue-600 */
+#globalPopup .popup-content.notification .popup-close-btn { background-color: #3b82f6; } /* blue-500 */
+#globalPopup .popup-content.notification .popup-close-btn:hover { background-color: #2563eb; } /* blue-600 */
+
+/* --- Tipo: Alerta (Naranja) --- */
+#globalPopup .popup-content.alert .popup-title { color: #ea580c; } /* orange-600 */
+#globalPopup .popup-content.alert .popup-close-btn { background-color: #f97316; } /* orange-500 */
+#globalPopup .popup-content.alert .popup-close-btn:hover { background-color: #ea580c; } /* orange-600 */
+
+/* --- Tipo: Error (Rojo - Tomado de #resultPopup) --- */
+#globalPopup .popup-content.error .popup-title { color: #dc2626; } /* red-600 */
+#globalPopup .popup-content.error .popup-close-btn { background-color: #ef4444; } /* red-500 */
+#globalPopup .popup-content.error .popup-close-btn:hover { background-color: #dc2626; } /* red-600 */
+
+/* --- Tipo: Éxito (Verde) --- */
+#globalPopup .popup-content.success .popup-title { color: #15803d; } /* green-700 */
+#globalPopup .popup-content.success .popup-close-btn { background-color: #16a34a; } /* green-600 */
+#globalPopup .popup-content.success .popup-close-btn:hover { background-color: #15803d; } /* green-700 */

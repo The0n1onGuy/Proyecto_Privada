@@ -1,0 +1,460 @@
+
+/* ------------ Estilo para Moviles no afecta al resto de los estilos ----------- */
+
+/* Botón menú móvil */
+.mobile-menu-btn {
+    display: none; /* Oculto en escritorio */
+    font-size: 24px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+/* Sidebar oculto para móviles y overlay */
+@media (max-width: 768px) {
+    /* Mostrar botón en móviles */
+    .mobile-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Sidebar flotante */
+    #sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1500;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Overlay semitransparente */
+    #sidebarOverlay {
+        display: block;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.4);
+        z-index: 1400;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    #sidebarOverlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* No desplazar contenido principal */
+    .topbar, .content-wrap {
+        margin-left: 0 !important;
+    }
+}
+
+/* ======== BOTON DE SELECCION DE PRIVADAS ======== */
+
+/* ======== RESPONSIVE ADAPTATIVO DEL MENÚ DE PRIVADAS ======== */
+
+/* Menú desplegable adaptativo */
+.private-menu {
+    display: none; 
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #111;
+    min-width: 180px;
+    max-width: 90vw;       /* Nunca ocupar más del 90% del ancho de la pantalla */
+    max-height: 70vh;      /* Altura máxima del menú: 70% del viewport */
+    overflow-y: auto;      /* Scroll vertical si hay muchas opciones */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    z-index: 1000;
+    padding: 5px 0;
+}
+
+/* Opciones dentro del menú */
+.private-option-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 6px 12px;
+    background: none;
+    border: none;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;   /* Evita que el texto se divida en varias líneas */
+    overflow: hidden;      /* Corta el texto que se salga */
+    text-overflow: ellipsis; /* Añade "..." si el texto es demasiado largo */
+}
+
+/* Imagen pequeña de cada privada */
+.private-avatar-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* ===== MEDIA QUERIES PARA PANTALLAS PEQUEÑAS ===== */
+
+/* Tablets y móviles medianos */
+@media (max-width: 768px) {
+    .private-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .private-avatar {
+        width: 24px;
+        height: 24px;
+    }
+
+    .private-menu {
+        min-width: 140px;
+        max-width: 90vw;
+    }
+
+    .private-option-btn {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+    .private-btn {
+        padding: 3px 6px;
+        font-size: 11px;
+    }
+
+    .private-avatar {
+        width: 20px;
+        height: 20px;
+    }
+
+    .dropdown-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .private-menu {
+        min-width: 120px;
+        max-width: 95vw;     /* Que no se salga del borde del móvil */
+    }
+}
+
+/* === ADAPTACIÓN DE LA TABLA DE RESIDENTES EN MÓVIL === */
+
+/* --- Ajuste específico para TABLETAS: permitir scroll solo en la tabla --- */
+@media (min-width: 600px) and (max-width: 1024px) {
+
+    /* Contenedor con scroll horizontal */
+    #tablaResidentes {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; /* Suaviza el desplazamiento en iPad */
+        display: block;
+        width: 100%;
+    }
+
+    /* Ajustes generales para que no se deforme el diseño */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 700px; /* Evita que las columnas se compriman demasiado */
+    }
+
+    /* Fija el resto del contenido */
+    body, html {
+        overflow-x: hidden; /* Evita scroll horizontal general */
+    }
+
+    /* Ajuste de márgenes y anchos generales */
+    .card-header, .filter-container, .modal-content {
+        max-width: 100%;
+    }
+}
+
+/* === Adaptación completa para móviles === */
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* === Cabecera de la sección === */
+    .card-header {
+        display: flex;
+        flex-direction: column;   /* Coloca el título arriba y el filtro abajo */
+        align-items: center;
+        text-align: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .card-header h6 {
+        font-size: 1.1rem;
+        margin: 0;
+        color: #334155;
+    }
+
+    .filter-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-container label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #475569;
+    }
+
+    .filter-container select {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        background-color: #fff;
+        font-size: 0.9rem;
+        width: 160px;
+        text-align: center;
+    }
+
+    /* === Tabla responsive: solo mostrar ID, Nombre y Acciones === */
+    #tablaResidentes {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        white-space: nowrap;
+        margin-top: 10px;
+    }
+
+    #tablaResidentes thead, 
+    #tablaResidentes tbody, 
+    #tablaResidentes tr {
+        display: table;
+        width: auto;
+        table-layout: auto;
+    }
+
+    /* Oculta todas las columnas excepto la 1, 2 y 9 */
+    #tablaResidentes th,
+    #tablaResidentes td {
+        display: none;
+    }
+
+    #tablaResidentes th:nth-child(1),
+    #tablaResidentes td:nth-child(1) {
+        display: table-cell;
+        min-width: 50px;
+    }
+
+ 
+    #tablaResidentes th:nth-child(2),
+    #tablaResidentes td:nth-child(2) {
+        display: table-cell;
+        min-width: 170px;
+    }
+
+    #tablaResidentes th:nth-child(9),
+    #tablaResidentes td:nth-child(9) {
+        display: table-cell;
+        min-width: 130px;
+    }
+
+
+    #tablaResidentes th, 
+    #tablaResidentes td {
+        padding: 8px;
+        font-size: 0.875rem;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    /* Centrar y ajustar los íconos SVG en la columna Acciones */
+    #tablaResidentes td:nth-child(9) {
+        text-align: right;       /* Empuja los íconos hacia la derecha */
+        padding-right: 28px;     /* Ajusta el margen según el ancho de la tabla */
+        vertical-align: middle;
+    }
+
+    /* Mantener el contenido posterior correctamente alineado */
+    .section-card {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+}
+
+/* === ESTILOS GLOBALES PARA BOTONES DE ACCIÓN CON SVG === */
+
+#tablaResidentes td:nth-child(9) button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    margin-left: 4px; /* Espaciado entre íconos */
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#tablaResidentes td:nth-child(9) button:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+#tablaResidentes td:nth-child(9) svg {
+    width: 24px;
+    height: 24px;
+    fill: #031159; /* Color del ícono */
+}
+
+
+/* === ADAPTACION DE LA TABLA DE COLABORADORES EN MOVIL === */
+
+/* Ajustes para móviles muy pequeños */
+@media (max-width: 480px) {
+    .button-row {
+        gap: 10px;
+    }
+    .button-row .btn {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+
+
+
+/* === ADAPTACION DE LA TABLA DE SERVICIOS EN MOVIL === */
+
+
+
+
+
+/* === ADAPTACION DEL PANEL CONFIG === */
+/*---------------------------------*/
+/*      ADAPTACIÓN PARA MÓVILES    */
+/*---------------------------------*/
+@media (max-width: 600px) {
+    /* Contenedor principal */
+    .config-container {
+        margin: 20px 10px;
+        padding: 20px 15px;
+    }
+
+    /* Menú interno fijo */
+    .config-menu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 10px;
+        background: var(--color-card);
+        z-index: 100;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    /* Para que el contenido no quede oculto debajo del menú fijo */
+    .section-container {
+        padding-top: 70px; /* Ajusta según la altura del menú */
+    }
+
+    .config-menu .menu-btn {
+        font-size: 12px;
+        padding: 8px 10px;
+        margin: 5px 0;
+    }
+
+    /* Títulos de secciones */
+    .section-title {
+        font-size: 16px;
+        margin-top: 20px;
+    }
+
+    /* Botones principales */
+    .button-grid {
+        gap: 15px;
+    }
+
+    .config-btn {
+        padding: 20px 8px;
+        font-size: 13px;
+    }
+
+    .config-btn span {
+        font-size: 26px;
+        margin-bottom: 5px;
+    }
+
+    /* Panel de opciones */
+    .option-panel {
+        padding: 10px;
+    }
+
+    .option-panel .option {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    /* Previews y modal */
+    .background-preview {
+        height: 100px;
+    }
+
+    .modal-content {
+        margin: 50px 10px;
+        padding: 15px;
+    }
+}
+
+
+/* === SCROLL SOLO PARA EL CONTENIDO PRINCIPAL === */
+.content-wrap {
+  overflow-y: auto;          /* Permite desplazamiento vertical */
+  height: calc(100vh - 70px); /* Ajusta el alto restando la barra superior (modifica si tu header mide diferente) */
+  padding: 20px;
+  box-sizing: border-box;
+  scrollbar-width: thin;      /* Estilo del scroll en Firefox */
+  scrollbar-color: #64748b #e2e8f0; /* Colores del scroll */
+}
+
+/* Estilo del scrollbar */
+.content-wrap::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content-wrap::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.content-wrap::-webkit-scrollbar-thumb {
+  background-color: #64748b;
+  border-radius: 10px;
+}
+
+.content-wrap::-webkit-scrollbar-thumb:hover {
+  background-color: #475569;
+}

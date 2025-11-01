@@ -1,0 +1,63 @@
+/* ==========================================================
+   📱 RESPONSIVIDAD - MODO MÓVIL
+   ========================================================== */
+@media (max-width: 768px) {
+
+  /* Oculta el menú lateral por defecto */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px; /* Ajusta según tu diseño */
+    background-color: #1e293b; /* Mantén el mismo color que usas en escritorio */
+    z-index: 2000; /* Asegura que quede por encima del contenido */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* Sidebar visible al activar */
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  /* Ajusta el contenido principal */
+  .content-wrap {
+    margin-left: 0 !important; /* Quita el espacio lateral */
+    padding: 15px;
+  }
+
+  /* La barra superior debe mantenerse fija */
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1500;
+  }
+
+  /* Ajusta los márgenes para que el contenido no quede debajo del header */
+  main {
+    margin-top: 80px;
+  }
+
+  /* Botón del menú visible en móvil */
+  .menu-toggle {
+    display: block;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Asegura que los íconos del menú se vean bien */
+  .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    color: white;
+  }
+
+  .nav-link svg {
+    margin-right: 10px;
+  }
+}

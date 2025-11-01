@@ -35,7 +35,14 @@ class LoginController
 
         if ($user) {
             $_SESSION['user_id'] = $user['id_usuario'];
-            $_SESSION['user_role'] = $user['id_rol'];
+            $_SESSION['user_role'] = (int)$user['id_rol'];
+            
+            if ($_SESSION['user_role'] === 2) {
+
+                $_SESSION['id_privada'] = $user ['id_privada'];
+
+            }
+
             return $user['id_rol']; // Devuelve el rol para que el router rediriga en base a él.
         } else {
             $_SESSION['error'] = 'Usuario o contraseña incorrectos.';

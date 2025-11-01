@@ -1,0 +1,457 @@
+/*---------------------------------*/
+/*        CABECERAS Y TARJETAS     */
+/*---------------------------------*/
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-container label {
+    font-weight: 500;
+    color: #475569;
+}
+
+.filter-container select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background-color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/*---------------------------------*/
+/*              BADGES              */
+/*---------------------------------*/
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.owner {
+    background-color: #dbeafe;
+    color: #1e40af; 
+}
+
+.badge.resident {
+    background-color: #e2e8f0; /* light gray */
+    color: #475569; /* dark gray */
+}
+
+/*---------------------------------*/
+/*             BOTONES              */
+/*---------------------------------*/
+.btn {
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    text-align: center;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #0b2a4a; 
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #11304b;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: #475569;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 5px;
+}
+
+.btn-edit {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.btn-edit:hover {
+    transform: scale(1.2);
+}
+
+/* Contenedor de los botones */
+.button-row {
+    display: flex;
+    flex-wrap: wrap;          /* Permite que se ajusten si la pantalla es muy pequeña */
+    gap: 15px;                /* Espacio entre botones */
+    justify-content: flex-start; /* Alineación horizontal */
+    margin-bottom: 20px;      /* Espacio debajo de la fila de botones */
+}
+
+/* Botones individuales */
+.button-row .btn {
+    flex: 1 1 auto;           /* Crece y se encoge según el espacio disponible */
+    min-width: 120px;         /* Anchura mínima para mantenerlos legibles */
+    text-align: center;
+}
+
+/*---------------------------------*/
+/*             RADIOS               */
+/*---------------------------------*/
+form-group-radio {
+    grid-column: 1 / -1; /* Ocupa el ancho completo en el grid */
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 8px;
+    accent-color: #0b2a4a;
+    width: 16px;
+    height: 16px;
+}
+
+/*---------------------------------*/
+/*               MODAL              */
+/*---------------------------------*/
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 12px;
+    width: 90%;
+    padding: 25px;
+    max-width: 700px; /* Ancho máximo del modal */
+    box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    transform: translateY(-30px);
+    transition: transform 0.3s ease;
+    
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; 
+    overflow: hidden; 
+}
+
+.modal-overlay.visible .modal-content {
+    transform: translateY(0);
+}
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; 
+    min-height: 0;
+}
+
+.modal-header h5 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1e293b;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    line-height: 1;
+    color: #64748b;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.modal-close:hover {
+    opacity: 1;
+}
+.modal-body {
+    flex-grow: 1; 
+    overflow-y: auto;
+    padding: 20px 25px;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+    border-top: 1px solid #e2e8f0;
+    padding: 20px 25px;
+}
+
+
+/*---------------------------------*/
+/*            FORMULARIOS           */
+/*---------------------------------*/
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.form-group input,
+.form-group select {
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: #f8fafc;
+}
+
+.form-group-dynamic {
+    margin-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+}
+
+.form-group-dynamic .form-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.form-group-dynamic .form-group label {
+    flex-shrink: 0;
+    width: 80px;
+}
+
+.form-group-dynamic .form-group select,
+.form-group-dynamic .form-group input {
+    flex-grow: 1;
+}
+
+/*---------------------------------*/
+/*      INPUTS DINÁMICOS            */
+/*---------------------------------*/
+.dynamic-input .input-group {
+    display: flex;
+    width: 100%;
+}
+
+.dynamic-input .form-control-selector {
+    flex: 0 0 auto;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+    background-color: #f1f5f9;
+}
+
+.dynamic-input .form-control-input {
+    flex: 1 1 auto;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.dynamic-input .input-group .form-control-input:only-child {
+    border-radius: 6px;
+}
+
+
+/* ============================================================
+   1. CONFIGURACIÓN BASE PARA SCROLL Y FIJACIÓN EN MODALES
+   ============================================================ */
+
+/* Estructura general de los modales */
+.modal-content { padding: 0; }
+.modal-header,
+#addResidentModal .form-actions,
+#addExtraModal .form-actions {
+    padding: 20px 25px;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+.modal-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px 25px;
+}
+
+/* Pie de formulario fijo en modales de añadir o extra */
+#addResidentModal .form-actions,
+#addExtraModal .form-actions {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 0;
+}
+
+/* ============================================================
+   2. AJUSTES ESPECÍFICOS PARA EL MODAL DE EDICIÓN (#residentModal)
+   ============================================================ */
+
+/* El formulario es el contenedor de scroll */
+#residentModal form {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* Espaciado interno en secciones desplazables */
+#residentModal .form-grid,
+#residentModal .form-group-dynamic { padding: 0 25px; }
+
+/* Barra de acciones fija al fondo (sticky) */
+#residentModal .form-actions {
+    position: sticky; bottom: 0; z-index: 10;
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 20px; border-top: 1px solid #e2e8f0;
+    background: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    padding: 20px 25px;
+}
+
+/* ============================================================
+   3. MEJORAS ESTÉTICAS EN EL MODAL DE EDICIÓN
+   ============================================================ */
+
+/* Distribución en dos columnas */
+#residentModal .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding-top: 20px;
+}
+
+/* Espacio inferior para no tapar campos con el sticky footer */
+#residentModal .form-group-dynamic { padding-bottom: 20px; }
+
+/* Enfoque de campos mejorado */
+#residentModal .form-group input:focus,
+#residentModal .form-group select:focus {
+    border-color: #0b2a4a;
+    box-shadow: 0 0 0 2px rgba(11, 42, 74, 0.2);
+    outline: none;
+}
+
+/* ============================================================
+   4. ADAPTACIÓN RESPONSIVA PARA PANTALLAS PEQUEÑAS DEL EDITAR RESIDENTES
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+    /* Modales más amplios y sin límites de ancho */
+    .modal-content { width: 95%; max-width: none; }
+
+    /* Formularios en una sola columna */
+    .form-grid, #residentModal .form-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    /* Ocultamos scrollbars en móviles (solo visual) */
+    .modal-body::-webkit-scrollbar,
+    #residentModal form::-webkit-scrollbar {
+        width: 0; background: transparent;
+    }
+
+    /* Alineación vertical en grupos dinámicos */
+    .form-group-dynamic .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .form-group-dynamic .form-group label {
+        width: 100%;
+        margin-bottom: 0;
+        text-align: left;
+    }
+
+    /* Botones adaptados a pantalla táctil */
+    .form-actions { padding: 15px 20px; }
+    .form-actions button { flex-grow: 1; }
+
+    /* Contenedores de filtros y encabezados verticales */
+    .card-header, .filter-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+
+#password_message {
+    font-size: 0.9rem;
+    font-weight: 500;
+}

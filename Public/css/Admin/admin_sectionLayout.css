@@ -19,10 +19,10 @@
     margin-bottom: 15px;
 }
 
-/* Responsive behavior for smaller screens */
+/* Comportamiento responsivo para pantallas más pequeñas */
 @media (max-width: 1200px) {
     .dashboard-columns {
-        /* Stack the columns on top of each other on smaller screens */
+        /* Apila las columnas una encima de otra en pantallas más pequeñas */
         grid-template-columns: 1fr; 
     }
 }

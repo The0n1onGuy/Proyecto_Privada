@@ -4,7 +4,7 @@
     <table id="tablaUsuarios" class="display" style="width:100%">
         <thead>
             <tr>
-                <th>ID</th>
+                <th>#</th>
                 <th>Usuario</th>
                 <th>Nombre Completo</th>
                 <th>Correo Electrónico</th>

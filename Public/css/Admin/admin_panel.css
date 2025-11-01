@@ -195,12 +195,16 @@ body {
 }
 
 /* .content-wrap { padding: 20px; } */
+.content-wrap { padding: 20px; }
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid #dee2e6; margin-bottom: 20px; }
 .tab-link { padding: 10px 15px; border: 1px solid transparent; border-bottom: 0; border-radius: 4px 4px 0 0; cursor: pointer; background: none; color: #0d6efd; text-decoration: none; }
 .tab-link.active { background-color: #fff; border-color: #dee2e6; color: #495057; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 /* Movi el contenido de section-card y h6 a sectionLayout */
+.section-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: var(--card-shadow); margin-bottom: 20px; }
+.section-card h6 { margin: 0 0 15px 0; font-size: 1rem; font-weight: 600; }
+
 /* --- Estilos del Popup de Carga --- */
 .popup-overlay {
     position: fixed;
@@ -262,6 +266,7 @@ body {
     font-size: 1.5em;
 }
 
+/* Estilos para el círculo de carga */
 .spinner {
     width: 50px;
     height: 50px;
@@ -277,3 +282,233 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* --- Estilos del Popup de Carga --- */
+/* ... (tus estilos existentes para el popup de carga se mantienen igual) ... */
+
+
+/* --- [INICIO] NUEVOS ESTILOS PARA POPUP DE RESULTADOS --- */
+
+/* La base del popup es idéntica a la del login */
+#resultPopup .popup-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    width: 90%;
+    max-width: 380px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    transform: scale(0.9);
+}
+
+/* Animación de entrada (la misma que en login.js) */
+.popup-overlay.visible .popup-content {
+    animation: popup-spring-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+#resultPopup .popup-title {
+    margin-top: 0;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+#resultPopup .popup-message {
+    font-size: 1.1em;
+    color: #4b5563;
+    margin-bottom: 25px;
+}
+
+#resultPopup .popup-close-btn {
+    padding: 10px 25px;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+/* --- Variantes de color para Éxito y Error --- */
+
+/* Estilo para Éxito */
+#resultPopup .popup-content.success .popup-title {
+    color: #16a34a; /* Verde */
+}
+#resultPopup .popup-content.success .popup-close-btn {
+    background-color: #22c55e; /* Verde más brillante */
+}
+#resultPopup .popup-content.success .popup-close-btn:hover {
+    background-color: #16a34a;
+}
+
+/* Estilo para Error */
+#resultPopup .popup-content.error .popup-title {
+    color: #dc2626; /* Rojo */
+}
+#resultPopup .popup-content.error .popup-close-btn {
+    background-color: #ef4444; /* Rojo más brillante */
+}
+#resultPopup .popup-content.error .popup-close-btn:hover {
+    background-color: #dc2626;
+}
+
+/* --- [FIN] NUEVOS ESTILOS PARA POPUP DE RESULTADOS --- */
+
+/* ------ SELECCION DE PRIVADAS ---------*/
+
+/* Contenedor principal */
+.private-dropdown {
+    position: relative;
+    display: inline-flex;       /* Cambiado a inline-flex para alinear contenido interno */
+    margin-left: auto;          /* Esto empuja el dropdown hacia la derecha */
+
+}
+
+.topbar-start {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+
+/* Botón principal */
+.private-btn {
+    background-color: #0b1b2b;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.private-btn:hover {
+    background-color: #0396cb;
+}
+
+/* Imagen de la privada actual */
+.private-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* Icono desplegable */
+.dropdown-icon {
+    margin-left: auto;
+}
+
+/* Cada opción del menú */
+.private-option {
+    width: 100%;
+}
+
+
+.private-option-btn:hover {
+    background-color: #222;
+}
+
+/* Imagen pequeña de cada privada en el menú */
+.private-avatar-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* ======== MEDIA QUERIES PARA RESPONSIVE ======== */
+
+/* ======== RESPONSIVE ADAPTATIVO DEL MENÚ DE PRIVADAS ======== */
+
+/* Menú desplegable adaptativo */
+.private-menu {
+    display: none; 
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #111;
+    min-width: 180px;
+    max-width: 90vw;       /* Nunca ocupar más del 90% del ancho de la pantalla */
+    max-height: 70vh;      /* Altura máxima del menú: 70% del viewport */
+    overflow-y: auto;      /* Scroll vertical si hay muchas opciones */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    z-index: 1000;
+    padding: 5px 0;
+}
+
+/* Opciones dentro del menú */
+.private-option-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 6px 12px;
+    background: none;
+    border: none;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;   /* Evita que el texto se divida en varias líneas */
+    overflow: hidden;      /* Corta el texto que se salga */
+    text-overflow: ellipsis; /* Añade "..." si el texto es demasiado largo */
+}
+
+/* Imagen pequeña de cada privada */
+.private-avatar-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* ===== MEDIA QUERIES PARA PANTALLAS PEQUEÑAS ===== */
+
+/* Tablets y móviles medianos */
+@media (max-width: 768px) {
+    .private-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .private-avatar {
+        width: 24px;
+        height: 24px;
+    }
+
+    .private-menu {
+        min-width: 140px;
+        max-width: 90vw;
+    }
+
+    .private-option-btn {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+    .private-btn {
+        padding: 3px 6px;
+        font-size: 11px;
+    }
+
+    .private-avatar {
+        width: 20px;
+        height: 20px;
+    }
+
+    .dropdown-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .private-menu {
+        min-width: 120px;
+        max-width: 95vw;     /* Que no se salga del borde del móvil */
+    }
+}
+

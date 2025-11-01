@@ -1,0 +1,106 @@
+/* === Contenedor general del menú de privadas === */
+.private-dropdown {
+    position: relative;
+    display: inline-block;
+    margin-right: 30px;
+}
+
+/* === Botón visible con la privada actual === */
+.private-btn {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+    gap: 10px;
+}
+
+.private-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.private-name {
+    font-size: 14px;
+}
+
+/* === Icono del desplegable con animación de rotación === */
+.dropdown-icon {
+    transition: transform 0.3s ease;
+}
+
+.private-btn.active .dropdown-icon {
+    transform: rotate(180deg);
+}
+
+/* === Menú desplegable (por defecto oculto) === */
+.private-menu {
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background-color: #141414;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    z-index: 1000;
+
+    /* Transición suave */
+    opacity: 0;
+    transform: translateY(-10px); /* Desplazamiento inicial */
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+/* === Estado visible (con animación hacia abajo y desvanecimiento) === */
+.private-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+/* === Estilo de las opciones dentro del menú === */
+.private-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: none;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.private-option-btn:hover {
+    background-color: #333;
+}
+
+.divider {
+    margin: 8px 0;
+    border: 0;
+    border-top: 1px solid #444;
+}
+
+/* === Enlaces del menú (Configuración, Cerrar sesión, etc.) === */
+.menu-link {
+    color: #ccc;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 15px;
+    display: block;
+    transition: background 0.3s, color 0.3s;
+}
+
+.menu-link:hover {
+    background-color: #333;
+    color: white;
+}

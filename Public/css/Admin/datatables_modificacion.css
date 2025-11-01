@@ -1,0 +1,68 @@
+:root {
+  --dt-html-background: #ffffff;       /* Fondo general */
+  --dt-text-color: #212529;            /* Color de texto principal */
+  --dt-border-color: #dee2e6;          /* Color de los bordes */
+  --dt-row-hover: 13, 110, 253;        /* Color (RGB) al pasar el cursor por una fila */
+  --dt-row-stripe: 248, 249, 250;      /* Color (RGB) de las filas alternas */
+  --dt-row-selected: 0, 123, 255;      /* Color (RGB) de la fila seleccionada */
+  --dt-row-selected-text: 255, 255, 255; /* Color (RGB) del texto al seleccionar una fila */
+}
+
+/* ===== ENCABEZADO DE LA TABLA ===== */
+table.dataTable thead th {
+  background-color: #04214b;           /* Fondo del encabezado */
+  color: #ffffff;                      /* Texto del encabezado */
+  font-weight: bold;                   /* Grosor de letra */
+  text-align: center;                  /* Alineación del texto */
+  border-bottom: 3px solid #0a58ca;    /* Línea inferior del encabezado */
+  padding: 14px 10px;                  /* Espaciado interno más elegante */
+  letter-spacing: 1px;                 /* Espaciado entre letras */
+}
+
+/* ===== FILAS ===== */
+table.dataTable tbody tr:nth-child(odd) {
+  background-color: rgb(var(--dt-row-stripe));  /* Color de fondo de las filas impares */
+}
+
+table.dataTable tbody tr:nth-child(even) {
+  background-color: #ffffff;           /* Filas pares en blanco para un contraste suave */
+}
+
+table.dataTable tbody tr:hover {
+  background-color: rgba(var(--dt-row-hover), 0.1); /* Hover sutil */
+  transition: background-color 0.3s ease;
+}
+
+/* ===== CELDAS ===== */
+table.dataTable td {
+  text-align: center;                  
+  padding: 12px 10px;                 
+  border-bottom: 1px solid var(--dt-border-color);
+  font-size: 15px;                     
+  color: var(--dt-text-color);         
+}
+
+/* Selección de fila */
+table.dataTable tbody tr.selected {
+  background-color: rgba(var(--dt-row-selected), 0.2);
+  color: rgb(var(--dt-row-selected-text));
+}
+
+/* ===== PIE DE TABLA ===== */
+table.dataTable tfoot th {
+  background-color: #f1f3f5;           
+  font-weight: bold;                   
+  border-top: 2px solid var(--dt-border-color);
+  padding: 10px;
+}
+
+/* ===== CONTENEDOR DE LA TABLA ===== */
+table.dataTable {
+  border-radius: 10px;                 
+  overflow: hidden;                    
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Sombra más suave y formal */
+  background-color: var(--dt-html-background); 
+  border: 1px solid var(--dt-border-color);     /* Bordes externos */
+  width: 100%;                          
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fuente profesional */
+}
