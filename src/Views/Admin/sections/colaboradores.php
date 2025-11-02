@@ -2,6 +2,8 @@
     const colaboradoresData = <?php echo $colaboradoresJSON ?? '[]'; ?>;
 </script>
 
+<link rel="stylesheet" href="css/Admin/admin_colaboradores.css">
+
 <div class="content-header">
     <h1>Gestión de Colaboradores</h1>
     <p>Añade, edita y administra al personal.</p>
@@ -59,8 +61,6 @@
 
             echo "<td>" . htmlspecialchars($item['rol']) . "</td>";
             echo "<td>" . htmlspecialchars($item['estatus']) . "</td>";
-            
-            // --- THE MAJOR SIMPLIFICATION IS HERE ---
             echo '<td>
                     <button class="btn-icon btn-edit" 
                             title="Editar"
@@ -164,11 +164,14 @@
                     </div>
                     <div class="form-group">
                         <label for="add_phone1">Teléfono Principal</label>
-                        <input type="tel" id="add_phone1" name="phone1" required>
+                        <input type="text" id="add_phone1" name="phone1" required>
+                        <span id="phone1_message"></span>
+
                     </div>
                     <div class="form-group">
                         <label for="add_phone2">Teléfono Secundario (Opcional)</label>
-                        <input type="tel" id="add_phone2" name="phone2">
+                        <input type="text" id="add_phone2" name="phone2">
+                        <span id="phone2_message"></span>
                     </div>
                 </div>
             </div>
@@ -278,8 +281,6 @@
                     <input type="tel" id="newTelefono" name="new_telefono">
                 </div>
             </div>
-                
-            <!-- </div> -->
             </div>
             <div class="form-actions">
                 <button type="button" id="cancelBtn" class="btn-secondary">Cancelar</button>
@@ -288,4 +289,3 @@
         </form>
     </div>
 </div>
-

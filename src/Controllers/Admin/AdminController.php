@@ -268,33 +268,53 @@ class AdminController
             exit;
         }
         switch ($casoS){
-            case 1: // CREAR UN COLABORADOR
-                $json = file_get_contents('php://input');
-                $data = json_decode($json, true);
-                
-                try {
-                // Validación básica de datos
-                    if (empty($data['username']) || empty($data['password']) || empty($data['nombres'])) {
-                        throw new Exception('Faltan datos requeridos.');
+            case 1: // CREAR O VERIFICAR UN COLABORADOR
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+
+            try {
+                // ------------------------------------------------------------
+                // Verificación de usuario duplicado sin crear el registro
+                // ------------------------------------------------------------
+                $utilityModel = new UtilityModel();
+                $colaboradorModel = new ColaboradoresModel();
+                if (!empty($data['verificar']) && $data['verificar'] === true) {
+                    if (empty($data['username'])) {
+                        throw new Exception('No se proporcionó el nombre de usuario.');
                     }
+                    $existe = $utilityModel->verificarUsuario($data['username']);
 
-                    // Llama a la nueva función en el modelo
-                    $colaboradorModel = new ColaboradoresModel();
-                    $success = $colaboradorModel->creaColaborador($data);
-
-                    if ($success) {
-                        echo json_encode(['success' => true, 'message' => 'Colaborador creado exitosamente.']);
-                    } else {
-                        // Este caso es raro si se usa try/catch, pero es una salvaguarda.
-                        throw new Exception('No se pudo crear el colaborador.');
-                    }
-
-                } catch (Exception $e) {
-                    // Si el modelo lanza una excepción, la atrapamos aquí.
-                    http_response_code(500); // Internal Server Error
-                    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+                    echo json_encode(['existe' => $existe]);
+                    exit;
                 }
-                exit;
+
+                // ------------------------------------------------------------
+                // Creación real del colaborador
+                // ------------------------------------------------------------
+                if (empty($data['username']) || empty($data['password']) || empty($data['nombres'])) {
+                    throw new Exception('Faltan datos requeridos.');
+                }
+
+                // Antes de crear, también se puede verificar de nuevo (opcional)
+                if ($utilityModel->verificarUsuario($data['username'])) {
+                    echo json_encode(['success' => false, 'message' => 'El nombre de usuario ya está registrado.']);
+                    exit;
+                }
+
+                $success = $colaboradorModel->creaColaborador($data);
+
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Colaborador creado exitosamente.']);
+                } else {
+                    throw new Exception('No se pudo crear el colaborador.');
+                }
+
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+            }
+            exit;
+
             case 2: // ACTUALIZAR UN COLABORADOR
                 try {
                     //Despues almacena en un JSON el id_usuario y nombres, revisa si los campos estan vacios y envia un mensaje

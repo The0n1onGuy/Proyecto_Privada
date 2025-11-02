@@ -5,22 +5,18 @@
 
 <div class="section-card">
     <div class="card-header">
- 
-       <h6>Listado de Residentes</h6>
+        <h6>Listado de Residentes</h6>
         <div class="button-row">
-    <button id="addResidentBtn" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Añadir Nuevo
-    </button>
-    <button id="addExtraBtn" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Añadir Extras
-    </button>
-</div>
-
-
+            <button id="addResidentBtn" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Añadir Nuevo
+            </button>
+            <button id="addExtraBtn" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Añadir Extras
+            </button>
+        </div>
     </div>
     
     <div class="card-header">
-        
         <div class="filter-container">
             <label for="residentFilter">Mostrar:</label>
             <select id="residentFilter" name="residentFilter">
@@ -29,8 +25,6 @@
             </select>
         </div>
     </div>
-   
-
     
     <table id="tablaResidentes" class="display" style="width:100%">
         <thead>

@@ -6,9 +6,10 @@ use App\Models\SessionDataModel;
 
 class SessionVerifier
 {
+    
     private $model;
     private $errors = []; // Para almacenar mensajes de error (opcional)
-
+    
     /**
      * Constructor que recibe una instancia del modelo.
      * @param SessionDataModel $model Instancia del modelo para verificaciones en BD.
@@ -62,5 +63,44 @@ class SessionVerifier
     public function getErrors(): array
     {
         return $this->errors;
+    }
+
+    //INICIO DE ENCRIPTACION DE ID_PRIVADA
+    private const ENCRYPTION_KEY = 'TuClaveSecretaDebeTener32Bytes!2'; // (Esto tiene 32 bytes)
+    private const ENCRYPTION_IV  = 'EsteIVTiene16Byt';               // (Esto tiene 16 bytes)
+    private const METHOD = 'aes-256-cbc';
+    public static function encryptId($id) {
+        if (strlen(self::ENCRYPTION_KEY) !== 32) {
+            throw new \Exception("La llave de encriptación no es de 32 bytes.");
+        }
+        if (strlen(self::ENCRYPTION_IV) !== 16) {
+            throw new \Exception("El IV de encriptación no es de 16 bytes.");
+        }
+        
+        $encrypted = openssl_encrypt($id, self::METHOD, self::ENCRYPTION_KEY, 0, self::ENCRYPTION_IV);
+        // Usamos base64_encode para que sea seguro para formularios y URLs
+        return base64_encode($encrypted);
+    }
+
+    /**
+     * Desencripta un string y lo devuelve como un ID numérico (o null si falla).
+     */
+    public static function decryptId($hash) {
+        if (strlen(self::ENCRYPTION_KEY) !== 32) {
+            throw new \Exception("La llave de encriptación no está configurada.");
+        }
+        if (strlen(self::ENCRYPTION_IV) !== 16) {
+            throw new \Exception("El IV de encriptación no está configurado.");
+        }
+
+        $decoded = base64_decode($hash);
+        $decrypted = openssl_decrypt($decoded, self::METHOD, self::ENCRYPTION_KEY, 0, self::ENCRYPTION_IV);
+        
+        // Verificamos si el resultado es un número (ya que esperamos un ID)
+        if ($decrypted === false || !is_numeric($decrypted)) {
+            // Falló la desencriptación o el resultado no es un ID válido
+            return null;
+        }
+        return (int)$decrypted;
     }
 }

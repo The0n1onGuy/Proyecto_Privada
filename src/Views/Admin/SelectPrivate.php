@@ -1,3 +1,8 @@
+<?php
+    // --- CAMBIO ---
+    // Importamos la nueva clase de Seguridad al inicio del archivo
+    use App\Core\SessionVerifier;
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -60,7 +65,7 @@
                     <input type="radio" 
                            id="privada-<?php echo $privada['id_privada']; ?>" 
                            name="id_privada" 
-                           value="<?php echo $privada['id_privada']; ?>" 
+                           value="<?php echo SessionVerifier::encryptId($privada['id_privada']); ?>" 
                            hidden>
 
                     <!-- 🔹 Tarjeta visual que representa cada privada -->

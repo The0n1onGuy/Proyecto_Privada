@@ -41,4 +41,22 @@ class UtilityModel {
         // (FETCH_COLUMN dará un array simple respecto a la columna)
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
+    /**
+     * Verifica si un nombre de usuario ya existe en la base de datos.
+     *
+     * @param string $username Nombre de usuario a verificar
+     * @return bool Retorna true si existe, false si no existe
+     */
+    public function verificarUsuario($username) {
+        $conn = Database::getConnection(); // Usando la clase Database
+
+        $query = "SELECT COUNT(*) as total FROM priv_usuarios WHERE usuario = :usuario";
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam(':usuario', $username);
+        $stmt->execute();
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $resultado['total'] > 0;
+    }
+
 }

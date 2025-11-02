@@ -182,41 +182,11 @@ $(document).ready(function() {
         if (!/[!@#$%^&*(),.?\":{}|<>_\\-]/.test(password)) errors.push("Debe incluir al menos un carácter especial");
 
         if (errors.length > 0) {
-            message.textContent = "" + errors.join(" | ");
+            message.textContent = "❌ " + errors.join(" | ");
             message.style.color = "red";
         } else {
-            message.textContent = " Contraseña válida";
+            message.textContent = "✅ Contraseña válida";
             message.style.color = "green";
         }
     });
-
-    // ------------------------------------------------------------
-// Validador de teléfonos en tiempo real
-// ------------------------------------------------------------
-function validarTelefonoEnTiempoReal(inputId, messageId) {
-    const phoneInput = document.getElementById(inputId);
-    const message = document.getElementById(messageId);
-
-    phoneInput.addEventListener("input", function () {
-        const phone = phoneInput.value;
-        const phoneRegex = /^[0-9]{10}$/;
-
-        if (phone === "") {
-            message.textContent = "";
-        } else if (!/^[0-9]*$/.test(phone)) {
-            message.textContent = " Solo se permiten números";
-            message.style.color = "red";
-        } else if (!phoneRegex.test(phone)) {
-            message.textContent = " El número debe tener 10 dígitos";
-            message.style.color = "orange";
-        } else {
-            message.textContent = " Número válido";
-            message.style.color = "green";
-        }
-    });
-}
-// Activar validación para ambos campos de teléfono
-validarTelefonoEnTiempoReal("add_phone1", "phone1_message");
-validarTelefonoEnTiempoReal("add_phone2", "phone2_message");
-
 });

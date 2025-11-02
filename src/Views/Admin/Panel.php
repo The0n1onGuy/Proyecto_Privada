@@ -175,7 +175,6 @@ if (isset($privada_actual) && $privada_actual) {
   <script src="/js/Utilities/dataTables.js"></script>
   <script src="/js/Admin/admin_panel.js"></script>
   <script src="/js/Admin/admin_movil.js"></script>
-  
   <script src="/js/Utilities/popup.js"></script>
 
     <?php

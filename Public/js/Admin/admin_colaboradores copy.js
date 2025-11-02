@@ -1,17 +1,22 @@
 $(document).ready(function() {
     const modal = $('#collaboratorModal');
     const form = $('#collaboratorForm');
+    
+    const collaboratorIdInput = $('#collaboratorId');
 
     let originalContacts = {};
 
     //--------------------------------------------------------------------------------------Boton de editar
     $('#tablaColaboradores tbody').on('click', '.btn-edit', function() {
+        
+        //Llama el JSON data
         const collaboratorData = $(this).data('colaborador');
-        originalContacts = {
+         originalContacts = {
             emails: collaboratorData.correos ? [...collaboratorData.correos] : [],
             phones: collaboratorData.telefonos ? [...collaboratorData.telefonos] : []
         };
-
+        
+        //Llenalos en campos de formulario
         $('#collaboratorId').val(collaboratorData.id_usuario);
         $('#nombres').val(collaboratorData.nombres);
         $('#apellido_p').val(collaboratorData.apellido_p);
@@ -19,10 +24,11 @@ $(document).ready(function() {
         $('#rol').val(collaboratorData.rol);
         $('#privada').val(collaboratorData.privada_nombre);
         $('#estatus').val(collaboratorData.estatus);
-
+        
+        //Llenalos respectivamente en las listas del modal 
         populateContactSelector('email', originalContacts.emails);
         populateContactSelector('phone', originalContacts.phones);
-
+        
         $('#modalTitle').text('Editar Colaborador');
         $('#collaboratorModal').addClass('visible');
     });
@@ -60,6 +66,7 @@ $(document).ready(function() {
         return select.find('option:selected').text() || '';
     }
 
+    // Handle edit/delete/cancel actions
     $('.btn-edit-contact').on('click', function() {
         const type = $(this).data('type');
         setContactState(type, 'edit');
@@ -75,6 +82,7 @@ $(document).ready(function() {
         setContactState(type, 'view');
     });
 
+    // When changing selection, reflect in input (if not editing or deleting)
     $('#selectCorreo, #selectTelefono').on('change', function() {
         const type = (this.id === 'selectCorreo') ? 'email' : 'phone';
         if (contactStates[type] === 'view') {
@@ -83,6 +91,7 @@ $(document).ready(function() {
         }
     });
 
+    //Funcion de llenado de contactos y sus entradas
     function populateContactSelector(type, items) {
         const select = (type === 'email') ? $('#selectCorreo') : $('#selectTelefono');
         const input = (type === 'email') ? $('#inputCorreo') : $('#inputTelefono');
@@ -100,18 +109,20 @@ $(document).ready(function() {
         select.trigger('change');
     }
 
+    //Funcion de llenado de campo de confirmacion
     $('#selectCorreo, #selectTelefono').on('change', function() {
         const selectedText = $(this).find('option:selected').text();
         const input = (this.id === 'selectCorreo') ? $('#inputCorreo') : $('#inputTelefono');
         input.val(selectedText !== 'No hay registros' ? selectedText : '');
     });
 
+    //Logica de ocultar
     function hideModal() {
         populateContactSelector('email', originalContacts.emails);
         populateContactSelector('phone', originalContacts.phones);
         modal.removeClass('visible');
     }
-
+    
     $('#closeModalBtn, #cancelBtn').on('click', hideModal);
     $(document).on('keydown', function(e) { if (e.key === "Escape") hideModal(); });
     
@@ -122,61 +133,30 @@ $(document).ready(function() {
     });
 
     // ------------------------------------------------------------
-    // VALIDACIÓN DE FORMULARIO (con popups y resaltado)
+    // Aquí se agregará la validación de teléfonos (edición)
     // ------------------------------------------------------------
+    // En esta parte se implementará la misma lógica del formulario de agregar,
+    // para verificar que los números telefónicos (actual y nuevo) tengan
+    // exactamente 10 dígitos numéricos y no contengan letras ni símbolos.
+    // ------------------------------------------------------------
+
     $('#collaboratorForm').on('submit', function(e) {
         e.preventDefault();
 
-        const phoneActual = $('#inputTelefono');
-        const phoneNuevo = $('#newTelefono');
-        const correoActual = $('#inputCorreo');
-        const correoNuevo = $('#newCorreo');
-        const phoneRegex = /^[0-9]{10}$/;
-        const emailAction = contactStates.email;
-        const phoneAction = contactStates.phone;
+        // Validación de número telefónico actual y nuevo
+        const phoneActual = $('#inputTelefono').val();
+        const phoneNuevo = $('#newTelefono').val();
+        const phoneRegex = /^[0-9]{10}$/; // Solo permite 10 dígitos
 
-        const totalPhones = originalContacts.phones.length;
-        const totalEmails = originalContacts.emails.length;
-
-        // Resetear estilos de error
-        phoneActual.removeClass('input-error');
-        phoneNuevo.removeClass('input-error');
-        correoActual.removeClass('input-error');
-        correoNuevo.removeClass('input-error');
-
-        // Validar eliminación total
-        if ((phoneAction === 'delete' && totalPhones === 1 && !phoneNuevo.val())) {
-            phoneActual.addClass('input-error');
-            showResultPopup('Error de Validación', 'Debe conservar al menos un número telefónico registrado.', 'error');
-            phoneActual.focus();
-            return;
-        }
-
-        if ((emailAction === 'delete' && totalEmails === 1 && !correoNuevo.val())) {
-            correoActual.addClass('input-error');
-            showResultPopup('Error de Validación', 'Debe conservar al menos un correo electrónico registrado.', 'error');
-            correoActual.focus();
-            return;
-        }
-
-        // Validar formato de teléfono
-        if ((phoneAction === 'edit' && phoneActual.val() && !phoneRegex.test(phoneActual.val()))) {
-            phoneActual.addClass('input-error');
-            showResultPopup('Error de Formato', 'El número telefónico debe tener exactamente 10 dígitos numéricos.', 'error');
-            phoneActual.focus();
-            return;
-        }
-
-        if (phoneNuevo.val() && !phoneRegex.test(phoneNuevo.val())) {
-            phoneNuevo.addClass('input-error');
-            showResultPopup('Error de Formato', 'El número telefónico nuevo debe tener exactamente 10 dígitos numéricos.', 'error');
-            phoneNuevo.focus();
-            return;
+        if ((phoneActual && !phoneRegex.test(phoneActual)) || (phoneNuevo && !phoneRegex.test(phoneNuevo))) {
+            alert('Cada número telefónico debe tener exactamente 10 dígitos numéricos (sin letras ni símbolos).');
+            return; // Detiene el envío si no cumple con los requisitos
         }
 
         // ------------------------------------------------------------
-        // Envío normal si pasa las validaciones
+        // Continúa el proceso normal si pasa la validación
         // ------------------------------------------------------------
+
         const id = $('#collaboratorId').val();
         const payload = {
             id_usuario: id,
@@ -188,14 +168,39 @@ $(document).ready(function() {
             estatus: $('#estatus').val(),
             email_action: contactStates.email,
             phone_action: contactStates.phone,
-            correo_actual: correoActual.val(),
-            telefono_actual: phoneActual.val(),
-            correo_nuevo: correoNuevo.val(),
-            telefono_nuevo: phoneNuevo.val(),
+            correo_actual: $('#inputCorreo').val(),
+            telefono_actual: $('#inputTelefono').val(),
+            correo_nuevo: $('#newCorreo').val(),
+            telefono_nuevo: $('#newTelefono').val(),
             correo_id: $('#selectCorreo').val(),
             telefono_id: $('#selectTelefono').val()
         };
+        // payload = $(this).serialize();
+        // --- PARA PRUEBAS POR SI NECESITAS VER LOS DATOS ENVIADOS 
+        // console.log("Sending payload to server:", payload);
+        // --------------------------------------------------------------
+        
+        // const apiUrl = '/admin/colaboradores/update';
 
+        // fetch(apiUrl, {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify(payload)
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     if (data.success) {
+        //         alert(data.message);
+        //         hideModal();
+        //         location.reload(); 
+        //     } else {
+        //         alert('Error: ' + data.message);
+        //     }
+        // })
+        // .catch(error => {
+        //     console.error('Fetch Error:', error);
+        //     alert('Ocurrió un error de comunicación con el servidor.');
+        // });
         $.ajax({
             url: '/admin/colaboradores/update',
             type: 'POST',
@@ -205,6 +210,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     showResultPopup('¡Éxito!', response.message, 'success');
+                    // loadSection(window.location.hash.substring(1) || 'colaborador');
                 } else {
                     showResultPopup('Error', response.message, 'error');
                 }
@@ -214,4 +220,5 @@ $(document).ready(function() {
             }
         });
     });
+
 });
