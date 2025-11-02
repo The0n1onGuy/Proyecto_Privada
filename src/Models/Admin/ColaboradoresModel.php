@@ -14,7 +14,7 @@ class ColaboradoresModel {
     * @return array
     */
     //Funcion consulta para mostrar en tabla
-    public function obtenColaboradores($id_privada, array $roles_permitidos) {
+    public function obtenColaboradores(string $public_id_privada, array $roles_permitidos) {
         try {
             $conn = Database::getConnection();
             // Si por alguna razón el array de roles está vacío, no devuelvas nada.
@@ -35,28 +35,27 @@ class ColaboradoresModel {
             // Crear la consulta SQL usando los placeholders dinámicos
             $sql = "
             SELECT DISTINCT
-                iu.id_info,
-                u.id_usuario,
-                iu.nombres,
-                iu.apellido_p,
-                iu.apellido_m,
-                r.rol,
-                e.estatus,
-                pv.nombre AS privada_nombre
+                iu.id_info, u.id_usuario, iu.nombres, iu.apellido_p, iu.apellido_m,
+                r.rol, e.estatus, pv.nombre AS privada_nombre
             FROM priv_usuarios u
             JOIN priv_infousuario iu ON u.id_usuario = iu.id_usuario
             JOIN priv_roles r ON u.id_rol = r.id_rol
             JOIN priv_estatus e ON u.id_estatus = e.id_estatus
-            LEFT JOIN priv_privadas pv ON u.id_privada = pv.id_privada 
-            WHERE u.id_privada = :id_privada 
+            
+            -- 1. Unimos la tabla de privadas para poder filtrar por el UUID
+            JOIN priv_privadas pv ON u.id_privada = pv.id_privada 
+            
+            -- 2. Filtramos usando el 'public_id' (UUID), no el 'id_privada'
+            WHERE pv.public_id = :public_id 
               AND r.rol IN ($in_placeholders) 
             ORDER BY iu.id_info ASC
             ";
             
             $stmt = $conn->prepare($sql);
             
-            // Crea el array de parámetros para execute() , añade el parámetro :id_privada
-            $params = [':id_privada' => $id_privada];
+            // --- CAMBIO EN LOS PARÁMETROS ---
+            // 3. El parámetro principal ahora es el string UUID
+            $params = [':public_id' => $public_id_privada];
             
             // Luego, añade todos los parámetros de rol (ej. ':rol0' => 'Administrador')
             foreach ($roles_permitidos as $key => $role) {

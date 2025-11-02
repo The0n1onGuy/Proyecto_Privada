@@ -63,10 +63,9 @@
 
                     <!-- 🔹 Input tipo "radio" oculto, para que el usuario seleccione una privada -->
                     <input type="radio" 
-                           id="privada-<?php echo $privada['id_privada']; ?>" 
-                           name="id_privada" 
-                           value="<?php echo SessionVerifier::encryptId($privada['id_privada']); ?>" 
-                           hidden>
+                       id="privada-<?php echo $privada['id_privada']; // (El ID numérico SÓLO para el 'for'/'id' del label) ?>" 
+                       name="id_privada_publica"  value="<?php echo htmlspecialchars($privada['public_id']); ?>" 
+                       hidden>
 
                     <!-- 🔹 Tarjeta visual que representa cada privada -->
                     <label for="privada-<?php echo $privada['id_privada']; ?>" class="privada-card">

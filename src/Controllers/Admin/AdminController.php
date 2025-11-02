@@ -38,7 +38,7 @@ class AdminController
     }
     public function showDashboard()
     {
-        if (!isset($_SESSION['id_privada'])) {
+        if (!isset($_SESSION['public_id_privada'])) {
             header(header: 'Location: /admin/select-private');
             exit;
         }
@@ -519,7 +519,7 @@ class AdminController
                 $colaboradorModel = new ColaboradoresModel();
                 $utilityModel = new UtilityModel();
                 $data['roles'] = $utilityModel->obtenDatosColabRoles();
-                $colaborador = $colaboradorModel->obtenColaboradores($_SESSION['id_privada'], $data['roles']);
+                $colaborador = $colaboradorModel->obtenColaboradores($_SESSION['public_id_privada'], $data['roles']);
                 $data['colaboradores'] = $colaborador;
                 $data['Pcolaboradores'] = $utilityModel->obtenTodosPrivadas();
                 $data['colabestatus'] = $utilityModel->obtenPrimDatosEstatus();

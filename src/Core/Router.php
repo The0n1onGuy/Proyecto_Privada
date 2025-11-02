@@ -152,19 +152,22 @@ class Router
 
                 case '/admin/set-private':
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                        $encrypted_id = $_POST['id_privada'];
-                        $decrypted_id = SessionVerifier::decryptId($encrypted_id);
+                        
+                        // --- CAMBIO AQUÍ ---
+                        // 1. Obtenemos el ID público (el UUID string)
+                        $public_id = $_POST['id_privada_publica']; 
 
-                        // Si el ID es nulo, significa que la desencriptación falló
-                        // (probablemente fue manipulado)
-                        if ($decrypted_id === null) {
+                        // 2. ¡NO HAY DESENCRIPTACIÓN!
+                        // Simplemente validamos que no esté vacío (o que sea un UUID válido)
+                        if (empty($public_id)) {
                             session_destroy();
                             header('Location: /');
                             exit;
                         }
 
-                        // Guardamos el ID REAL (desencriptado) en la sesión.
-                        $_SESSION['id_privada'] = $decrypted_id;
+                        // 3. Guardamos el UUID string en la sesión.
+                        // El ID numérico '1' NUNCA toca la sesión.
+                        $_SESSION['public_id_privada'] = $public_id;
                         // --- FIN DEL CAMBIO ---
 
                         header('Location: /admin/dashboard');

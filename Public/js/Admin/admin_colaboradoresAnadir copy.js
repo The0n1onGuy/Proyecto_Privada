@@ -3,26 +3,18 @@ $(document).ready(function() {
     const addForm = $('#addCollaboratorForm');
     const form = $('#collaboratorForm');    
     
-    // ------------------------------------------------------------
-    // Mostrar modal de agregar colaborador
-    // ------------------------------------------------------------
     $('#addCollaboratorBtn').on('click', function() {
         form[0].reset(); 
         addForm.find('input, select').css('border-color', ''); 
         addModal.addClass('visible');
     });
-
-    function hideAddModal() {
+    
+    function EscondeModal() {
         addModal.removeClass('visible');
     }
-
-    $('#closeAddModalBtn, #cancelAddBtn').on('click', hideAddModal);
-    $(document).on('keydown', function(e) { if (e.key === "Escape") hideAddModal(); });
-    addModal.on('click', function(e) { if ($(e.target).is(addModal)) hideAddModal(); });
-
-    // ------------------------------------------------------------
-    // Botón de eliminar colaborador con popup
-    // ------------------------------------------------------------
+    $('#closeAddModalBtn, #cancelAddBtn').on('click', EscondeModal);
+    
+    // Botón de eliminar
     $('#tablaColaboradores tbody').on('click', '.btn-delete', function() {
         const button = $(this);
         const idToDelete = button.data('id');
@@ -54,9 +46,7 @@ $(document).ready(function() {
         }
     });
 
-    // ------------------------------------------------------------
-    // Función para enviar formulario al servidor
-    // ------------------------------------------------------------
+    // Función para enviar el formulario al servidor
     function enviarFormulario() {
         const payload = {
             nombres: $('#add_nombres').val(),
@@ -84,25 +74,23 @@ $(document).ready(function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showResultPopup('¡Éxito!', 'Colaborador creado exitosamente!', 'success');
-                hideAddModal();
+                alert('Colaborador creado exitosamente!');
+                EscondeModal();
                 location.reload();
             } else {
-                showResultPopup('Error', data.message, 'error');
+                alert('Error: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error al enviar datos:', error);
-            showResultPopup('Error de Conexión', 'No se puede comunicar con la base de datos. Por favor, inténtelo más tarde.', 'error');
+            alert('No se puede comunicar con la base de datos. Por favor, inténtelo más tarde.');
         });
     }
 
-    // ------------------------------------------------------------
-    // Validaciones del formulario
-    // ------------------------------------------------------------
+    // Manejo del submit con validaciones
     addForm.on('submit', function(e) {
         e.preventDefault();
-
+        // Validación de campos requeridos
         let esValido = true;
         addForm.find('input[required], select[required]').each(function() {
             if ($(this).val() === "" || $(this).val() === null) {
@@ -112,21 +100,23 @@ $(document).ready(function() {
                 $(this).css('border-color', ''); 
             }
         });
-
         if (!esValido) {
-            showResultPopup('Error de Validación', 'Por favor, complete todos los campos obligatorios.', 'error');
+            alert('Por favor, complete todos los campos obligatorios.');
             return;
         }
 
-        const phoneRegex = /^[0-9]{10}$/;
+        // Validación de teléfonos
         const phone1 = $('#add_phone1').val();
         const phone2 = $('#add_phone2').val();
+        const phoneRegex = /^[0-9]{10}$/;
         if ((phone1 && !phoneRegex.test(phone1)) || (phone2 && !phoneRegex.test(phone2))) {
-            showResultPopup('Error de Formato', 'Cada número telefónico debe tener exactamente 10 dígitos numéricos.', 'error');
+            alert('Cada número telefónico debe tener exactamente 10 dígitos numéricos (sin letras ni símbolos).');
             return;
         }
 
+        // Validación de contraseña
         const password = $('#add_password').val();
+        const passwordMessage = $('#password_message');
         const validPassword =
             password.length >= 8 &&
             /[A-Z]/.test(password) &&
@@ -134,42 +124,39 @@ $(document).ready(function() {
             /[!@#$%^&*(),.?":{}|<>_\-]/.test(password);
 
         if (!validPassword) {
-            $('#password_message').text("❌ Contraseña inválida. Revise los requisitos.").css("color", "red");
-            showResultPopup('Error de Contraseña', 'Por favor, asegúrese de que la contraseña cumpla todos los requisitos.', 'error');
+            alert("Por favor, asegúrese de que la contraseña cumpla todos los requisitos antes de continuar.");
+            passwordMessage.text("❌ Contraseña inválida. Revise los requisitos.").css("color", "red");
             return;
         }
+        enviarFormulario();
+        // // Verificación del username en la base de datos
+        // const username = $('#add_username').val();
+        // if (!username) {
+        //     alert('Por favor, ingrese un nombre de usuario.');
+        //     return;
+        // }
 
-        // ------------------------------------------------------------
-        // Verificación de usuario duplicado antes de agregar
-        // ------------------------------------------------------------
-        const usernameNuevo = $('#add_username').val().trim();
-
-       fetch('/admin/colaboradores/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: usernameNuevo, verificar: true })
-    })
-
-        .then(response => response.json())
-        .then(data => {
-            if (data.existe) {
-                showResultPopup('Usuario duplicado', 'El nombre de usuario ya está registrado. Por favor, elija otro.', 'error');
-                $('#add_username').css('border-color', 'red');
-                return;
-            } else {
-                enviarFormulario();
-            }
-        })
-        .catch(error => {
-            console.error('Error al verificar usuario:', error);
-            showResultPopup('Error de Conexión', 'No se pudo verificar el usuario. Inténtelo nuevamente.', 'error');
-        });
-        
+        // fetch('/Models/Admin/verificar_usuario.php', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ username: username })
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     if (data.success) {
+        //         // Usuario válido, puede enviar formulario
+        //         enviarFormulario();
+        //     } else {
+        //         alert('Error: ' + data.message);
+        //     }
+        // })
+        // .catch(error => {
+        //     console.error('Error de comunicación con la base de datos:', error);
+        //     alert('No se puede comunicar con la base de datos. Por favor, inténtelo otra vez');
+        // });
     });
 
-    // ------------------------------------------------------------
     // Validador de contraseña en tiempo real
-    // ------------------------------------------------------------
     const passwordInput = document.getElementById("add_password");
     const message = document.getElementById("password_message");
     passwordInput.addEventListener("input", function () {
@@ -179,7 +166,7 @@ $(document).ready(function() {
         if (password.length < 8) errors.push("Debe tener al menos 8 caracteres");
         if (!/[A-Z]/.test(password)) errors.push("Debe incluir al menos una letra mayúscula");
         if (!/[0-9]/.test(password)) errors.push("Debe incluir al menos un número");
-        if (!/[!@#$%^&*(),.?\":{}|<>_\\-]/.test(password)) errors.push("Debe incluir al menos un carácter especial");
+        if (!/[!@#$%^&*(),.?":{}|<>_\-]/.test(password)) errors.push("Debe incluir al menos un carácter especial");
 
         if (errors.length > 0) {
             message.textContent = "❌ " + errors.join(" | ");
@@ -189,4 +176,5 @@ $(document).ready(function() {
             message.style.color = "green";
         }
     });
+
 });

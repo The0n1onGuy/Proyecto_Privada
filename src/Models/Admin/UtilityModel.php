@@ -11,7 +11,10 @@ class UtilityModel {
         // Obtiene todas las privadas que están habilitadas "id_estatus = 1"
 
         $conn = Database::getConnection();
-        $stmt = $conn->query("SELECT id_privada, nombre FROM priv_privadas WHERE id_estatus = '1'");
+        $sql = "SELECT id_privada, nombre, public_id 
+                FROM priv_privadas 
+                WHERE id_estatus = '1'";
+        $stmt = $conn->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     public function obtenDatosEstatus(){

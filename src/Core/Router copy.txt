@@ -151,16 +151,9 @@ class Router
                     break;
 
                 case '/admin/set-private':
-                    // if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                    //     $_SESSION['id_privada'] = (int)$_POST['id_privada'];
-                    //     header('Location: /admin/dashboard');
-                    //     exit;
-                    // }
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                        
-                        // --- CAMBIO AQUÍ ---
                         $encrypted_id = $_POST['id_privada'];
-                        $decrypted_id = Security::decryptId($encrypted_id);
+                        $decrypted_id = SessionVerifier::decryptId($encrypted_id);
 
                         // Si el ID es nulo, significa que la desencriptación falló
                         // (probablemente fue manipulado)
