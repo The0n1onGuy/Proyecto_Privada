@@ -29,45 +29,39 @@ class SessionDataModel
     public function checkConsistency(string $key, $value): bool
     {
         $sql = "";
-        // Usaremos un array para los parámetros
-        $params = []; 
- 
+        $paramValue = $value; // Usamos una variable separada para el bindParam
+
         try {
             switch ($key) {
-                case 'user_id':
-                    // Usamos '?' para consistencia
-                    $sql = "SELECT 1 FROM priv_usuarios WHERE id_usuario = ? LIMIT 1";
-                    $params = [$value];
+                case 'user_id': // Asumiendo que usas 'user_id' en la sesión como en LoginController
+                    $sql = "SELECT 1 FROM priv_usuarios WHERE id_usuario = :value LIMIT 1";
                     break;
- 
                 case 'public_id_privada':
-                    // Esta consulta ya estaba bien
-                    $sql = "SELECT 1 FROM priv_privadas WHERE public_id = ? AND id_estatus = '1' LIMIT 1";
-                    $params = [$value];
+                    $sql = "SELECT 1 FROM priv_privadas WHERE public_id = ? AND id_estatus = '1'";
                     break;
- 
                 case 'id_info':
-                    // Usamos '?' para consistencia
-                    $sql = "SELECT 1 FROM priv_infousuario WHERE id_info = ? LIMIT 1";
-                    $params = [$value];
+                     // Asegúrate de que la tabla y columna sean correctas
+                    $sql = "SELECT 1 FROM priv_infousuario WHERE id_info = :value LIMIT 1";
                     break;
- 
+                // Puedes añadir más casos si necesitas verificar otras claves de sesión contra la BD
                 default:
+                    // Si la clave no es una que requiera verificación en BD, asumimos que es válida
+                    // o podrías retornar false si se quiere ser más estricto.
                     return true;
             }
- 
+
             $stmt = $this->conn->prepare($sql);
             
-            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-            // Pasamos el array de parámetros directamente a execute().
-            // Ya no usamos bindParam y no forzamos el tipo INT.
-            $stmt->execute($params);
- 
+            $stmt->bindParam(':value', $paramValue, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // fetchColumn() devuelve el valor de la primera columna (el '1') o false si no hay filas
             return $stmt->fetchColumn() !== false;
- 
+
         } catch (PDOException $e) {
+            // En un entorno real, registrarías este error
             error_log("Error en checkConsistency para key '{$key}': " . $e->getMessage());
-            return false;
+            return false; // Ante un error de BD, consideramos la verificación fallida
         }
     }
 }

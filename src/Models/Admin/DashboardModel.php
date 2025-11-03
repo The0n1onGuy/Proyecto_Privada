@@ -19,29 +19,23 @@ class DashboardModel {
      *
      * @return array
      */
-    public function obtenPagosStat($id_privada) {
+    public function obtenPagosStat(string $public_id_privada) {
         try {
         $conn = Database::getConnection();
         $sql = "
                 SELECT 
-                    pe.estatus,  -- El nombre del estatus (ej. 'Completado')
+                    pe.estatus,
                     COUNT(pp.id_pago) AS total_count
                 FROM 
                     priv_pagos AS pp
-                
-                -- Solicitud 1: Unir con usuarios para obtener la privada
                 JOIN 
                     priv_usuarios AS pu ON pp.id_usuario = pu.id_usuario
-                
-                -- Unir con estatus para obtener el nombre
+                JOIN
+                    priv_privadas AS pv ON pu.id_privada = pv.id_privada
                 JOIN 
                     priv_estatus AS pe ON pp.id_estatuspago = pe.id_estatus
-                
                 WHERE 
-                    -- Solicitud 1: Filtrar por el id_privada del *usuario*
-                    pu.id_privada = :id_privada
-                    
-                    -- Solicitud 2: Filtrar por los IDs de estatus usando las constantes
+                    pv.public_id = :public_id
                     AND pp.id_estatuspago IN (:id_c, :id_p, :id_m)
                 
                 GROUP BY 
@@ -52,7 +46,7 @@ class DashboardModel {
             $stmt = $conn->prepare($sql);
             
             // Vincular el ID de la privada
-            $stmt->bindParam(':id_privada', $id_privada, PDO::PARAM_INT);
+            $stmt->bindParam(':public_id', $public_id_privada, PDO::PARAM_STR);
             
             // Vincular los IDs de estatus desde las constantes
             // Usamos bindValue porque estamos vinculando un valor, no una variable
@@ -76,7 +70,6 @@ class DashboardModel {
             foreach ($results as $row) {
                 // Convertimos 'Completado' -> 'completado' para que sea la clave
                 $status_key = strtolower($row['estatus']); 
-
                 if (array_key_exists($status_key, $stats)) {
                     $stats[$status_key] = (int) $row['total_count'];
                 }
@@ -86,62 +79,71 @@ class DashboardModel {
             return $stats;
 
         } catch (\PDOException $e) {
-            // En un caso real, aquí se manejaría el error (ej. log)
-            // Devolvemos la estructura base con ceros (no placeholders)
+            //Damos el error y Devolvemos la estructura base con ceros (sin placeholders) 
+            error_log("Error en obtenPagosStat: " . $e->getMessage());
             return [
                 'completado' => 0,
                 'pendiente' => 0,
                 'moroso' => 0
             ];
         }
-        // try {
-        //     $conn = Database::getConnection();
-            
-        //     // Consulta SQL para sumar las cantidades de la tabla priv_pagos
-        //     // y agruparlas por el nombre del método de pago de la tabla priv_metpagos.
-        //     $sql = "
-        //         SELECT 
-        //             mp.metstag AS metodo_pago, 
-        //             SUM(p.cantidad) AS total 
-        //         FROM priv_pagos p
-        //         JOIN priv_metpagos mp ON p.id_metstag = mp.id_metstag
-        //         GROUP BY mp.metstag
-        //         ORDER BY total DESC
-        //     ";
-            
-        //     $stmt = $conn->query($sql);
-        //     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // } catch (\PDOException $e) {
-        //     // En un caso real, aquí se manejaría el error (ej. log)
-        //     // Por ahora, devolvemos un array vacío para evitar que la aplicación se rompa.
-        //     return [];
-        // }
     }
     //Queries de consultas para reportes y avisos 280925 OLAN 
     //Consulta los reportes
-    public function getReportes() {
+    /**
+     * Consulta los reportes de una privada específica.
+     *
+     * @param string $public_id_privada El UUID de la privada.
+     * @return array
+     */
+    public function getReportes(string $public_id_privada) {
         try {
             $conn = Database::getConnection();
+            // $sql = "
+            //     SELECT r.* FROM priv_reportes r
+            //     JOIN priv_privadas pv ON r.id_privada = pv.id_privada
+            //     WHERE pv.public_id = ?
+            // ";
             
+            // $stmt = $conn->prepare($sql);
+            // $stmt->execute([$public_id_privada]);
+            // return $stmt->fetchAll(PDO::FETCH_ASSOC);
             $sql = "SELECT * FROM priv_reportes";
             
             $stmt = $conn->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (\PDOException $e) {
-            // En un caso real, aquí se registraría el error.
+            error_log("Error en getReportes: " . $e->getMessage());
             return [];
         }
     }
-    public function getAvisosD() {
+    /**
+     * Consulta los reportes de una privada específica.
+     *
+     * @param string $public_id_privada El UUID de la privada.
+     * @return array
+     */
+    public function getAvisosD(string $public_id_privada) {
         try {
             $conn = Database::getConnection();
+            // Realiza 3 consultas primero del id_info dentro de la tabla al id_usuario
+            // dentro de la tabla de infousuario y finalmente utiliza el id_usuario para ver de que privada pertence
+            $sql = "
+                SELECT a.* FROM priv_avisos a
+                JOIN priv_infousuario iu ON a.id_info = iu.id_info
+                JOIN priv_usuarios pu ON iu.id_usuario = pu.id_usuario
+                JOIN priv_privadas pv ON pu.id_privada = pv.id_privada
+                WHERE pv.public_id = ?
+            ";
             
-        $sql = "SELECT * FROM priv_avisos";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$public_id_privada]);
 
-            $stmt = $conn->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // $sql = "SELECT * FROM priv_avisos";
+            // $stmt = $conn->query($sql);
+            // return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (\PDOException $e) {
             // En un caso real, aquí se registraría el error.

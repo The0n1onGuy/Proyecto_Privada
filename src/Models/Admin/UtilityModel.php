@@ -19,7 +19,7 @@ class UtilityModel {
     }
     public function obtenDatosEstatus(){
 
-        // Obtiene todas las privadas que están habilitadas "id_estatus = 1"
+        // Obten todos los estatus
 
         $conn = Database::getConnection();
         $stmt = $conn->query("SELECT estatus FROM priv_estatus");

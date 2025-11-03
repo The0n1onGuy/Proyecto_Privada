@@ -79,11 +79,12 @@ class Router
                 $keysToVerify = ['user_id'];
             } else {
                 // Todas las demás rutas de admin (dashboard, API, POSTs) necesitan la privada
-                $keysToVerify = ['user_id', 'id_privada'];
+                $keysToVerify = ['user_id', 'public_id_privada'];
             }
         
             if (!$this->runVerification($keysToVerify)) {
                 // El verificador falló (sesión corrupta, ID no existe, etc.)
+                
                 session_destroy();
                 header('Location: /'); // Botar al login
                 exit;

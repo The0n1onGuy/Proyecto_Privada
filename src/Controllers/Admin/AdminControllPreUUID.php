@@ -10,7 +10,7 @@ use App\Core\SessionVerifier;
 use App\Models\SessionDataModel;
 use Exception;
 
-class AdminController
+class AdminControllPreUUID
 {
     public function showPrivateSelection()
     {
@@ -21,21 +21,14 @@ class AdminController
     }
     private function cargarDatosDelPanel(): array
     {
-        if (!isset($_SESSION['public_id_privada'])) { // <--- CAMBIO
-            header(header: 'Location: /admin/select-private');
-            exit;
-        }
-
         $utilityModel = new UtilityModel();
         $data['todas_las_privadas'] = $utilityModel->obtenTodosPrivadas();
+        $id_privada_actual = $_SESSION['id_privada'] ?? 0;
         
-        // 1. Leemos el PUBLIC_ID (UUID) de la sesión
-        $public_id_actual = $_SESSION['public_id_privada'] ?? null; // <--- CAMBIO
         $data['privada_actual'] = null;
-        if (!empty($data['todas_las_privadas']) && $public_id_actual) {
+        if (!empty($data['todas_las_privadas'])) {
             foreach ($data['todas_las_privadas'] as $privada) {
-                // 2. Comparamos el PUBLIC_ID de la DB con el PUBLIC_ID de la sesión
-                if ($privada['public_id'] == $public_id_actual) { // <--- CAMBIO
+                if ($privada['id_privada'] == $id_privada_actual) {
                     $data['privada_actual'] = $privada;
                     break;
                 }
@@ -45,15 +38,18 @@ class AdminController
     }
     public function showDashboard()
     {
-        //Verifica si hay un id 
+        if (!isset($_SESSION['public_id_privada'])) {
+            header(header: 'Location: /admin/select-private');
+            exit;
+        }
         $data = $this->cargarDatosDelPanel();
         //Llama en un objecto la clase y funciones
         $dashboardModel = new DashboardModel();
         $privadaModel = new UtilityModel();
         // $paymentStats = $dashboardModel->obtenPagosStat();
-        // $reportes = $dashboardModel->getReportes();
-        $avisos = $dashboardModel->getAvisosD($_SESSION['public_id_privada']);
-        // $data['reportes'] = $reportes;
+        $reportes = $dashboardModel->getReportes();
+        $avisos = $dashboardModel->getAvisosD();
+        $data['reportes'] = $reportes;
         $data['avisos'] = $avisos;
         $data['paymentStatsJSON'] = json_encode($dashboardModel->obtenPagosStat($_SESSION['public_id_privada']));
         //Llama los elementos de la vista (estilo y scripts; Codigo en javascript para logica de vista)
@@ -61,6 +57,7 @@ class AdminController
         $assets['styles'] = ['/css/Admin/admin_dashboard.css'];                
         $assets['scripts'] = ['https://cdn.jsdelivr.net/npm/chart.js'];
         // $assets['scripts'] = ['https://cdn.jsdelivr.net/npm/chart.js' , '/js/Admin/admin_dashboard.js'];
+
         $view_to_load = 'dashboard.php';
         
         require __DIR__ . '/../../Views/Admin/Panel.php';
@@ -68,6 +65,12 @@ class AdminController
     public function showResidents()
     {
         $data = $this->cargarDatosDelPanel();
+        //Revisa no si hay un id_privada, de otra forma rebotalo al menu de seleccion de privada 
+        if (!isset($_SESSION['id_privada'])) {
+            header(header: 'Location: /admin/select-private');
+            exit;
+        }
+
         //Obten el filtro y busca si son "owners" (Propietarios en base de datos)
         $filter = $_GET['filter'] ?? 'owners';
         $residentsModel = new ResidentsModel();
@@ -83,6 +86,7 @@ class AdminController
         //Llama los elementos de la vista (estilo y scripts; Codigo en javascript para logica de vista)
         $assets['styles'] = ['/css/Utilities/DataTables.css', '/css/Admin/admin_residents.css'];
         $assets['scripts'] = ['/js/admin_residentes.js'];
+
         $view_to_load = 'residents.php';
         
         require __DIR__ . '/../../Views/Admin/Panel.php';
@@ -230,15 +234,21 @@ class AdminController
     public function showColaboradores()
     {
         $data = $this->cargarDatosDelPanel();
+        if (!isset($_SESSION['id_privada'])) {
+            header(header: 'Location: /admin/select-private');
+            exit;
+        }
+        
         //Llama en un objecto la clase y funciones
         $colaboradorModel = new ColaboradoresModel();
         $utilityModel = new UtilityModel();
+        $colaboradores = $colaboradorModel->obtenColaboradores($_SESSION['id_privada']);
+        //$residents = $residentsModel->getAllResidents($_SESSION['id_privada'], $filter);
 
-        $data['roles'] = $utilityModel->obtenDatosColabRoles();
-        //Haz una consulta de los colaboradores con los roles y la privada escojida
-        $colaboradores = $colaboradorModel->obtenColaboradores($_SESSION['public_id_privada'], $data['roles']);
-        $data['colaboradores'] = $colaboradores;
+        //Almacena en un JSON los datos y llama una consulta de todas las privadas  y almacenalas en un arreglo
+        $data['colaboradores'] = json_encode($colaboradores);
         $data['Pcolaboradores'] = $utilityModel->obtenTodosPrivadas();
+        $data['roles'] = $utilityModel->obtenDatosColabRoles();
         $data['colabestatus'] = $utilityModel->obtenPrimDatosEstatus();
         
         //Llama los elementos de la vista (estilo y scripts; Codigo en javascript para logica de vista)
@@ -426,23 +436,24 @@ class AdminController
     {
         // --- INICIO DE LA MODIFICACIÓN (Versión con SessionVerifier) ---
 
-        // Instanciamos el verificador y modelo
+        // 1. Instanciamos el verificador
+        // (Asumo que SessionDataModel no necesita parámetros en su constructor)
         $sessionModel = new SessionDataModel(); 
         $verifier = new SessionVerifier($sessionModel);
-        //Dale una de las credenciales A verificar
+
+        // 2. Definimos las claves que esta VISTA necesita
         $keys_to_check = ['user_id'];
-        //Enviale el nombre del archivo y unelo con .php (para la vista)
-        $view_file = basename($view, '.php');
-        //Define una lista de las vistas que lo ocupan
-        $vistas_privadas = ['residents', 'colaboradores', 'dashboard']; 
         
-        if (in_array($view_file, $vistas_privadas)) {
-            $keys_to_check[] = 'public_id_privada'; //Le damos el UUDI a la vista si la requiere
+        $view_file = basename($view, '.php');
+        $views_que_necesitan_privada = ['residents', 'colaboradores', 'dashboard']; 
+        
+        if (in_array($view_file, $views_que_necesitan_privada)) {
+            $keys_to_check[] = 'public_id_privada'; // Añadimos la clave si la vista la requiere
         }
 
         // 3. Verificamos
         if (!$verifier->verify($keys_to_check)) {
-            http_response_code(401); // 401 Unauthorized, para rebotar
+            http_response_code(401); // 401 Unauthorized
             
             // Devolvemos una respuesta JSON que el Javascript pueda entender
             echo json_encode([
@@ -480,10 +491,9 @@ class AdminController
             case 'dashboard':
                 $dashboardModel = new DashboardModel();
                 $privadaModel = new UtilityModel();
-                // $reportes = $dashboardModel->getReportes($_SESSION['public_id_privada']);
-                //Renombre la funcion a otra por conflictos de llamada en este codigo
-                $avisos = $dashboardModel->getAvisosD($_SESSION['public_id_privada']);
-                // $data['reportes'] = $reportes;
+                $reportes = $dashboardModel->getReportes();
+                $avisos = $dashboardModel->getAvisosD(); //Renombre la funcion a otra por conflictos de llamada en este codigo
+                $data['reportes'] = $reportes;
                 $data['avisos'] = $avisos;
                 $data['paymentStatsJSON'] = json_encode($dashboardModel->obtenPagosStat($_SESSION['public_id_privada']));
                 // $assets['styles'] = ['/css/Admin/admin_dashboard.css'];

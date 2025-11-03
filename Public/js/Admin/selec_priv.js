@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnRegresar = document.getElementById("btnRegresar");
   const logoutPopup = document.getElementById("logoutPopup");
   const form = document.querySelector("form");
-  const radios = document.querySelectorAll("input[name='id_privada']");
+  const radios = document.querySelectorAll("input[name='id_privada_publica']");
   const welcomePopup = document.getElementById("welcomePopup");
 
   // ============================================================
