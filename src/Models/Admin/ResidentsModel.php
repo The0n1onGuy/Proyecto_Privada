@@ -14,9 +14,12 @@ class ResidentsModel {
      * @param string $filterType El tipo de filtro ('owners' para solo propietarios, 'all' para todos).
      * @return array
      */
-    public function getAllResidents($id_privada, $filterType = 'owners') {
+    public function getAllResidents(string $public_id_privada, $filterType = 'owners') {
         try {
             $conn = Database::getConnection();
+            // Hacemos uso de GROUP CONCAT para  tomar todos los 
+            // valores de una columna que pertenecen al mismo grupo 
+            // (dentro de la misma query) y los une (concatena) en una sola cadena de texto.
             $sql = "
                 SELECT
                     iu.id_info,
@@ -36,9 +39,9 @@ class ResidentsModel {
                 JOIN priv_roles r ON u.id_rol = r.id_rol
                 JOIN priv_estatus e ON u.id_estatus = e.id_estatus
                 JOIN priv_privadas p ON u.id_privada = p.id_privada
-                LEFT JOIN priv_corresusuario ct ON iu.id_info = ct.id_info
-                LEFT JOIN priv_telusuario tt ON iu.id_info = tt.id_info
-                WHERE u.id_privada = :id_privada AND r.rol = 'Usuario' ";
+                LEFT JOIN priv_corresusuario ct ON iu.id_info = ct.id_info AND ct.id_estatus = 1
+                LEFT JOIN priv_telusuario tt ON iu.id_info = tt.id_info AND tt.id_estatus = 1
+                WHERE p.public_id = :public_id AND r.rol = 'Usuario' ";
 
             // Aplica el filtro si es para 'owners'
             if ($filterType === 'owners') {
@@ -51,8 +54,7 @@ class ResidentsModel {
                 ORDER BY u.num_casa ASC, iu.es_propietario DESC, iu.id_info ASC
                 ";
             $stmt = $conn->prepare($sql);
-            $stmt->bindparam(':id_privada', $id_privada, PDO::PARAM_INT);
-            $stmt->execute();
+            $stmt->execute([':public_id' => $public_id_privada]);
             
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 

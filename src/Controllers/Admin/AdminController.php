@@ -73,7 +73,7 @@ class AdminController
         $residentsModel = new ResidentsModel();
         $utilityModel = new UtilityModel();
         //Obten todos los residentes con la id de la sesion y dale un filtro 
-        $residents = $residentsModel->getAllResidents($_SESSION['id_privada'], $filter);
+        $residents = $residentsModel->getAllResidents($_SESSION['public_id_privada'], $filter);
 
         //Almacena en un JSON los datos y el filtro definido
         $data['residents'] = $residents;
