@@ -1,0 +1,198 @@
+/* Contenedor principal de la sección de avisos */
+.avisos-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+/* Encabezado con título y botón */
+.avisos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.avisos-header h1 {
+    font-size: 1.8rem;
+    color: #1e293b;
+    margin: 0;
+}
+
+/* Estilo general para botones primarios */
+.btn-primary {
+    background-color: #0b2a4a;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #11304b;
+}
+
+/* Contenedor de las tarjetas de avisos */
+.avisos-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Estilo de cada tarjeta de aviso individual */
+.aviso-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    padding: 20px;
+    opacity: 0; /* Para animación de entrada */
+    transform: translateY(15px); /* Para animación de entrada */
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Encabezado dentro de la tarjeta */
+.aviso-header-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    color: #64748b;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.aviso-header-card .usuario {
+    font-weight: 600;
+    color: #334155;
+}
+
+/* Cuerpo de la tarjeta */
+.aviso-body h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+    color: #1e293b;
+}
+
+.aviso-body p {
+    margin: 0;
+    line-height: 1.6;
+    color: #475569;
+}
+
+/* --- Estilos del Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    transform: translateY(-30px);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.visible .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #1e293b;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    line-height: 1;
+    color: #64748b;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.modal-close:hover {
+    opacity: 1;
+}
+
+.modal-body .form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: #475569;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Animación para que las tarjetas aparezcan suavemente */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

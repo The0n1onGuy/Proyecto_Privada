@@ -5,18 +5,31 @@
 
 <div class="section-card">
     <div class="card-header">
-        <h6>Listado de Residentes</h6>
-        <div class="button-row">
-            <button id="addResidentBtn" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Añadir Nuevo
-            </button>
-            <button id="addExtraBtn" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Añadir Extras
-            </button>
-        </div>
+ 
+       <h6>Listado de Residentes:</h6>
+        <div class="dropdown">
+  <!-- Botón principal del mini menú -->
+  <button id="menuButton" class="btn btn-secondary">
+    <i class="fas fa-bars"></i> <svg height="25px" width="25px" fill="#07003d" viewBox="-1.7 0 20.4 20.4" xmlns="http://www.w3.org/2000/svg" class="cf-icon-svg" stroke="#07003d"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M16.416 10.283A7.917 7.917 0 1 1 8.5 2.366a7.916 7.916 0 0 1 7.916 7.917zm-2.958.01a.792.792 0 0 0-.792-.792H9.284V6.12a.792.792 0 1 0-1.583 0V9.5H4.32a.792.792 0 0 0 0 1.584H7.7v3.382a.792.792 0 0 0 1.583 0v-3.382h3.382a.792.792 0 0 0 .792-.791z"></path></g></svg>
+  </button>
+
+  <!-- Contenedor del menú con tus dos botones originales -->
+  <div id="menuContent" class="dropdown-content">
+    <div class="button-row">
+      <button id="addResidentBtn" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Añadir Nuevo
+      </button>
+      <button id="addExtraBtn" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Añadir Extras
+      </button>
     </div>
+  </div>
+</div>
+
+</div>
     
     <div class="card-header">
+        
         <div class="filter-container">
             <label for="residentFilter">Mostrar:</label>
             <select id="residentFilter" name="residentFilter">
@@ -25,6 +38,8 @@
             </select>
         </div>
     </div>
+   
+
     
     <table id="tablaResidentes" class="display" style="width:100%">
         <thead>
@@ -150,10 +165,6 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="num_casa">Número de Casa</label>
-                        <input type="text" id="add_num_casa" name="num_casa" required>
-                    </div>
-                    <div class="form-group">
                         <label for="add_privada">Privada Asignada</label>
                         <select id="add_privada" name="privada" required>
                             <option value="" disabled selected>Seleccionar privada...</option>
@@ -165,6 +176,10 @@
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </select>
+                    </div>
+                     <div class="form-group">
+                        <label for="add_num_casa">Número de Casa</label>
+                        <input type="text" id="add_num_casa" name="num_casa" required>
                     </div>
                      <div class="form-group">
                         <label for="add_estatus">Estatus</label>
@@ -191,10 +206,12 @@
                     <div class="form-group">
                         <label for="add_phone1">Teléfono Principal</label>
                         <input type="tel" id="add_phone1" name="phone1" required>
+                        <span id="phone1_message"></span>
                     </div>
                     <div class="form-group">
                         <label for="add_phone2">Teléfono Secundario (Opcional)</label>
                         <input type="tel" id="add_phone2" name="phone2">
+                        <span id="phone2_message"></span>
                     </div>
                 </div>
             </div>
@@ -272,19 +289,10 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                        <label for="extra_add_privada">Propietario asignado</label>
-                        <select id="extra_add_privada" name="privada" required>
-                            <option value="" disabled selected>Seleccionar propietario...</option>
-                            <?php if (!empty($Presidentes)): ?>
-                                <?php foreach ($Presidentes as $item): ?>
-                                    <option value="<?= htmlspecialchars($item['nombre']) ?>">
-                                        <?= htmlspecialchars($item['nombre']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    </div>
+    <div class="form-group">
+    <label for="propietario">Propietario asignado</label>
+    <input type="text" id="add_extra_propietario" readonly>
+</div>
 
                 <!-- Seccion de contactos  -->
                 <h6 class="form-section-header">Información de Contacto</h6>
@@ -300,10 +308,12 @@
                     <div class="form-group">
                         <label for="extra_add_phone1">Teléfono Principal</label>
                         <input type="tel" id="extra_add_phone1" name="phone1" required>
+                        <span id="phone1_messageextra"></span>
                     </div>
                     <div class="form-group">
                         <label for="extra_add_phone2">Teléfono Secundario (Opcional)</label>
                         <input type="tel" id="extra_add_phone2" name="phone2">
+                        <span id="phone2_messageextra"></span>
                     </div>
                 </div>
             </div>
@@ -315,8 +325,6 @@
         </form>
     </div>
 </div>
-
-
 
 
 <!-- MODAL DE EDICION DE DATOS-->
@@ -348,9 +356,9 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="num_casa">Número de Casa</label>
-                    <input type="text" id="num_casa" name="num_casa" required>
-                </div>
+                        <label for="num_casa">Número de Casa</label>
+                        <input type="text" id="num_casa" name="num_casa" required>
+                    </div>
             </div>
             <div id="telefonos-container" class="form-group-dynamic"></div>
             <div id="correos-container" class="form-group-dynamic"></div>
@@ -361,3 +369,5 @@
         </form>
     </div>
 </div>
+
+<script src="/js/Admin/admin_residentesextras.js"></script>

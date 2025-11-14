@@ -61,6 +61,8 @@
 
             echo "<td>" . htmlspecialchars($item['rol']) . "</td>";
             echo "<td>" . htmlspecialchars($item['estatus']) . "</td>";
+            
+            // --- THE MAJOR SIMPLIFICATION IS HERE ---
             echo '<td>
                     <button class="btn-icon btn-edit" 
                             title="Editar"
@@ -268,6 +270,7 @@
                 <div class="form-group">
                     <label for="inputTelefono">Teléfono seleccionado</label>
                     <input type="tel" id="inputTelefono" name="telefono" disabled>
+                    <span id="mensajeTelefonoExistente" class="mensaje-validacion"></span>
                 </div>
 
                 <div class="contact-actions">
@@ -279,8 +282,11 @@
                 <div class="form-group">
                     <label for="newTelefono">Nuevo teléfono (opcional)</label>
                     <input type="tel" id="newTelefono" name="new_telefono">
+                    <span id="mensajeTelefonoNuevo" class="mensaje-validacion"></span>
                 </div>
             </div>
+                
+            <!-- </div> -->
             </div>
             <div class="form-actions">
                 <button type="button" id="cancelBtn" class="btn-secondary">Cancelar</button>

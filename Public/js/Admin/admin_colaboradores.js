@@ -122,7 +122,7 @@ $(document).ready(function() {
     });
 
     // ------------------------------------------------------------
-    // VALIDACIÓN DE FORMULARIO (con popups y resaltado)
+    // VALIDACIÓN DE FORMULARIO
     // ------------------------------------------------------------
     $('#collaboratorForm').on('submit', function(e) {
         e.preventDefault();
@@ -203,15 +203,18 @@ $(document).ready(function() {
             contentType: 'application/json; charset=utf-8',
             dataType: 'json',
             success: function(response) {
-                if (response.success) {
-                    showResultPopup('¡Éxito!', response.message, 'success');
-                } else {
-                    showResultPopup('Error', response.message, 'error');
-                }
-            },
-            error: function() {
-                showResultPopup('Error de Conexión', 'Ocurrió un error al contactar al servidor.', 'error');
-            }
-        });
-    });
+    if (response.success) {
+        showResultPopup('¡Éxito!', response.message, 'success');
+
+        // Espera 1.5 segundos antes de recargar
+        setTimeout(function() {
+            location.reload();
+        }, 1500);
+    } else {
+        showResultPopup('Error', response.message, 'error');
+    }
+    }
+   });
+});
+
 });

@@ -98,9 +98,10 @@ $mostrarAvisos = array_slice($sortedAvisos, 0, 3);
                     <?php foreach ($mostrarAvisos as $aviso): ?>
                         <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 cursor-pointer transition duration-200 hover:shadow-lg hover:bg-indigo-100 transform hover:scale-[1.01]">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 aviso-header-card text-sm text-gray-600">
-                                <span class="font-bold text-indigo-700 truncate">
+                            <!-- COMENTE ESTO PARA QUE NO SALIERA EL ERROR POR SI LAS MOSCAS     -->
+                            <!-- <span class="font-bold text-indigo-700 truncate">
                                     <?= htmlspecialchars($aviso['nombres'] . ' ' . $aviso['apellido_p'] . ' (Casa ' . $aviso['num_casa'] . ')') ?>
-                                </span>
+                                </span> -->
                                 <span class="fecha text-xs text-gray-500 mt-1 sm:mt-0"><?= date('d/m/Y', strtotime($aviso['fecha_pub'])) ?></span>
                             </div>
                             <div class="aviso-body">

@@ -44,3 +44,100 @@
 .content-header {
     animation: fadeInHeader 0.5s ease;
 }
+
+.section-card > .card-header:nth-child(1) {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 0; 
+}
+
+.section-card > .card-header:nth-child(2) {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    margin-top: -35px; 
+    margin-bottom: 5px; 
+    padding-left: 170px; 
+}
+
+.filter-container {
+    margin-left: 20px; 
+}
+
+/* ----- Contenedor del dropdown ----- */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* ----- Botón principal (solo SVG, sin fondo) ----- */
+#menuButton {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#menuButton:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+#menuButton svg {
+  width: 30px;
+  height: 30px;
+  fill: #07003d;
+  stroke: #07003d;
+}
+
+/* ----- Contenedor del contenido desplegable ----- */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0px 4px 15px rgba(0,0,0,0.15);
+  min-width: 180px;
+  z-index: 1000;
+  transform-origin: top right;
+  animation: fadeIn 0.25s ease;
+}
+
+/* Animación de aparición */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ----- Mostrar el menú cuando se activa ----- */
+.dropdown-content.show {
+  display: block;
+}
+
+/* ----- Estilo interno de los botones del menú ----- */
+.dropdown-content .btn {
+  width: 100%;
+  margin-bottom: 5px;
+  border-radius: 8px;
+  background-color: #07003d;
+  color: #fff;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.dropdown-content .btn:hover {
+  background-color: #23206e;
+  transform: translateY(-2px);
+}
+
+/* Espaciado visual */
+.button-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

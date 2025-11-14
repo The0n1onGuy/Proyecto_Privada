@@ -20,7 +20,8 @@ class Router
     {
         // Limpiamos la URL para que no afecten los parámetros GET (ej. ?v=123)
         $url = strtok($_SERVER['REQUEST_URI'], '?');
-        $isLoggedIn = isset($_SESSION['user_id']);
+        // $isLoggedIn = isset($_SESSION['user_id']);
+        $isLoggedIn = isset($_SESSION['public_id_usuario']);
         $userRole = isset($_SESSION['user_role']) ? (int)$_SESSION['user_role'] : null;
 
         // 1. Redirección de usuarios ya logueados que visitan la raíz
@@ -76,10 +77,12 @@ class Router
             $keysToVerify = [];
             if ($url === '/admin/select-private' || $url === '/admin/set-private') {
                 // Estas rutas solo necesitan que el usuario exista (aún no ha elegido privada)
-                $keysToVerify = ['user_id'];
+                // $keysToVerify = ['user_id'];
+                $keysToVerify = ['public_id_usuario'];
             } else {
                 // Todas las demás rutas de admin (dashboard, API, POSTs) necesitan la privada
-                $keysToVerify = ['user_id', 'public_id_privada'];
+                // $keysToVerify = ['user_id', 'public_id_privada'];
+                $keysToVerify = ['public_id_usuario', 'public_id_privada'];
             }
         
             if (!$this->runVerification($keysToVerify)) {
@@ -108,8 +111,8 @@ class Router
 
             // --- MANEJO DE PETICIONES POST
             if ($method === 'POST') {
-                switch ($url) {
-                    //FUNCIONES DE OPERACIONES CRUD
+                switch ($url) { //FUNCIONES DE OPERACIONES CRUD
+                    //FUNCIONES DE RESIDENTES
                     case '/admin/residentes/create':
                         $controller->operacion_Residentes(1);
                         return; 
@@ -122,6 +125,8 @@ class Router
                     case '/admin/residentes/createEX':
                         $controller->operacion_Residentes(4);
                         return; 
+
+                    //FUNCIONES DE COLABORADORES
                     case '/admin/colaboradores/create':
                         // $controller->Procesa_Crear_Colaborador();
                         $controller->operacion_Colaborador(1);
@@ -130,12 +135,16 @@ class Router
                         // $controller->updateColaborador();
                         $controller->operacion_Colaborador(2);
                         return; 
-                    //Funcion de crear colaboradores
-                        
                     case '/admin/colaboradores/delete':
                         // $controller->Procesa_Eliminar_Colaborador();
                         $controller->operacion_Colaborador(3);
-                        return;                         
+                        return;     
+                    
+                    //FUNCIONES DE AVISOS
+                    case '/admin/avisos/create':
+                        // $controller->Procesa_Crear_Colaborador();
+                        $controller->operacion_Avisos(1);
+                        return;                    
                 }
             }
             // A. RUTA ESPECIAL PARA JAVASCRIPT (Carga de contenido dinámico)
@@ -157,6 +166,7 @@ class Router
                         // --- CAMBIO AQUÍ ---
                         // 1. Obtenemos el ID público (el UUID string)
                         $public_id = $_POST['id_privada_publica']; 
+                        // $public_iduser = $_POST['public_id_usuario']; 
 
                         // 2. ¡NO HAY DESENCRIPTACIÓN!
                         // Simplemente validamos que no esté vacío (o que sea un UUID válido)
@@ -169,6 +179,7 @@ class Router
                         // 3. Guardamos el UUID string en la sesión.
                         // El ID numérico '1' NUNCA toca la sesión.
                         $_SESSION['public_id_privada'] = $public_id;
+                        // $_SESSION['public_id_usuario'] = $public_iduser;
                         // --- FIN DEL CAMBIO ---
 
                         header('Location: /admin/dashboard');
@@ -223,7 +234,7 @@ class Router
         if ($isLoggedIn && $userRole === 2 && strpos($url, '/resident') === 0) {
             
             // --- NUEVO INICIO ---
-            // 4. PUNTO DE CONTROL DE RESIDENTE
+            // PUNTO DE CONTROL DE RESIDENTE
             
             // Movemos la lógica que busca 'id_info' aquí.
             // Esto asegura que 'id_info' esté presente ANTES de la verificación.

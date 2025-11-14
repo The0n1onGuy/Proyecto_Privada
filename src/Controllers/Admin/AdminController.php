@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Admin;
 
+use App\Models\Admin\AvisosModel;
 use App\Models\Admin\UtilityModel;
 use App\Models\Admin\DashboardModel;
 use App\Models\Admin\ResidentsModel;
@@ -62,7 +63,6 @@ class AdminController
         $assets['scripts'] = ['https://cdn.jsdelivr.net/npm/chart.js'];
         // $assets['scripts'] = ['https://cdn.jsdelivr.net/npm/chart.js' , '/js/Admin/admin_dashboard.js'];
         $view_to_load = 'dashboard.php';
-        
         require __DIR__ . '/../../Views/Admin/Panel.php';
     }
     public function showResidents()
@@ -74,7 +74,6 @@ class AdminController
         $utilityModel = new UtilityModel();
         //Obten todos los residentes con la id de la sesion y dale un filtro 
         $residents = $residentsModel->getAllResidents($_SESSION['public_id_privada'], $filter);
-
         //Almacena en un JSON los datos y el filtro definido
         $data['residents'] = $residents;
         $data['Presidentes'] = $utilityModel->obtenTodosPrivadas();
@@ -111,30 +110,64 @@ class AdminController
             exit;
         }
         switch ($casoS){
-            case 1: // CREAR UN RESIDENTE
+            case 1: // CREAR UN RESIDENTE Y VERIFICAR USUARIO / NÚMERO DE CASA
                 $json = file_get_contents('php://input');
                 $data = json_decode($json, true);
-                
+
                 try {
-                // Validación básica de datos
-                    if (empty($data['username']) || empty($data['password']) || empty($data['nombres'])) {
+                    // Instancia del modelo de privadas
+                    $PrivadasModel = new UtilityModel();
+
+                    // --- 1. Verificación si solo se quiere checar existencia del username ---
+                    if (!empty($data['verificar']) && $data['verificar'] === true && !empty($data['username'])) {
+                        $username = trim($data['username']);
+                        $existe = $PrivadasModel->verificarUsuario($username);
+                        echo json_encode(['existe' => $existe]);
+                        exit;
+                    }
+
+                    // --- 1b. Verificación si solo se quiere checar existencia del número de casa ---
+                    if (!empty($data['verificar_casa']) && $data['verificar_casa'] === true && !empty($data['num_casa'])) {
+                        $numCasa = trim($data['num_casa']);
+                        $existe = $PrivadasModel->verificarNumCasa($numCasa);
+                        echo json_encode(['existe' => $existe]);
+                        exit;
+                    }
+
+                    // --- 2. Validación básica de datos requeridos para crear residente ---
+                    if (empty($data['username']) || empty($data['num_casa']) || empty($data['nombres'])) {
                         throw new Exception('Faltan datos requeridos.');
                     }
-                    // Llama a la nueva función en el modelo
+
+                    $username = trim($data['username']);
+                    $numCasa = trim($data['num_casa']);
+
+                    // --- 3. Verificación de duplicidad antes de crear ---
+                    if ($PrivadasModel->verificarUsuario($username)) {
+                        echo json_encode(['success' => false, 'message' => 'El nombre de usuario ya está registrado.']);
+                        exit;
+                    }
+
+                    if ($PrivadasModel->verificarNumCasa($numCasa)) {
+                        echo json_encode(['success' => false, 'message' => 'El número de casa ya tiene un propietario.']);
+                        exit;
+                    }
+
+                    // --- 4. Crear residente ---
                     $residentsModel = new ResidentsModel(); 
-                    $success = $residentsModel->creaResidente($data); 
+                    $success = $residentsModel->creaResidente($data);
+
                     if ($success) {
-                        echo json_encode(['success' => true, 'message' => 'Colaborador creado exitosamente.']);
+                        echo json_encode(['success' => true, 'message' => 'Residente creado exitosamente.']);
                     } else {
-                        // Este caso es raro si se usa try/catch, pero es una salvaguarda.
                         echo json_encode(['success' => false, 'message' => 'Error al crear el residente.']);
                     }
 
                 } catch (Exception $e) {
-                    // Si el modelo lanza una excepción, la atrapamos aquí.
-                    http_response_code(500); // Internal Server Error
+                    http_response_code(500);
                     echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
                 }
+
                 exit;
             case 2: // ACTUALIZAR UN RESIDENTE
                 $data = $_POST;
@@ -173,7 +206,24 @@ class AdminController
                 $data = json_decode($json, true);
                 
                 try {
-                // Validación básica de datos
+                    if (empty($data['num_casa'])) {
+                        throw new Exception('Falta el número de casa.');
+                    }
+
+                    $privadasModel = new UtilityModel();
+                    $propietario = $privadasModel->buscarPropietarioPorCasa($data['num_casa'] ?? '');
+                    $nombrePropietario = $propietario 
+                        ? $propietario['nombres'] . ' ' . $propietario['apellido_p'] . ' ' . $propietario['apellido_m'] 
+                        : '';
+
+                    if (!empty($data['soloPropietario'])) {
+                        echo json_encode([
+                            'success' => true,
+                            'propietario' => $nombrePropietario
+                        ]);
+                        exit;
+                    }
+                    // Validación básica de datos
                     $data['id_privada'] = $_SESSION['id_privada'] ?? 0; // <-- ADD THIS LINE
                     if (empty($data['nombres']) || empty($data['num_casa']) || empty($data['id_privada'])) {
                         throw new Exception('Faltan datos requeridos (nombre, casa o privada).');
@@ -187,14 +237,13 @@ class AdminController
                         // Este caso es raro si se usa try/catch, pero es una salvaguarda.
                         echo json_encode(['success' => false, 'message' => 'Error al crear el residente.']);
                     }
-
-                } catch (Exception $e) {
+                    } catch (Exception $e) {
                     // Si el modelo lanza una excepción, la atrapamos aquí.
                     http_response_code(500); // Internal Server Error
                     echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
                 }
                 exit;
-        }
+                    }
     }
     
     
@@ -259,38 +308,30 @@ class AdminController
         }
         switch ($casoS){
             case 1: // CREAR O VERIFICAR UN COLABORADOR
+            // Se obtiene el contenido JSON enviado desde el cliente (por ejemplo, desde fetch() en JS)
             $json = file_get_contents('php://input');
+            // Se decodifica el JSON en un arreglo asociativo para poder manipular los datos
             $data = json_decode($json, true);
 
             try {
                 // ------------------------------------------------------------
-                // Verificación de usuario duplicado sin crear el registro
+                // Bloque de verificación de usuario duplicado sin crear el registro
                 // ------------------------------------------------------------
+                // Instancia del modelo de utilidad para verificar usuarios
                 $utilityModel = new UtilityModel();
                 $colaboradorModel = new ColaboradoresModel();
-                if (!empty($data['verificar']) && $data['verificar'] === true) {
-                    if (empty($data['username'])) {
-                        throw new Exception('No se proporcionó el nombre de usuario.');
-                    }
-                    $existe = $utilityModel->verificarUsuario($data['username']);
-
-                    echo json_encode(['existe' => $existe]);
-                    exit;
-                }
-
-                // ------------------------------------------------------------
-                // Creación real del colaborador
-                // ------------------------------------------------------------
-                if (empty($data['username']) || empty($data['password']) || empty($data['nombres'])) {
-                    throw new Exception('Faltan datos requeridos.');
-                }
-
-                // Antes de crear, también se puede verificar de nuevo (opcional)
                 if ($utilityModel->verificarUsuario($data['username'])) {
                     echo json_encode(['success' => false, 'message' => 'El nombre de usuario ya está registrado.']);
                     exit;
                 }
-
+                // ------------------------------------------------------------
+                // Bloque de creación real del colaborador
+                // ------------------------------------------------------------
+                if (empty($data['username']) || empty($data['password']) || empty($data['nombres'])) {
+                    throw new Exception('Faltan datos requeridos.');
+                }
+                // Antes de crear, también se puede verificar de nuevo (opcional)
+                
                 $success = $colaboradorModel->creaColaborador($data);
 
                 if ($success) {
@@ -359,18 +400,123 @@ class AdminController
     
     public function showAvisos()
     {
+        $avisosModel = new AvisosModel();
+        $utilityModel = new UtilityModel();
         $data = $this->cargarDatosDelPanel();
-        // $usersModel = new UsersModel();
-        // $users = $usersModel->getusers();
-
-        // $data['users'] = $users;   
-        
-        // $assets['styles'] = ['/css/admin_users.css'];
-        // $assets['scripts'] = ['/js/dataTables.js',];
+        $data['avisos'] = $avisosModel->getAllAvisos($_SESSION['public_id_privada']);
+        $assets['styles'] = ['/css/Admin/admin_avisos.css'];
+        $assets['scripts'] = ['/js/Admin/admin_avisos.js'];
 
         $view_to_load = 'avisos.php';
         
         require __DIR__ . '/../../Views/Admin/Panel.php';
+    }
+
+    public function operacion_Avisos($caso){
+        $casoS = $caso;
+        $avisosModel = new AvisosModel();
+        $utilityModel = new UtilityModel();
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405); 
+            echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
+            exit;
+        }
+        switch ($casoS){
+            case 1: // CREAR AVISOS
+            // Se obtiene el contenido JSON enviado desde el cliente (por ejemplo, desde fetch() en JS)
+            $json = file_get_contents('php://input');
+            // Se decodifica el JSON en un arreglo asociativo para poder manipular los datos
+            $data = json_decode($json, true);
+            if (!isset($_SESSION['id_info'])) {
+                $userInfo = $utilityModel->obtenDatosAdmin($_SESSION['user_id']);
+                $_SESSION['id_info'] = $userInfo['id_info'] ?? null;
+            }
+            try {
+                // ------------------------------------------------------------
+                // Bloque de verificación de usuario duplicado sin crear el registro
+                // ------------------------------------------------------------
+                // Instancia del modelo de utilidad para verificar usuarios
+                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['id_info'])) {
+                    $data = [
+                        'tipo' => $_POST['tipo'] ?? 'Aviso',
+                        'titulo' => $_POST['titulo'] ?? '',
+                        'contenido' => $_POST['contenido'] ?? '',
+                        'id_info' => $_SESSION['id_info'],
+                        'id_privada' => $_SESSION['id_privada']
+                    ];
+
+                    if (empty($data['titulo']) || empty($data['contenido'])) {
+                        echo json_encode(['success' => false, 'message' => 'El título y el contenido no pueden estar vacíos.']);
+                        return;
+                    }
+                    $success = $avisosModel->createAviso($data);
+
+                    if ($success) {
+                        echo json_encode(['success' => true, 'message' => 'Aviso creado correctamente.']);
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'Error al crear el aviso en la base de datos.']);
+                    }
+                } else {
+                    http_response_code(400); // Bad Request
+                    echo json_encode(['success' => false, 'message' => 'No se pudo verificar la identidad del usuario. Intente recargar la página.']);
+                }
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+            }
+            exit;
+
+            case 2: // ACTUALIZAR UN COLABORADOR
+                try {
+                    //Despues almacena en un JSON el id_usuario y nombres, revisa si los campos estan vacios y envia un mensaje
+                    $input = json_decode(file_get_contents('php://input'), true);
+
+                    if (empty($input['id_usuario']) || empty($input['nombres'])) {
+                        throw new Exception('Faltan datos requeridos.');
+                    }
+                    //Declara un objecto con el modelo y llama la actualizacion
+                    $colaboradorModel = new ColaboradoresModel();            
+                    $success = $colaboradorModel->actualizaColaborador($input);
+
+                    //Envia una respuesta de acuerdo al estado por medio de un JSON
+                    
+                    if ($success) {
+                        echo json_encode(['success' => true, 'message' => 'Colaborador actualizado correctamente.']);
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'Error al actualizar el colaborador.']);
+                    }
+
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+                }
+                exit;
+                
+            case 3: // ELIMINAR UN COLABORADOR
+                $json = file_get_contents('php://input');
+                $data = json_decode($json, true);
+
+                try {
+                    if (empty($data['id_usuario'])) {
+                        throw new Exception('No se proporcionó el ID del colaborador a eliminar.');
+                    }
+                    
+                    $colaboradorModel = new ColaboradoresModel();
+                    $success = $colaboradorModel->eliminarColaborador($data['id_usuario']);
+
+                    if ($success) {
+                        echo json_encode(['success' => true, 'message' => 'Colaborador eliminado exitosamente.']);
+                    } else {
+                        throw new Exception('No se pudo eliminar el colaborador.');
+                    }
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+                }
+                exit;
+        }
     }
     public function showConfigs()
     {
@@ -524,7 +670,11 @@ class AdminController
                 $assets['styles'][] = '/css/Admin/config.css';
                 $assets['scripts'] = ['/js/Admin/admin_config.js'];
                 break;
-            
+            case 'avisos':
+                $assets['styles'] = ['/css/Admin/admin_avisos.css'];
+                $assets['scripts'] = ['/js/Admin/admin_avisos.js',];
+                break;
+                
         }
 
         extract($data);

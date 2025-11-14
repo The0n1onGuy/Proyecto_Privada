@@ -51,7 +51,12 @@ class SessionDataModel
                     $sql = "SELECT 1 FROM priv_infousuario WHERE id_info = ? LIMIT 1";
                     $params = [$value];
                     break;
- 
+                    
+                case 'public_id_usuario':
+                    $sql = "SELECT 1 FROM priv_usuarios WHERE public_id = ? LIMIT 1";
+                    $params = [$value];
+                    break;
+
                 default:
                     return true;
             }

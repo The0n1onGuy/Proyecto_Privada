@@ -36,6 +36,7 @@ class LoginController
         if ($user) {
             $_SESSION['user_id'] = $user['id_usuario'];
             $_SESSION['user_role'] = (int)$user['id_rol'];
+            $_SESSION['public_id_usuario'] = $user['public_id'];
             
             if ($_SESSION['user_role'] === 2) {
 
