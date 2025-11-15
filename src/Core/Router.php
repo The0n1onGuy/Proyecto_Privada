@@ -2,16 +2,16 @@
 
 namespace App\Core;
 
+// CLASES CONTROLADORES Y MODELO DE UTILIDAD
 use App\Controllers\LoginController;
 use App\Controllers\Admin\AdminController;
 use App\Models\Admin\UtilityModel;
 use App\Controllers\Resident\ResidentController;
+use App\Controllers\Collaborator\CollaboratorController;
 
-// --- NUEVO INICIO ---
-// 1. IMPORTAMOS LAS CLASES DE VERIFICACIÓN
+// CLASES DE VERIFICACIÓN
 use App\Models\SessionDataModel;
 use App\Core\SessionVerifier;
-// --- NUEVO FIN ---
 
 
 class Router
@@ -29,6 +29,7 @@ class Router
             switch ($userRole) {
                 case 1: header('Location: /admin/select-private'); exit;
                 case 2: header('Location: /resident'); exit;
+                case 5: header('Location: /collaborator'); exit;
             }
         }
 
@@ -53,6 +54,7 @@ class Router
                     //Redireccionalo deacuerdo a su rol 1 Admin, 2 Residente
                     case 1: header('Location: /admin/select-private'); break;
                     case 2: header('Location: /resident'); break;
+                    case 5: header('Location: /collaborator'); exit;
                     default: header('Location: /'); break;
                 }
             } else {
@@ -261,8 +263,13 @@ class Router
             // --- MANEJO DE PETICIONES POST ---
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($url === '/resident/avisos/create') {
-                    // La lógica de 'id_info' ya se corrió y verificó arriba
                     $controller->createAviso();
+                    return;
+                }
+            }
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                if ($url === '/resident/avisos/delete') {
+                    $controller->deleteAviso();
                     return;
                 }
             }
@@ -301,8 +308,52 @@ class Router
             return; // Detenemos aquí para no procesar más rutas
         }
         // --- OTRAS RUTAS (LOGIN, 404, Y REDIRECCIÓN DE INVITADOS) ---
+        if ($isLoggedIn && $userRole === 5 && strpos($url, '/collaborator') === 0) {
+            
+            $keysToVerify = ['user_id', 'id_privada'];
+        
+            if (!$this->runVerification($keysToVerify)) {
+                // El verificador falló (sesión corrupta, ID no existe, etc.)
+                session_destroy();
+                header('Location: /'); // Botar al login
+                exit;
+            }
+             // 4. PUNTO DE CONTROL DE COLABORADOR
 
-        // 1. Si el usuario NO está logueado
+            $controller = new CollaboratorController();
+
+            // --- MANEJO DE PETICIONES POST ---
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                if ($url === '/collaborator/getActivitiesForDate') {
+                    $controller->getActivitiesForDate();
+                    return;
+                }
+            }
+            // A. CARGA DE CONTENIDO MEDIANTE EL SIDEBAR
+            if (preg_match('/^\/collaborator\/content\/(\w+)$/', $url, $matches)) {
+                $sectionName = $matches[1]; // Captura 'dashboard' de la URL
+                $controller->loadContent($sectionName);
+                return; // Detenemos aquí para no cargar el layout completo
+            }
+            
+            // B. RUTAS PARA NAVEGACIÓN DIRECTA (Carga de página completa)
+            switch ($url) {
+                case '/collaborator':
+                case '/collaborator/schedule':
+                    $controller->showSchedule();
+                    break;
+                case '/collaborator/reports':
+                    $controller->showReports();
+                    break;
+
+                default:
+                    // Si la URL no coincide, lo mandamos al dashboard para evitar errores
+                    header('Location: /collaborator/schedule');
+                    exit;
+            }
+            return; // Detenemos aquí para no procesar más rutas
+        }
+        // Si el usuario NO está logueado
         if (!$isLoggedIn) {
             
             // Y está en la raíz, muestra el login (única página permitida)

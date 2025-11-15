@@ -1,1 +1,0 @@
-<h1 class="title">Dashboard de residente</h1> 

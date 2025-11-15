@@ -4,7 +4,7 @@ namespace App\Models\Admin;
 
 use App\Core\Database;
 use PDO;
-
+use Exception;
 class ResidentsModel {
 
     /**
@@ -243,9 +243,9 @@ class ResidentsModel {
 
             $conn->commit();
             return true;
-
-        } catch (Exception $e) {
+            
             $conn->rollBack();
+        } catch (Exception $e) {
             throw $e;
         }
     }

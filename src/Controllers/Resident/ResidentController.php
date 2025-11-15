@@ -106,6 +106,40 @@ public function createAviso()
             echo json_encode(['success' => false, 'message' => 'No se pudo verificar la identidad del usuario. Intente recargar la página.']);
         }
     }
+    public function deleteAviso()
+    {
+        // Encabezado de respuesta JSON
+        header('Content-Type: application/json');
+
+        // Verificación de seguridad: ¿El usuario está logueado?
+        // (Asumo que tu constructor o un middleware ya inicia la sesión)
+        if (!isset($_SESSION['id_info']) || !isset($_POST['id_aviso'])) {
+            echo json_encode(['success' => false, 'message' => 'Solicitud inválida o sesión expirada.']);
+            return;
+        }
+
+        try {
+            $id_aviso = (int)$_POST['id_aviso'];
+            $id_info_session = (int)$_SESSION['id_info']; // ID de la sesión
+
+            $model = new AvisosModel();
+            
+            // Pasamos ambos IDs al modelo para la eliminación segura
+            $success = $model->deleteAviso($id_aviso, $id_info_session);
+
+            if ($success) {
+                echo json_encode(['success' => true, 'message' => 'El aviso ha sido eliminado.']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No se pudo eliminar el aviso. Es posible que no seas el autor o ya fue eliminado.']);
+            }
+
+        } catch (\Exception $e) {
+            // Manejo de errores
+            error_log($e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Ocurrió un error inesperado.']);
+        }
+    }
+
 // Reemplaza toda la función loadContent con esta:
     public function loadContent($view)
     {

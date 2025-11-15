@@ -57,8 +57,8 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Usuario que tiene la contraseña en texto plano
-    $username_to_update = 'user'; 
-    $plain_password = 'user';
+    $username_to_update = 'Amogus'; 
+    $plain_password = 'Amogus';
 
     // 1. Hashea la contraseña de forma segura
     $hashed_password = password_hash($plain_password, PASSWORD_DEFAULT);
