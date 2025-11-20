@@ -22,7 +22,7 @@ class AdminController
     }
     private function cargarDatosDelPanel(): array
     {
-        if (!isset($_SESSION['public_id_privada'])) { // <--- CAMBIO
+        if (!isset($_SESSION['public_id_privada'])) {
             header(header: 'Location: /admin/select-private');
             exit;
         }
@@ -30,13 +30,14 @@ class AdminController
         $utilityModel = new UtilityModel();
         $data['todas_las_privadas'] = $utilityModel->obtenTodosPrivadas();
         
-        // 1. Leemos el PUBLIC_ID (UUID) de la sesión
-        $public_id_actual = $_SESSION['public_id_privada'] ?? null; // <--- CAMBIO
+        // Leemos el PUBLIC_ID (UUID) de la sesión
+        $public_id_actual = $_SESSION['public_id_privada'] ?? null; 
         $data['privada_actual'] = null;
         if (!empty($data['todas_las_privadas']) && $public_id_actual) {
             foreach ($data['todas_las_privadas'] as $privada) {
-                // 2. Comparamos el PUBLIC_ID de la DB con el PUBLIC_ID de la sesión
-                if ($privada['public_id'] == $public_id_actual) { // <--- CAMBIO
+                // Comparamos el PUBLIC_ID de la DB con el PUBLIC_ID de la sesión
+
+                if ($privada['public_id'] == $public_id_actual) { 
                     $data['privada_actual'] = $privada;
                     break;
                 }
@@ -118,7 +119,7 @@ class AdminController
                     // Instancia del modelo de privadas
                     $PrivadasModel = new UtilityModel();
 
-                    // --- 1. Verificación si solo se quiere checar existencia del username ---
+                    // Verificación si solo se quiere checar existencia del username ---
                     if (!empty($data['verificar']) && $data['verificar'] === true && !empty($data['username'])) {
                         $username = trim($data['username']);
                         $existe = $PrivadasModel->verificarUsuario($username);
@@ -126,7 +127,7 @@ class AdminController
                         exit;
                     }
 
-                    // --- 1b. Verificación si solo se quiere checar existencia del número de casa ---
+                    // Verificación si solo se quiere checar existencia del número de casa ---
                     if (!empty($data['verificar_casa']) && $data['verificar_casa'] === true && !empty($data['num_casa'])) {
                         $numCasa = trim($data['num_casa']);
                         $existe = $PrivadasModel->verificarNumCasa($numCasa);
@@ -134,7 +135,7 @@ class AdminController
                         exit;
                     }
 
-                    // --- 2. Validación básica de datos requeridos para crear residente ---
+                    // Validación básica de datos requeridos para crear residente ---
                     if (empty($data['username']) || empty($data['num_casa']) || empty($data['nombres'])) {
                         throw new Exception('Faltan datos requeridos.');
                     }
@@ -142,7 +143,7 @@ class AdminController
                     $username = trim($data['username']);
                     $numCasa = trim($data['num_casa']);
 
-                    // --- 3. Verificación de duplicidad antes de crear ---
+                    // Verificación de duplicidad antes de crear ---
                     if ($PrivadasModel->verificarUsuario($username)) {
                         echo json_encode(['success' => false, 'message' => 'El nombre de usuario ya está registrado.']);
                         exit;
@@ -320,6 +321,15 @@ class AdminController
                 // Instancia del modelo de utilidad para verificar usuarios
                 $utilityModel = new UtilityModel();
                 $colaboradorModel = new ColaboradoresModel();
+                if (!empty($data['verificar']) && $data['verificar'] === true) {
+                    if (empty($data['username'])) {
+                        throw new Exception('No se proporcionó el nombre de usuario.');
+                    }
+                    $existe = $utilityModel->verificarUsuario($data['username']);
+                    echo json_encode(['existe' => $existe]);
+                    exit; 
+                }
+                // (Doble verificación por si acaso)
                 if ($utilityModel->verificarUsuario($data['username'])) {
                     echo json_encode(['success' => false, 'message' => 'El nombre de usuario ya está registrado.']);
                     exit;
@@ -378,12 +388,12 @@ class AdminController
                 $data = json_decode($json, true);
 
                 try {
-                    if (empty($data['id_usuario'])) {
+                    if (empty($data['public_id_usuario'])) {
                         throw new Exception('No se proporcionó el ID del colaborador a eliminar.');
                     }
                     
                     $colaboradorModel = new ColaboradoresModel();
-                    $success = $colaboradorModel->eliminarColaborador($data['id_usuario']);
+                    $success = $colaboradorModel->eliminarColaborador($data['public_id_usuario']);
 
                     if ($success) {
                         echo json_encode(['success' => true, 'message' => 'Colaborador eliminado exitosamente.']);

@@ -32,56 +32,50 @@
             </tr>
         </thead>
         <tbody> 
-            <?php
-            if (!empty($colaboradores)) {
-                $contador = 1; 
-                foreach ($colaboradores as $item) {
-                    echo "<tr>";
-                    // Columna #
-                    echo "<td>" . $contador++ . "</td>";
-                    echo "<td>" . htmlspecialchars($item['nombres']) . "</td>";
-                    echo "<td>" . htmlspecialchars($item['apellido_p']) . "</td>";
-                    echo "<td>" . htmlspecialchars($item['apellido_m']) . "</td>";
-                    echo "<td>";
-                    if (!empty($item['correos'])) {
-                        echo '<select class="form-control-sm">';
-                        foreach ($item['correos'] as $correo) {
-                            echo '<option value="' . htmlspecialchars($correo['id_correo']) . '">' . htmlspecialchars($correo['correo']) . '</option>';
-                        }
-                        echo '</select>';
-                    } else { echo 'N/A'; }
-                    echo "</td>";
-
-                    echo "<td>";
-                    if (!empty($item['telefonos'])) {
-                        echo '<select class="form-control-sm">';
-                        foreach ($item['telefonos'] as $telefono) {
-                            echo '<option value="' . htmlspecialchars($telefono['id_telefono']) . '">' . htmlspecialchars($telefono['telefono']) . '</option>';
-                        }
-                        echo '</select>';
-                    } else { echo 'N/A'; }
-                    echo "</td>";
-
-                    echo "<td>" . htmlspecialchars($item['rol']) . "</td>";
-                    echo "<td>" . htmlspecialchars($item['estatus']) . "</td>";
-
-                    echo '<td>
-                            <button class="btn-icon btn-edit" 
-                                    title="Editar"
-                                    data-colaborador=\'' . json_encode($item) . '\'>
-                                <svg height="25px" width="40px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8.29289 3.70711L1 11V15H5L12.2929 7.70711L8.29289 3.70711Z" fill="#031159"></path> <path d="M9.70711 2.29289L13.7071 6.29289L15.1716 4.82843C15.702 4.29799 16 3.57857 16 2.82843C16 1.26633 14.7337 0 13.1716 0C12.4214 0 11.702 0.297995 11.1716 0.828428L9.70711 2.29289Z" fill="#031159"></path> </g></svg>
-                            </button>
-
-                            <button class="btn-icon btn-delete" 
-                                    data-id="' . htmlspecialchars($item['public_id']) . '">
-                                <svg height="25px" width="40px" fill="#01075b" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#01075b"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.755,20.283,4,8H20L18.245,20.283A2,2,0,0,1,16.265,22H7.735A2,2,0,0,1,5.755,20.283ZM21,4H16V3a1,1,0,0,0-1-1H9A1,1,0,0,0,8,3V4H3A1,1,0,0,0,3,6H21a1,1,0,0,0,0-2Z"></path></g></svg>
-                            </button>
-                        </td>';
-                    echo "</tr>";
+        <?php
+    if (!empty($colaboradores)) {
+        foreach ($colaboradores as $item) {
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($item['id_usuario']) . "</td>";
+            echo "<td>" . htmlspecialchars($item['nombres']) . "</td>";
+            echo "<td>" . htmlspecialchars($item['apellido_p']) . "</td>";
+            echo "<td>" . htmlspecialchars($item['apellido_m']) . "</td>";
+            echo "<td>";
+            if (!empty($item['correos'])) {
+                echo '<select class="form-control-sm">';
+                foreach ($item['correos'] as $correo) {
+                    echo '<option value="' . htmlspecialchars($correo['id_correo']) . '">' . htmlspecialchars($correo['correo']) . '</option>';
                 }
-            }
-            ?>
-        </tbody> 
+                echo '</select>';
+            } else { echo 'N/A'; }
+            echo "</td>";
+            echo "<td>";
+            if (!empty($item['telefonos'])) {
+                echo '<select class="form-control-sm">';
+                foreach ($item['telefonos'] as $telefono) {
+                    echo '<option value="' . htmlspecialchars($telefono['id_telefono']) . '">' . htmlspecialchars($telefono['telefono']) . '</option>';
+                }
+                echo '</select>';
+            } else { echo 'N/A'; }
+            echo "</td>";
+
+            echo "<td>" . htmlspecialchars($item['rol']) . "</td>";
+            echo "<td>" . htmlspecialchars($item['estatus']) . "</td>";
+            
+            // --- THE MAJOR SIMPLIFICATION IS HERE ---
+            echo '<td>
+                    <button class="btn-icon btn-edit" 
+                            title="Editar"
+                            data-colaborador=\'' . json_encode($item) . '\'>
+                        <svg height="25px" width="40px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8.29289 3.70711L1 11V15H5L12.2929 7.70711L8.29289 3.70711Z" fill="#031159"></path> <path d="M9.70711 2.29289L13.7071 6.29289L15.1716 4.82843C15.702 4.29799 16 3.57857 16 2.82843C16 1.26633 14.7337 0 13.1716 0C12.4214 0 11.702 0.297995 11.1716 0.828428L9.70711 2.29289Z" fill="#031159"></path> </g></svg>
+                    </button>
+                    <button class="btn-icon btn-delete" data-id="' . htmlspecialchars($item['public_id']) . '"><svg height="25px" width="40px" fill="#01075b" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#01075b"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.755,20.283,4,8H20L18.245,20.283A2,2,0,0,1,16.265,22H7.735A2,2,0,0,1,5.755,20.283ZM21,4H16V3a1,1,0,0,0-1-1H9A1,1,0,0,0,8,3V4H3A1,1,0,0,0,3,6H21a1,1,0,0,0,0-2Z"></path></g></svg></button>
+                  </td>';
+            echo "</tr>";
+        }
+    }
+    ?>
+            </tbody> 
     </table>
 </div>
 <!-- MODAL DE AÑADIR UN COLABORADOR-->

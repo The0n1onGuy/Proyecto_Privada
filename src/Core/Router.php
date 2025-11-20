@@ -130,15 +130,12 @@ class Router
 
                     //FUNCIONES DE COLABORADORES
                     case '/admin/colaboradores/create':
-                        // $controller->Procesa_Crear_Colaborador();
                         $controller->operacion_Colaborador(1);
                         return; 
                     case '/admin/colaboradores/update':
-                        // $controller->updateColaborador();
                         $controller->operacion_Colaborador(2);
                         return; 
                     case '/admin/colaboradores/delete':
-                        // $controller->Procesa_Eliminar_Colaborador();
                         $controller->operacion_Colaborador(3);
                         return;     
                     

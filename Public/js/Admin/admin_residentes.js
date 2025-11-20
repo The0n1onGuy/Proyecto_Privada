@@ -541,20 +541,40 @@ fechaNacimientoInput.addEventListener("change", function () {
     validarTelefonoEnTiempoReal("extra_add_phone2", "phone2_messageextra");
     validarTelefonoEnTiempoReal("inputTelefono", "mensajeTelefonoExistente");
 
-    // Mostrar/Ocultar el menú al hacer clic
-document.getElementById("menuButton").addEventListener("click", function () {
-  document.getElementById("menuContent").classList.toggle("show");
+// --- FUNCIONALIDAD PARA MOSTRAR FORMULARIO SEGÚN SELECCIÓN DE PROPIETARIO ---
+function toggleResidentForm() {
+    const propietarioSi = document.getElementById('propietario_si');
+    const propietarioNo = document.getElementById('propietario_no');
+    const propietarioForm = document.getElementById('addResidentForm');
+    const extraForm = document.getElementById('addExtraForm');
+
+    function actualizarFormulario() {
+        if (propietarioSi.checked) {
+            propietarioForm.style.display = 'block';
+            extraForm.style.display = 'none';
+        } else {
+            propietarioForm.style.display = 'none';
+            extraForm.style.display = 'block';
+        }
+    }
+
+    // Inicializar según valor por defecto
+    actualizarFormulario();
+
+    // Escuchar cambios en los radios
+    propietarioSi.addEventListener('change', actualizarFormulario);
+    propietarioNo.addEventListener('change', actualizarFormulario);
+}
+
+// Llamar la función al abrir modal
+$('#addResidentBtn').on('click', function() {
+    addForm[0].reset();
+    addForm.find('input, select').css('border-color', '');
+    addModal.addClass('visible');
+
+    toggleResidentForm(); // Activar lógica de propietario / extra
 });
 
-// Cerrar el menú si se hace clic fuera
-window.addEventListener("click", function (event) {
-  if (!event.target.matches('#menuButton, #menuButton *')) {
-    const menu = document.getElementById("menuContent");
-    if (menu.classList.contains("show")) {
-      menu.classList.remove("show");
-    }
-  }
-});
 }
 
 

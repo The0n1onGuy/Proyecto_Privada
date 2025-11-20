@@ -20,7 +20,6 @@ class UtilityModel {
     public function obtenDatosEstatus(){
 
         // Obten todos los estatus
-
         $conn = Database::getConnection();
         $stmt = $conn->query("SELECT estatus FROM priv_estatus");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -78,16 +77,30 @@ class UtilityModel {
         // Retorna true si existe, false si no existe
         return $resultado['total'] > 0;
     }
+    // public function obtenDatosAdmin($userId)
+    // {
+    //     // **LA CORRECCIÓN ESTÁ AQUÍ**: Añadimos i.id_info a la consulta.
+    //     // $conn = Database::getConnection(); // Usando la clase Database
+    //     $sql = "SELECT estatus FROM priv_estatus WHERE id_estatus IN (?, ?)";
+    //     $stmt = conn->prepare(
+    //         'SELECT p.nombre AS privada_nombre, u.num_casa, i.nombres, i.id_info
+    //          FROM priv_usuarios u 
+    //          JOIN priv_privadas p ON u.id_privada = p.id_privada
+    //          JOIN priv_infousuario i ON u.id_usuario = i.id_usuario
+    //          WHERE u.id_usuario = :id_usuario'
+    //     );
+    //     $stmt->execute(['id_usuario' => $userId]);
+    //     return $stmt->fetch(PDO::FETCH_ASSOC);
+    // }
     public function obtenDatosAdmin($userId)
     {
-        // **LA CORRECCIÓN ESTÁ AQUÍ**: Añadimos i.id_info a la consulta.
-        $stmt = $this->conn->prepare(
-            'SELECT p.nombre AS privada_nombre, u.num_casa, i.nombres, i.id_info
+        $conn = Database::getConnection(); // Usando la clase Database
+        $sql = "SELECT p.nombre AS privada_nombre, u.num_casa, i.nombres, i.id_info
              FROM priv_usuarios u 
              JOIN priv_privadas p ON u.id_privada = p.id_privada
              JOIN priv_infousuario i ON u.id_usuario = i.id_usuario
-             WHERE u.id_usuario = :id_usuario'
-        );
+             WHERE u.id_usuario = :id_usuario";
+        $stmt = $conn->prepare($sql);
         $stmt->execute(['id_usuario' => $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

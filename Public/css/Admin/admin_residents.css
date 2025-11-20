@@ -6,13 +6,21 @@
    ================================ */
 
 .content-header {
+    display: flex;
+    justify-content: space-between; /* texto a la izquierda, botón a la derecha */
+    align-items: center;
     background-color: #ffffff;
     border: 1px solid #e2e6ea;
     border-radius: 10px;
     padding: 25px 20px;
     margin-bottom: 25px;
-    text-align: center;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    animation: fadeInHeader 0.5s ease;
+}
+
+.content-header .header-text {
+    display: flex;
+    flex-direction: column;
 }
 
 .content-header h1 {
@@ -28,23 +36,48 @@
     margin: 0;
 }
 
-/* Efecto sutil al pasar el cursor (opcional) */
+/* Botón en el header */
+#addResidentBtn {
+    white-space: nowrap; /* evita que el texto se rompa */
+}
+
+/* Efecto sutil al pasar el cursor */
 .content-header:hover {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     transform: translateY(-1px);
     transition: all 0.2s ease;
 }
 
-/* Animación de entrada suave */
+/* Animación de entrada */
 @keyframes fadeInHeader {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.content-header {
-    animation: fadeInHeader 0.5s ease;
+/* ================================
+   CARD HEADER Y FILTRO
+   ================================ */
+
+/* Encabezado de la sección de la tabla (título a la izquierda, acciones a la derecha) */
+.card-header.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
+/* Contenedor de acciones (filtro + botón) */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* espacio entre filtro y botón */
+}
+
+.filter-container label {
+    margin-right: 5px; /* espacio entre texto y select */
+}
+
+/* Mantener estilos antiguos de card-header si se usan otros */
 .section-card > .card-header:nth-child(1) {
     display: flex;
     justify-content: space-between; 
@@ -52,6 +85,7 @@
     margin-bottom: 0; 
 }
 
+/* Se elimina padding extra y margen problemático del segundo card-header antiguo */
 .section-card > .card-header:nth-child(2) {
     display: flex;
     justify-content: space-between; 
@@ -61,17 +95,46 @@
     padding-left: 170px; 
 }
 
-.filter-container {
-    margin-left: 20px; 
+/* ================================
+   FILTRO “Mostrar” SUPERPUESTO
+   ================================ */
+
+.section-card > .card-header.filter-header {
+    position: relative; /* contenedor relativo para referencia del filtro absoluto */
+    padding: 0;
 }
 
-/* ----- Contenedor del dropdown ----- */
+/* Contenedor del filtro superpuesto */
+.filter-container.superposed {
+    position: absolute;     /* se coloca sobre la tabla */
+    top: 5px;               /* ajustar altura según diseño */
+    left: 0;                /* pegado a la izquierda */
+    z-index: 10;            /* encima de la tabla */
+    background: #fff;       /* opcional: fondo blanco */
+    padding: 5px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-container.superposed label {
+    margin: 0;
+    font-weight: 500;
+}
+
+/* ================================
+   DROPDOWN
+   ================================ */
+
+/* Contenedor del dropdown */
 .dropdown {
   position: relative;
   display: inline-block;
 }
 
-/* ----- Botón principal (solo SVG, sin fondo) ----- */
+/* Botón principal (solo SVG, sin fondo) */
 #menuButton {
   background: none;
   border: none;
@@ -92,7 +155,7 @@
   stroke: #07003d;
 }
 
-/* ----- Contenedor del contenido desplegable ----- */
+/* Contenedor del contenido desplegable */
 .dropdown-content {
   display: none;
   position: absolute;
@@ -114,12 +177,12 @@
   to { opacity: 1; transform: scale(1); }
 }
 
-/* ----- Mostrar el menú cuando se activa ----- */
+/* Mostrar el menú cuando se activa */
 .dropdown-content.show {
   display: block;
 }
 
-/* ----- Estilo interno de los botones del menú ----- */
+/* Estilo interno de los botones del menú */
 .dropdown-content .btn {
   width: 100%;
   margin-bottom: 5px;

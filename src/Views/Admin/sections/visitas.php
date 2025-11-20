@@ -1,6 +1,7 @@
 <script>
     const colaboradoresData = <?php echo $colaboradoresJSON ?? '[]'; ?>;
 </script>
+<link href="/css/Admin/admin_visitas.css" rel="stylesheet">
 
 <div class="content-header">
     <h1>Gestión de Visitas</h1>
@@ -29,42 +30,55 @@
             </tr>
         </thead>
         <tbody>
-            <?php if (!empty($visitas)): ?>
-                <?php foreach ($visitas as $v): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($v['id_visita']); ?></td>
-                        <td><?php echo htmlspecialchars($v['nombre_visitante'] . ' ' . $v['apellido_visitante']); ?></td>
-                        <td><?php echo htmlspecialchars($v['tipo_visita']); ?></td>
-                        <td><?php echo htmlspecialchars($v['identificacion']); ?></td>
-                        <td><?php echo htmlspecialchars($v['fecha_ingreso']); ?></td>
-                        <td>
-                            <?php echo $v['fecha_salida'] ? htmlspecialchars($v['fecha_salida']) : '—'; ?>
-                        </td>
-                        <td>
-                            <?php echo htmlspecialchars($v['residente_nombre'] . ' ' . $v['apellido_p'] . ' ' . $v['apellido_m']); ?>
-                        </td>
-                        <td>
-                            <span class="estatus-tag <?php echo strtolower(str_replace(' ', '-', $v['estatus'])); ?>">
-                                <?php echo htmlspecialchars($v['estatus']); ?>
-                            </span>
-                        </td>
-                        <td><?php echo htmlspecialchars($v['observaciones'] ?: '—'); ?></td>
-                        <td>
-                            <form method="POST" style="display:inline-block;">
-                                <input type="hidden" name="accion" value="actualizar">
-                                <input type="hidden" name="id_visita" value="<?php echo $v['id_visita']; ?>">
-                                <select name="estatus" required class="select-estatus">
-                                    <option value="">Cambiar</option>
-                                    <option value="En curso">En curso</option>
-                                    <option value="Finalizada">Finalizada</option>
-                                    <option value="Cancelada">Cancelada</option>
-                                </select>
-                                <button type="submit" class="btn-accion">Actualizar</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
+<?php if (!empty($visitas)): ?>
+
+    <?php $contador = 1; ?> <!-- Numeración consecutiva -->
+
+    <?php foreach ($visitas as $v): ?>
+        <tr>
+
+            <!-- Columna # -->
+            <td><?php echo $contador++; ?></td>
+
+            <td><?php echo htmlspecialchars($v['nombre_visitante'] . ' ' . $v['apellido_visitante']); ?></td>
+            <td><?php echo htmlspecialchars($v['tipo_visita']); ?></td>
+            <td><?php echo htmlspecialchars($v['identificacion']); ?></td>
+            <td><?php echo htmlspecialchars($v['fecha_ingreso']); ?></td>
+
+            <td>
+                <?php echo $v['fecha_salida'] ? htmlspecialchars($v['fecha_salida']) : '—'; ?>
+            </td>
+
+            <td>
+                <?php echo htmlspecialchars($v['residente_nombre'] . ' ' . $v['apellido_p'] . ' ' . $v['apellido_m']); ?>
+            </td>
+
+            <td>
+                <span class="estatus-tag <?php echo strtolower(str_replace(' ', '-', $v['estatus'])); ?>">
+                    <?php echo htmlspecialchars($v['estatus']); ?>
+                </span>
+            </td>
+
+            <td><?php echo htmlspecialchars($v['observaciones'] ?: '—'); ?></td>
+
+            <td>
+                <form method="POST" style="display:inline-block;">
+                    <input type="hidden" name="accion" value="actualizar">
+                    <input type="hidden" name="id_visita" value="<?php echo $v['id_visita']; ?>">
+
+                    <select name="estatus" required class="select-estatus">
+                        <option value="">Cambiar</option>
+                        <option value="En curso">En curso</option>
+                        <option value="Finalizada">Finalizada</option>
+                        <option value="Cancelada">Cancelada</option>
+                    </select>
+
+                    <button type="submit" class="btn-accion">Actualizar</button>
+                </form>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+<?php endif; ?>
+</tbody>
     </table>
 </div>

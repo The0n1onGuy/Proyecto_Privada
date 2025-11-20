@@ -54,7 +54,7 @@ $(document).ready(function() {
         const nombreCompleto = row.find('td:eq(1)').text() + ' ' + row.find('td:eq(2)').text();
 
         if (confirm(`¿Estás seguro de que quieres eliminar a ${nombreCompleto}? Esta acción no se puede deshacer.`)) {
-            const payload = { id_usuario: idToDelete };
+            const payload = { public_id_usuario: idToDelete };
             const apiUrl = '/admin/colaboradores/delete';
 
             fetch(apiUrl, {
@@ -86,7 +86,7 @@ $('#add_username').on('blur', function() {
 
     if (!usernameNuevo) return; // No hacer nada si está vacío
 
-    fetch('/admin/residentes/create', {
+    fetch('/admin/colaboradores/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: usernameNuevo, verificar: true })
@@ -96,7 +96,7 @@ $('#add_username').on('blur', function() {
         if (data.existe) {
             showResultPopup(
                 'Usuario duplicado',
-                'El nombre de usuario ya está registrado. Por favor, elija otro.',
+                'El nombre de usuario ya está registrado. PORFISPORFISPORFIS, elija otro.',
                 'error'
             );
             $('#add_username').css('border-color', 'red');
@@ -125,7 +125,7 @@ $('#add_username').on('blur', function() {
             username: $('#add_username').val(),
             password: $('#add_password').val(),
             rol: $('#add_rol').val(),
-            privada: $('#add_privada').val(),
+            public_id_privada: $('#add_privada').val(),
             estatus: $('#add_estatus').val(),
             correos: [],
             telefonos: []

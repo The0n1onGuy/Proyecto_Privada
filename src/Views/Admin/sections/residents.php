@@ -1,47 +1,32 @@
 <div class="content-header">
-    <h1>Gestión de Residentes</h1>
-    <p>Consulta la información de los residentes de la privada.</p>
-</div>
-
-<div class="section-card">
-    <div class="card-header">
- 
-       <h6>Listado de Residentes:</h6>
-        <div class="dropdown">
-  <!-- Botón principal del mini menú -->
-  <button id="menuButton" class="btn btn-secondary">
-    <i class="fas fa-bars"></i> <svg height="25px" width="25px" fill="#07003d" viewBox="-1.7 0 20.4 20.4" xmlns="http://www.w3.org/2000/svg" class="cf-icon-svg" stroke="#07003d"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M16.416 10.283A7.917 7.917 0 1 1 8.5 2.366a7.916 7.916 0 0 1 7.916 7.917zm-2.958.01a.792.792 0 0 0-.792-.792H9.284V6.12a.792.792 0 1 0-1.583 0V9.5H4.32a.792.792 0 0 0 0 1.584H7.7v3.382a.792.792 0 0 0 1.583 0v-3.382h3.382a.792.792 0 0 0 .792-.791z"></path></g></svg>
-  </button>
-
-  <!-- Contenedor del menú con tus dos botones originales -->
-  <div id="menuContent" class="dropdown-content">
-    <div class="button-row">
-      <button id="addResidentBtn" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Añadir Nuevo
-      </button>
-      <button id="addExtraBtn" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Añadir Extras
-      </button>
+    <div class="header-text">
+        <h1>Gestión de Residentes</h1>
+        <p>Consulta la información de los residentes de la privada.</p>
     </div>
-  </div>
-</div>
-
-</div>
-    
-    <div class="card-header">
-        
-        <div class="filter-container">
-            <label for="residentFilter">Mostrar:</label>
-            <select id="residentFilter" name="residentFilter">
-                <option value="owners" <?php echo ($currentFilter === 'owners') ? 'selected' : ''; ?>>Solo Propietarios</option>
-                <option value="all" <?php echo ($currentFilter === 'all') ? 'selected' : ''; ?>>Todos</option>
-            </select>
-        </div>
+    <div class="header-actions">
+        <button id="addResidentBtn" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Añadir Nuevo
+        </button>
     </div>
-   
+ </div>
 
+ <div class="card-header">
+        <h5>Listado de Residentes:</h5>        
+    </div>
     
-    <table id="tablaResidentes" class="display" style="width:100%">
+ <div class="section-card">  
+     <div class="card-header filter-header" style="position: relative;">
+    <div class="filter-container superposed">
+        <label for="residentFilter">Mostrar:</label>
+        <select id="residentFilter" name="residentFilter">
+            <option value="owners" <?php echo ($currentFilter === 'owners') ? 'selected' : ''; ?>>Solo Propietarios</option>
+            <option value="all" <?php echo ($currentFilter === 'all') ? 'selected' : ''; ?>>Todos</option>
+        </select>
+    </div>
+</div>
+
+
+     <table id="tablaResidentes" class="display" style="width:100%">
         <thead>
             <tr>
                 <th>#</th>
@@ -55,69 +40,96 @@
                 <th>Acciones</th>
             </tr>
         </thead>
-        <tbody>
-            <?php if (!empty($residents)): ?>
-                <?php foreach ($residents as $resident): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($resident['id_info']); ?></td>
-                        <td><?php echo htmlspecialchars($resident['nombres'] . ' ' . $resident['apellido_p']); ?></td>
-                        <td><?php echo $resident['es_propietario'] ? '<span class="badge owner">Propietario</span>' : '<span class="badge resident">Residente</span>'; ?></td>
-                        <td>
-                            <?php
-                            $correos = !empty($resident['correos']) ? explode(', ', $resident['correos']) : [];
-                            if (count($correos) === 1) {
-                                echo '<a href="mailto:' . htmlspecialchars($correos[0]) . '">' . htmlspecialchars($correos[0]) . '</a>';
-                            } elseif (count($correos) > 1) {
-                                echo '<select onchange="window.location.href=\'mailto:\'+this.value">';
-                                echo '<option>Ver correos...</option>';
-                                foreach ($correos as $correo) {
-                                    echo '<option value="' . htmlspecialchars($correo) . '">' . htmlspecialchars($correo) . '</option>';
-                                }
-                                echo '</select>';
-                            } else {
-                                echo 'N/A';
-                            }
-                            ?>
-                        </td>
-                        <td>
-                            <?php
-                            $telefonos = !empty($resident['telefonos']) ? explode(', ', $resident['telefonos']) : [];
-                            if (count($telefonos) === 1) {
-                                echo '<a href="tel:' . htmlspecialchars($telefonos[0]) . '">' . htmlspecialchars($telefonos[0]) . '</a>';
-                            } elseif (count($telefonos) > 1) {
-                                echo '<select onchange="window.location.href=\'tel:\'+this.value">';
-                                echo '<option>Ver teléfonos...</option>';
-                                foreach ($telefonos as $telefono) {
-                                    echo '<option value="' . htmlspecialchars($telefono) . '">' . htmlspecialchars($telefono) . '</option>';
-                                }
-                                echo '</select>';
-                            } else {
-                                echo 'N/A';
-                            }
-                            ?>
-                        </td>
-                        <td><?php echo htmlspecialchars($resident['num_casa']); ?></td>
-                        <td><?php echo htmlspecialchars($resident['privada_nombre']); ?></td>
-                        <td><?php echo htmlspecialchars($resident['estatus']); ?></td>
-                        <td>
+     <tbody>
+    <?php if (!empty($residents)): ?>
+        <?php $contador = 1; ?>
+        <?php foreach ($residents as $resident): ?>
+            <tr>
+                <td><?php echo $contador++; ?></td>
+                <td><?php echo htmlspecialchars($resident['nombres'] . ' ' . $resident['apellido_p']); ?></td>
+                <td><?php echo $resident['es_propietario'] ? '<span class="badge owner">Propietario</span>' : '<span class="badge resident">Residente</span>'; ?></td>
+                <td>
+                    <?php
+                    $correos = !empty($resident['correos']) ? explode(', ', $resident['correos']) : [];
+                    if (count($correos) === 1) {
+                        echo '<a href="mailto:' . htmlspecialchars($correos[0]) . '">' . htmlspecialchars($correos[0]) . '</a>';
+                    } elseif (count($correos) > 1) {
+                        echo '<select onchange="window.location.href=\'mailto:\'+this.value">';
+                        echo '<option>Ver correos...</option>';
+                        foreach ($correos as $correo) {
+                            echo '<option value="' . htmlspecialchars($correo) . '">' . htmlspecialchars($correo) . '</option>';
+                        }
+                        echo '</select>';
+                    } else {
+                        echo 'N/A';
+                    }
+                    ?>
+                </td>
+                <td>
+                    <?php
+                    $telefonos = !empty($resident['telefonos']) ? explode(', ', $resident['telefonos']) : [];
+                    if (count($telefonos) === 1) {
+                        echo '<a href="tel:' . htmlspecialchars($telefonos[0]) . '">' . htmlspecialchars($telefonos[0]) . '</a>';
+                    } elseif (count($telefonos) > 1) {
+                        echo '<select onchange="window.location.href=\'tel:\'+this.value">';
+                        echo '<option>Ver teléfonos...</option>';
+                        foreach ($telefonos as $telefono) {
+                            echo '<option value="' . htmlspecialchars($telefono) . '">' . htmlspecialchars($telefono) . '</option>';
+                        }
+                        echo '</select>';
+                    } else {
+                        echo 'N/A';
+                    }
+                    ?>
+                </td>
+                <td><?php echo htmlspecialchars($resident['num_casa']); ?></td>
+                <td><?php echo htmlspecialchars($resident['privada_nombre']); ?></td>
+                <td><?php echo htmlspecialchars($resident['estatus']); ?></td>
+                <td>
                             <button class="btn-edit" data-id="<?php echo $resident['id_info']; ?>"><svg height="25px" width="40px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8.29289 3.70711L1 11V15H5L12.2929 7.70711L8.29289 3.70711Z" fill="#031159"></path> <path d="M9.70711 2.29289L13.7071 6.29289L15.1716 4.82843C15.702 4.29799 16 3.57857 16 2.82843C16 1.26633 14.7337 0 13.1716 0C12.4214 0 11.702 0.297995 11.1716 0.828428L9.70711 2.29289Z" fill="#031159"></path> </g></svg></button>
                             <button class="btn-delete" data-id="<?php echo $resident['id_info']; ?>"><svg height="25px" width="40px" fill="#01075b" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#01075b"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.755,20.283,4,8H20L18.245,20.283A2,2,0,0,1,16.265,22H7.735A2,2,0,0,1,5.755,20.283ZM21,4H16V3a1,1,0,0,0-1-1H9A1,1,0,0,0,8,3V4H3A1,1,0,0,0,3,6H21a1,1,0,0,0,0-2Z"></path></g></svg></button>
-                        </td> 
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
+                        </td>
+            </tr>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</tbody>
+
     </table>
 </div>
-<!-- MODAL DE AÑADIR UN COLABORADOR-->
+
+<!-- MODAL UNIFICADO PARA AÑADIR RESIDENTE / RESIDENTE EXTRA -->
 <div id="addResidentModal" class="modal-overlay">
     <div class="modal-content">
+
+        <!-- ENCABEZADO GENERAL -->
         <div class="modal-header">
             <h5 id="addModalTitle">Añadir Residente</h5>
             <button id="closeAddModalBtn" class="modal-close">&times;</button>
         </div>
-        <form id="addResidentForm">
-            <div class="modal-body">
+
+        <!-- CONTENEDOR -->
+        <div class="modal-body">
+            <!-- Selector universal de propietario -->
+<div class="form-group form-group-radio">
+    <label>¿Es propietario?</label>
+    <div class="radio-group">
+        <label for="propietario_si">
+            <input type="radio" id="propietario_si" name="es_propietario" value="1"> Sí
+        </label>
+
+        <label for="propietario_no" style="margin-left: 10px;">
+            <input type="radio" id="propietario_no" name="es_propietario" value="0" checked> No
+        </label>
+    </div>
+</div>
+
+
+            <!-- ========================================================= -->
+            <!-- ==================== FORMULARIO PRINCIPAL ================ -->
+            <!-- ========================================================= -->
+
+            <form id="addResidentForm">
+
                 <!-- Seccion de datos personales -->
                 <h6 class="form-section-header">Información Personal</h6>
                 <div class="form-grid">
@@ -138,6 +150,7 @@
                         <input type="date" id="add_fecha_nac" name="fecha_nac" required>
                     </div>
                 </div>
+
                 <!-- Seccion de credenciales -->
                 <h6 class="form-section-header">Credenciales de Acceso</h6>
                 <div class="form-grid">
@@ -148,22 +161,14 @@
                     <div class="form-group">
                         <label for="add_password">Contraseña</label>
                         <input type="password" id="add_password" name="password" required>
-                         <!-- Aquí se mostrarán los mensajes -->
-                          <small id="password_message" style="display:block; margin-top:5px;"></small>
+                        <small id="password_message" style="display:block; margin-top:5px;"></small>
                     </div>
                 </div>
-                
-                <!-- Seccion de roles  -->
+
+                <!-- Seccion de roles -->
                 <h6 class="form-section-header">Asignaciones</h6>
-                 <div class="form-grid">
-                    <div class="form-group form-group-radio">
-                        <label>¿Es propietario?</label>
-                        <div class="radio-group">
-                            <label for="add_propietario_si">
-                                <input type="radio" id="add_propietario_si" name="es_propietario" value="1" checked> Sí
-                            </label>
-                        </div>
-                    </div>
+                <div class="form-grid">
+
                     <div class="form-group">
                         <label for="add_privada">Privada Asignada</label>
                         <select id="add_privada" name="privada" required>
@@ -177,11 +182,13 @@
                             <?php endif; ?>
                         </select>
                     </div>
-                     <div class="form-group">
+
+                    <div class="form-group">
                         <label for="add_num_casa">Número de Casa</label>
                         <input type="text" id="add_num_casa" name="num_casa" required>
                     </div>
-                     <div class="form-group">
+
+                    <div class="form-group">
                         <label for="add_estatus">Estatus</label>
                         <select id="add_estatus" name="estatus" required>
                             <option value="" disabled selected>Seleccionar estatus</option>
@@ -192,7 +199,7 @@
                     </div>
                 </div>
 
-                <!-- Seccion de contactos  -->
+                <!-- Seccion de contactos -->
                 <h6 class="form-section-header">Información de Contacto</h6>
                 <div class="form-grid-contact">
                     <div class="form-group">
@@ -214,28 +221,22 @@
                         <span id="phone2_message"></span>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-actions">
-                <button type="button" id="cancelAddBtn" class="btn-secondary">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Añadir Residente</button>
-            </div>
-        </form>
-    </div>
-</div>
+                <div class="form-actions">
+                    <button type="button" id="cancelAddBtn" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Añadir Residente</button>
+                </div>
 
+            </form>
 
-<!-- MODAL DE AÑADIR UN Residente Extra-->
-<div id="addExtraModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 id="addModalTitle">Añadir Residente Extra</h5>
-            <button id="closeExtraModalBtn" class="modal-close">&times;</button>
-        </div>
-        <form id="addExtraForm">
-            <div class="modal-body">
+            <!-- ========================================================= -->
+            <!-- ==================== FORMULARIO EXTRA ==================== -->
+            <!-- ========================================================= -->
+
+            <form id="addExtraForm" style="margin-top: 40px;">
+
                 <!-- Seccion de datos personales -->
-                <h6 class="form-section-header">Información Personal</h6>
+                <h6 class="form-section-header">Información Personal (Extra)</h6>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="extra_add_nombres">Nombre(s)</label>
@@ -250,22 +251,16 @@
                         <input type="text" id="extra_add_apellido_m" name="apellido_m" required>
                     </div>
                 </div>
-                               
-                <!-- Seccion de roles  -->
+
+                <!-- Seccion de roles -->
                 <h6 class="form-section-header">Asignaciones</h6>
-                 <div class="form-grid">
-                    <div class="form-group form-group-radio">
-                        <label>¿Es propietario?</label>
-                        <div class="radio-group">
-                            <label for="extra_add_propietario_no">
-                                <input type="radio" id="extra_add_propietario_no" name="es_propietario" value="0" checked> No
-                            </label>
-                        </div>
-                    </div>
+                <div class="form-grid">
+
                     <div class="form-group">
                         <label for="add_extra_num_casa">Número de Casa</label>
                         <input type="text" id="add_extra_num_casa" name="num_casa" required>
                     </div>
+
                     <div class="form-group">
                         <label for="extra_add_privada">Privada Asignada</label>
                         <select id="extra_add_privada" name="privada" required>
@@ -279,7 +274,8 @@
                             <?php endif; ?>
                         </select>
                     </div>
-                     <div class="form-group">
+
+                    <div class="form-group">
                         <label for="extra_add_estatus">Estatus</label>
                         <select id="extra_add_estatus" name="estatus" required>
                             <option value="" disabled selected>Seleccionar estatus</option>
@@ -289,12 +285,13 @@
                         </select>
                     </div>
                 </div>
-    <div class="form-group">
-    <label for="propietario">Propietario asignado</label>
-    <input type="text" id="add_extra_propietario" readonly>
-</div>
 
-                <!-- Seccion de contactos  -->
+                <div class="form-group">
+                    <label for="propietario">Propietario asignado</label>
+                    <input type="text" id="add_extra_propietario" readonly>
+                </div>
+
+                <!-- Seccion de contactos -->
                 <h6 class="form-section-header">Información de Contacto</h6>
                 <div class="form-grid-contact">
                     <div class="form-group">
@@ -316,13 +313,15 @@
                         <span id="phone2_messageextra"></span>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-actions">
-                <button type="button" id="cancelExtraBtn" class="btn-secondary">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Añadir Residente</button>
-            </div>
-        </form>
+                <div class="form-actions">
+                    <button type="button" id="cancelExtraBtn" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Añadir Residente</button>
+                </div>
+
+            </form>
+
+        </div>
     </div>
 </div>
 

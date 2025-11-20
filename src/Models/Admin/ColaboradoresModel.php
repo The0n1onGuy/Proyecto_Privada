@@ -4,6 +4,7 @@ namespace App\Models\Admin;
 
 use App\Core\Database;
 use PDO;
+use Exception;
 // Obtener todos los usuarios
 class ColaboradoresModel {
     private const ESTATUS_ACTIVO = 1;
@@ -35,17 +36,17 @@ class ColaboradoresModel {
             // Crear la consulta SQL usando los placeholders dinámicos
             $sql = "
             SELECT DISTINCT
-                iu.id_info, u.id_usuario, iu.nombres, iu.apellido_p, iu.apellido_m,
+                iu.id_info, u.id_usuario, u.public_id, iu.nombres, iu.apellido_p, iu.apellido_m,
                 r.rol, e.estatus, pv.nombre AS privada_nombre
             FROM priv_usuarios u
             JOIN priv_infousuario iu ON u.id_usuario = iu.id_usuario
             JOIN priv_roles r ON u.id_rol = r.id_rol
             JOIN priv_estatus e ON u.id_estatus = e.id_estatus
             
-            -- 1. Unimos la tabla de privadas para poder filtrar por el UUID
+            -- Unimos la tabla de privadas para poder filtrar por el UUID
             JOIN priv_privadas pv ON u.id_privada = pv.id_privada 
             
-            -- 2. Filtramos usando el 'public_id' (UUID), no el 'id_privada'
+            -- Filtramos usando el 'public_id' (UUID), no el 'id_privada'
             WHERE pv.public_id = :public_id 
               AND r.rol IN ($in_placeholders) 
             ORDER BY iu.id_info ASC
@@ -54,7 +55,7 @@ class ColaboradoresModel {
             $stmt = $conn->prepare($sql);
             
             // --- CAMBIO EN LOS PARÁMETROS ---
-            // 3. El parámetro principal ahora es el string UUID
+            // El parámetro principal ahora es el string UUID
             $params = [':public_id' => $public_id_privada];
             
             // Luego, añade todos los parámetros de rol (ej. ':rol0' => 'Administrador')
@@ -62,10 +63,8 @@ class ColaboradoresModel {
                 $params[":rol" . $key] = $role;
             }
 
-            // 4. Ejecutar con todos los parámetros
+            // Ejecutar con todos los parámetros
             $stmt->execute($params);
-            
-            // --- FIN DE LA MODIFICACIÓN ---
             
             $colaboradores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -196,30 +195,30 @@ class ColaboradoresModel {
         $conn->beginTransaction();
         
         try {
-            // --- PASO 1: Crear la cuenta de usuario en `priv_usuarios` ---
-            $sqlUser = "INSERT INTO priv_usuarios (usuario, contrasenia, id_estatus, id_rol, id_privada)
+            // Crear la cuenta de usuario en `priv_usuarios` ---
+            $sqlUser = "INSERT INTO priv_usuarios (usuario, contrasenia, id_estatus, id_rol, id_privada, public_id)
                         VALUES (
                             :username, 
                             :password,
                             (SELECT id_estatus FROM priv_estatus WHERE estatus = :estatus), 
                             (SELECT id_rol FROM priv_roles WHERE rol = :rol),
-                            (SELECT id_privada FROM priv_privadas WHERE nombre = :privada)
+                            (SELECT id_privada FROM priv_privadas WHERE public_id = :public_id_privada),
+                            UUID() 
                         )";
             
             $stmtUser = $conn->prepare($sqlUser);
             $stmtUser->execute([
                 ':username' => $data['username'],
-                // ¡IMPORTANTE! Hashear la contraseña antes de guardarla.
                 ':password' => password_hash($data['password'], PASSWORD_DEFAULT),
                 ':estatus' => $data['estatus'],
                 ':rol' => $data['rol'],
-                ':privada' => $data['privada']
+                ':public_id_privada' => $data['public_id_privada']
             ]);
             
             // Obtenemos el ID del usuario que acabamos de crear
             $id_usuario = $conn->lastInsertId();
 
-            // --- PASO 2: Insertar la información personal en `priv_infousuario` ---
+            // Insertar la información personal en `priv_infousuario`
             $sqlInfo = "INSERT INTO priv_infousuario (id_usuario, nombres, apellido_p, apellido_m, es_propietario)
                         VALUES (?, ?, ?, ?, ?)"; // 0 = no es propietario
             $stmtInfo = $conn->prepare($sqlInfo);
@@ -234,7 +233,7 @@ class ColaboradoresModel {
             // Obtenemos el ID de la info que acabamos de crear para enlazar los contactos
             $id_info = $conn->lastInsertId();
 
-            // --- PASO 3: Insertar los correos en `priv_corresusuario` ---
+            // Insertar los correos en `priv_corresusuario` 
             if (!empty($data['correos'])) {
                 $sqlMail = "INSERT INTO priv_corresusuario (id_info, correo, id_estatus) VALUES (?, ?, ?)";
                 $stmtMail = $conn->prepare($sqlMail);
@@ -243,7 +242,7 @@ class ColaboradoresModel {
                 }
             }
 
-            // --- PASO 4: Insertar los teléfonos en `priv_telusuario` ---
+            // Insertar los teléfonos en `priv_telusuario` 
             if (!empty($data['telefonos'])) {
                 $sqlPhone = "INSERT INTO priv_telusuario (id_info, telefono, id_estatus) VALUES (?, ?, ?)";
                 $stmtPhone = $conn->prepare($sqlPhone);
@@ -269,42 +268,42 @@ class ColaboradoresModel {
      * @return bool
      * @throws Exception
      */
-    public function eliminarColaborador(int $id_usuario){
+    public function eliminarColaborador(string $public_id_usuario){ //REMPLAZO PARCIAL RECUERDA CAMBIAR LA REFERENCIA EN EL JAAVSCRIPT 1:45PM
         $conn = Database::getConnection();
-        // 1. Iniciar una transacción para asegurar la integridad de los datos.
         $conn->beginTransaction();
 
         try {
-            // Primero, necesitamos el 'id_info' para poder desactivar los contactos.
+            // TRADUCIR EL UUID A ID NUMÉRICO ---
+            $stmtId = $conn->prepare("SELECT id_usuario FROM priv_usuarios WHERE public_id = ?");
+            $stmtId->execute([$public_id_usuario]);
+            $id_usuario_numerico = $stmtId->fetchColumn();
+
+            if (!$id_usuario_numerico) {
+                throw new Exception("Colaborador no encontrado con ese ID público.");
+            }
+
+            // USAR EL ID NUMÉRICO INTERNAMENTE ---
+            
+            // (Esta consulta usa el $id_usuario_numerico)
             $stmtInfo = $conn->prepare("SELECT id_info FROM priv_infousuario WHERE id_usuario = ?");
-            $stmtInfo->execute([$id_usuario]);
+            $stmtInfo->execute([$id_usuario_numerico]);
             $id_info = $stmtInfo->fetchColumn();
 
             if ($id_info) {
-                // 2. Actualizar los correos asociados a "Inactivo".
+                // (Estas consultas usan el $id_info, que depende del numérico)
                 $stmtMail = $conn->prepare("UPDATE priv_corresusuario SET id_estatus = ? WHERE id_info = ?");
                 $stmtMail->execute([self::ESTATUS_INACTIVO, $id_info]);
-
-                // 3. Actualizar los teléfonos asociados a "Inactivo".
-                $stmtPhone = $conn->prepare("UPDATE priv_telusuario SET id_estatus = ? WHERE id_info = ?");
-                $stmtPhone->execute([self::ESTATUS_INACTIVO, $id_info]);
             }
 
-            // 4. La tabla 'priv_infousuario' no se borra, simplemente se queda
-            //    vinculada al 'id_usuario' que ahora está inactivo.
-
-            // 5. Finalmente, actualizar la cuenta de usuario principal a "Inactivo".
+            // (Esta consulta usa el $id_usuario_numerico)
             $stmtUserUpdate = $conn->prepare("UPDATE priv_usuarios SET id_estatus = ? WHERE id_usuario = ?");
-            $stmtUserUpdate->execute([self::ESTATUS_INACTIVO, $id_usuario]);
+            $stmtUserUpdate->execute([self::ESTATUS_INACTIVO, $id_usuario_numerico]);
             
-            // Si todo salió bien, confirma todos los cambios en la base de datos.
             $conn->commit();
             return true;
 
         } catch (Exception $e) {
-            // Si algo falló en cualquiera de los pasos, deshace TODOS los cambios.
             $conn->rollBack();
-            // Lanza la excepción para que el controlador la maneje.
             throw $e;
         }
     }
