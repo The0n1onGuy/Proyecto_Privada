@@ -30,31 +30,20 @@ class SessionDataModel
     {
         $sql = "";
         // Usaremos un array para los parámetros
-        $params = []; 
+        // $params = []; 
+        $paramValue = $value; // Usamos una variable separada para el bindParam
+
  
         try {
             switch ($key) {
                 case 'user_id':
-                    // Usamos '?' para consistencia
-                    $sql = "SELECT 1 FROM priv_usuarios WHERE id_usuario = ? LIMIT 1";
-                    $params = [$value];
+                    $sql = "SELECT 1 FROM priv_usuarios WHERE public_id = :value LIMIT 1";
                     break;
- 
-                case 'public_id_privada':
-                    // Esta consulta ya estaba bien
-                    $sql = "SELECT 1 FROM priv_privadas WHERE public_id = ? AND id_estatus = '1' LIMIT 1";
-                    $params = [$value];
+                case 'id_privada':
+                    $sql = "SELECT 1 FROM priv_privadas WHERE public_id = :value AND id_estatus = '1' LIMIT 1";
                     break;
- 
                 case 'id_info':
-                    // Usamos '?' para consistencia
-                    $sql = "SELECT 1 FROM priv_infousuario WHERE id_info = ? LIMIT 1";
-                    $params = [$value];
-                    break;
-                    
-                case 'public_id_usuario':
-                    $sql = "SELECT 1 FROM priv_usuarios WHERE public_id = ? LIMIT 1";
-                    $params = [$value];
+                    $sql = "SELECT 1 FROM priv_infousuario WHERE public_id = :value LIMIT 1";
                     break;
 
                 default:
@@ -62,11 +51,9 @@ class SessionDataModel
             }
  
             $stmt = $this->conn->prepare($sql);
-            
-            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
             // Pasamos el array de parámetros directamente a execute().
-            // Ya no usamos bindParam y no forzamos el tipo INT.
-            $stmt->execute($params);
+            $stmt->bindParam(':value', $paramValue, PDO::PARAM_STR); 
+            $stmt->execute();
  
             return $stmt->fetchColumn() !== false;
  

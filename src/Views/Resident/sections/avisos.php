@@ -10,19 +10,19 @@
     <div class="avisos-container" id="avisosContainer">
         <?php if (!empty($avisos)): ?>
             <?php foreach ($avisos as $aviso): ?>
-                <div class="aviso-card" data-id="<?= htmlspecialchars($aviso['id_aviso']) ?>" data-usuario="<?= htmlspecialchars($aviso['id_usuario'] ?? 2) ?>">
-                    <div class="aviso-header-card">
+                <div class="aviso-card" 
+                    data-id="<?= htmlspecialchars($aviso['id_aviso']) ?>" 
+                    data-usuario="<?= htmlspecialchars($aviso['author_public_id']) ?>">
+                 
+                <div class="aviso-header-card">
                         <span class="usuario">
-                            <?= htmlspecialchars($aviso['nombres'] . ' ' . $aviso['apellido_p'] . ' (Casa ' . $aviso['num_casa'] . ')') ?>
+                            <?= htmlspecialchars($aviso['nombres'] . ' ' . $aviso['apellido_p'] . ' ' . ($aviso['apellido_m'] ?? '') . ' (Casa ' . ($aviso['num_casa'] ?? '?') . ')') ?>
                         </span>
                         <span class="fecha"><?= date('d/m/Y', strtotime($aviso['fecha_pub'])) ?></span>
                     </div>
                     <div class="aviso-body">
                         <h4><?= htmlspecialchars($aviso['titulo']) ?></h4>
                         <p><?= nl2br(htmlspecialchars($aviso['contenido'])) ?></p>
-                    </div>
-                    <div class="aviso-footer">
-                        <button class="btn-delete" data-id="<?= htmlspecialchars($aviso['id_aviso']) ?>">Eliminar</button>
                     </div>
                 </div>
             <?php endforeach; ?>

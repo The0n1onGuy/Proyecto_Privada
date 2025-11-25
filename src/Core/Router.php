@@ -21,10 +21,10 @@ class Router
         // Limpiamos la URL para que no afecten los parámetros GET (ej. ?v=123)
         $url = strtok($_SERVER['REQUEST_URI'], '?');
         // $isLoggedIn = isset($_SESSION['user_id']);
-        $isLoggedIn = isset($_SESSION['public_id_usuario']);
+        $isLoggedIn = isset($_SESSION['user_id']);
         $userRole = isset($_SESSION['user_role']) ? (int)$_SESSION['user_role'] : null;
 
-        // 1. Redirección de usuarios ya logueados que visitan la raíz
+        // Redirección de usuarios ya logueados que visitan la raíz
         if ($url === '/' && $isLoggedIn) {
             switch ($userRole) {
                 case 1: header('Location: /admin/select-private'); exit;
@@ -80,11 +80,11 @@ class Router
             if ($url === '/admin/select-private' || $url === '/admin/set-private') {
                 // Estas rutas solo necesitan que el usuario exista (aún no ha elegido privada)
                 // $keysToVerify = ['user_id'];
-                $keysToVerify = ['public_id_usuario'];
+                $keysToVerify = ['user_id'];
             } else {
                 // Todas las demás rutas de admin (dashboard, API, POSTs) necesitan la privada
                 // $keysToVerify = ['user_id', 'public_id_privada'];
-                $keysToVerify = ['public_id_usuario', 'public_id_privada'];
+                $keysToVerify = ['user_id', 'id_privada'];
             }
         
             if (!$this->runVerification($keysToVerify)) {
@@ -100,7 +100,7 @@ class Router
             $method = $_SERVER['REQUEST_METHOD'];
 
             //Llama el API para obtener los datos de residentes
-            if (preg_match('/^\/admin\/api\/resident\/(\d+)$/', $url, $matches)) {
+            if (preg_match('/^\/admin\/api\/resident\/([\w-]+)$/', $url, $matches)) {
                 $controller->getResidentData($matches[1]);
                 return;
             }
@@ -138,12 +138,35 @@ class Router
                     case '/admin/colaboradores/delete':
                         $controller->operacion_Colaborador(3);
                         return;     
-                    
+                    //FUNCIONES DE SERVICIOS
+                    case '/admin/servicios/create':
+                        $controller->operacion_Servicios(1);
+                        return; 
+                    case '/admin/servicios/update':
+                        $controller->operacion_Servicios(2);
+                        return; 
+                    case '/admin/servicios/delete':
+                        $controller->operacion_Servicios(3);
+                        return;
                     //FUNCIONES DE AVISOS
                     case '/admin/avisos/create':
                         // $controller->Procesa_Crear_Colaborador();
                         $controller->operacion_Avisos(1);
                         return;                    
+                    if ($url === '/admin/avisos/delete') {
+                        $controller->operacion_Avisos(2);
+                        return;
+                    }
+                    //FUNCIONES DE VISITAS
+                    if ($url === '/resident/visitas/create') {
+                    $controller->createVisita();
+                    return;
+                    }
+                    if ($url === '/resident/visitas/update-status') {
+                        $controller->updateVisitaStatus();
+                        return;
+                    }
+
                 }
             }
             // A. RUTA ESPECIAL PARA JAVASCRIPT (Carga de contenido dinámico)
@@ -160,26 +183,22 @@ class Router
                     break;
 
                 case '/admin/set-private':
-                    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                        
-                        // --- CAMBIO AQUÍ ---
-                        // 1. Obtenemos el ID público (el UUID string)
+                    if ($_SERVER['REQUEST_METHOD'] === 'POST') {                        
                         $public_id = $_POST['id_privada_publica']; 
                         // $public_iduser = $_POST['public_id_usuario']; 
 
-                        // 2. ¡NO HAY DESENCRIPTACIÓN!
                         // Simplemente validamos que no esté vacío (o que sea un UUID válido)
+
                         if (empty($public_id)) {
                             session_destroy();
                             header('Location: /');
                             exit;
                         }
 
-                        // 3. Guardamos el UUID string en la sesión.
-                        // El ID numérico '1' NUNCA toca la sesión.
-                        $_SESSION['public_id_privada'] = $public_id;
-                        // $_SESSION['public_id_usuario'] = $public_iduser;
-                        // --- FIN DEL CAMBIO ---
+                        // Guardamos el UUID string en la sesión.
+                        // $_SESSION['public_id_privada'] = $public_id;
+                        $_SESSION['id_privada'] = $public_id;
+
 
                         header('Location: /admin/dashboard');
                         exit;
@@ -259,14 +278,22 @@ class Router
 
             // --- MANEJO DE PETICIONES POST ---
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                
+                //Rutas para avisos
                 if ($url === '/resident/avisos/create') {
                     $controller->createAviso();
                     return;
                 }
-            }
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($url === '/resident/avisos/delete') {
                     $controller->deleteAviso();
+                    return;
+                }
+                if ($url === '/resident/visitas/create') {
+                    $controller->createVisita();
+                    return;
+                }
+                if ($url === '/resident/visitas/update-status') {
+                    $controller->updateVisitaStatus();
                     return;
                 }
             }
@@ -402,6 +429,5 @@ class Router
         // (no existe, está vacía o no es coherente con la BD)
         return $verifier->verify($keysToVerify);
     }
-    // --- NUEVO FIN ---
 
 }

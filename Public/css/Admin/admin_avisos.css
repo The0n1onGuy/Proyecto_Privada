@@ -1,11 +1,11 @@
-/* Contenedor principal de la sección de avisos */
+
 .avisos-content {
     max-width: 900px;
     margin: 0 auto;
     padding: 10px;
 }
 
-/* Encabezado con título y botón */
+
 .avisos-header {
     display: flex;
     justify-content: space-between;
@@ -19,7 +19,12 @@
     margin: 0;
 }
 
-/* Estilo general para botones primarios */
+.avisos-actions {
+    display: flex;
+    gap: 10px;
+}
+
+
 .btn-primary {
     background-color: #0b2a4a;
     color: white;
@@ -30,30 +35,43 @@
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
-
 .btn-primary:hover {
     background-color: #11304b;
 }
 
-/* Contenedor de las tarjetas de avisos */
+.btn-secondary-outline {
+    background-color: transparent;
+    border: 2px solid #0b2a4a;
+    color: #0b2a4a;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-secondary-outline:hover {
+    background-color: #0b2a4a;
+    color: white;
+}
+
+
 .avisos-container {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Estilo de cada tarjeta de aviso individual */
+
 .aviso-card {
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     padding: 20px;
-    opacity: 0; /* Para animación de entrada */
-    transform: translateY(15px); /* Para animación de entrada */
+    opacity: 0;
+    transform: translateY(15px);
     animation: fadeIn 0.5s ease forwards;
 }
 
-/* Encabezado dentro de la tarjeta */
 .aviso-header-card {
     display: flex;
     justify-content: space-between;
@@ -70,20 +88,41 @@
     color: #334155;
 }
 
-/* Cuerpo de la tarjeta */
 .aviso-body h4 {
     margin: 0 0 8px 0;
     font-size: 1.2rem;
     color: #1e293b;
 }
-
 .aviso-body p {
     margin: 0;
     line-height: 1.6;
     color: #475569;
 }
 
-/* --- Estilos del Modal --- */
+
+.aviso-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.btn-delete {
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+    display: none; /* solo visible en Mis Avisos */
+}
+.btn-delete:hover {
+    background-color: #b91c1c;
+}
+
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -99,7 +138,6 @@
     pointer-events: none;
     transition: opacity 0.3s ease;
 }
-
 .modal-overlay.visible {
     opacity: 1;
     pointer-events: auto;
@@ -115,7 +153,6 @@
     transform: translateY(-30px);
     transition: transform 0.3s ease;
 }
-
 .modal-overlay.visible .modal-content {
     transform: translateY(0);
 }
@@ -128,13 +165,11 @@
     padding-bottom: 15px;
     margin-bottom: 20px;
 }
-
 .modal-header h2 {
     margin: 0;
     font-size: 1.4rem;
     color: #1e293b;
 }
-
 .modal-close {
     background: none;
     border: none;
@@ -144,21 +179,15 @@
     cursor: pointer;
     opacity: 0.7;
 }
-.modal-close:hover {
-    opacity: 1;
-}
+.modal-close:hover { opacity: 1; }
 
-.modal-body .form-group {
-    margin-bottom: 20px;
-}
-
+.modal-body .form-group { margin-bottom: 20px; }
 .form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
     color: #475569;
 }
-
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -179,17 +208,7 @@
     padding-top: 20px;
 }
 
-.btn-secondary {
-    background-color: #e2e8f0;
-    color: #475569;
-    padding: 10px 18px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-}
 
-/* Animación para que las tarjetas aparezcan suavemente */
 @keyframes fadeIn {
     to {
         opacity: 1;

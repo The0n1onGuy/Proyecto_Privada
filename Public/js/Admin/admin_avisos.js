@@ -1,91 +1,135 @@
-// public/js/Resident/avisos.js
 (function() {
-    // --- ELEMENTOS DEL DOM ---
     const openModalBtn = document.getElementById("openModalBtn");
     const closeModalBtn = document.getElementById("closeModalBtn");
     const cancelBtn = document.getElementById("cancelBtn");
     const modal = document.getElementById("createAvisoModal");
     const form = document.getElementById("createAvisoForm");
+    const misAvisosBtn = document.getElementById("misAvisosBtn");
+    const avisosContainer = document.getElementById("avisosContainer");
 
-    // --- FUNCIONES ---
-    const showModal = () => {
-        if (modal) modal.classList.add("visible");
-    };
+    let mostrandoMisAvisos = false;
 
-    const hideModal = () => {
-        if (modal) modal.classList.remove("visible");
-    };
+    // --- CORRECCIÓN 1: MANEJO DE IDs ---
+    const avisosContent = document.querySelector(".avisos-content");
+    // Quitamos parseInt. Ahora leemos el ID tal cual viene (string/UUID)
+    const usuarioActual = avisosContent?.getAttribute("data-session-user-id") || "";
 
-    // --- MANEJADORES DE EVENTOS ---
+    const showModal = () => modal?.classList.add("visible");
+    const hideModal = () => modal?.classList.remove("visible");
 
-    // Botón para abrir el modal
-    if (openModalBtn) {
-        openModalBtn.addEventListener("click", showModal);
-    }
+    openModalBtn?.addEventListener("click", showModal);
+    closeModalBtn?.addEventListener("click", hideModal);
+    cancelBtn?.addEventListener("click", hideModal);
 
-    // Botones para cerrar el modal
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener("click", hideModal);
-    }
-    if (cancelBtn) {
-        cancelBtn.addEventListener("click", hideModal);
-    }
+    modal?.addEventListener("click", (e) => {
+        if (e.target === modal) hideModal();
+    });
 
-    // Cerrar el modal al hacer clic fuera de él
-    if (modal) {
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal) {
-                hideModal();
+    // --- CORRECCIÓN 2: LÓGICA DEL FILTRO ---
+    misAvisosBtn?.addEventListener("click", () => {
+        mostrandoMisAvisos = !mostrandoMisAvisos;
+        const cards = document.querySelectorAll(".aviso-card");
+
+        // Cambiar texto del botón según el estado
+        if (mostrandoMisAvisos) {
+            misAvisosBtn.textContent = "Ver Todos";
+            misAvisosBtn.classList.add('active'); // Opcional: para estilo visual
+        } else {
+            misAvisosBtn.textContent = "Mis Avisos";
+            misAvisosBtn.classList.remove('active');
+        }
+
+        cards.forEach(card => {
+            // Quitamos parseInt. Leemos el ID de la tarjeta tal cual.
+            const idUsuarioTarjeta = card.getAttribute("data-usuario") || "";
+
+            if (mostrandoMisAvisos) {
+                // MODO FILTRO: Comparamos texto con texto
+                if (idUsuarioTarjeta === usuarioActual) {
+                    card.style.display = ""; // Quita 'none', deja que el CSS decida (visible)
+                } else {
+                    card.style.display = "none"; // Oculta
+                }
+            } else {
+                // MODO VER TODOS: Limpiamos el estilo para que se vean todas
+                card.style.display = ""; 
             }
         });
-    }
+    });
 
-    // Manejo del envío del formulario
-    if (form) {
-        form.addEventListener("submit", function(event) {
-            event.preventDefault();
+    // Lógica de eliminar aviso
+    avisosContainer?.addEventListener("click", (e) => {
+        if (e.target.classList.contains("btn-eliminar-aviso")) {
+            const idAviso = e.target.getAttribute("data-id");
+            
+            if (confirm("¿Estás seguro de eliminar este aviso?")) {
+                const formData = new FormData();
+                formData.append('id_aviso', idAviso);
 
-            const formData = new FormData(form);
-            const submitButton = form.querySelector('button[type="submit"]');
-            submitButton.textContent = 'Publicando...';
-            submitButton.disabled = true;
-
-            fetch('/resident/avisos/create', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) { // Aquí se implementan las llamadas para los popups globales
-                    showGlobalPopup('Aviso Creado', data.message, 'Entendido', 'success'); 
-                    // En esta linea arriba, statement: "Título, mensaje, texto botón, tipo"
-                    hideModal();
-                    form.reset();
-                    // Usamos la función global para recargar la sección y ver el nuevo aviso
-                    if (window.loadSection) {
-                        window.loadSection('avisos');
+                fetch('/resident/avisos/delete', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showGlobalPopup('Éxito', data.message, 'Entendido', 'success');
+                        // Eliminar la tarjeta del DOM visualmente
+                        const card = e.target.closest('.aviso-card');
+                        if (card) card.remove();
+                    } else {
+                        showGlobalPopup('Error', data.message, 'Entendido', 'error');
                     }
-                } else { // Se incluye el popup para el error
-                    showGlobalPopup('Error al Crear Aviso', data.message, 'Entendido', 'error');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showGlobalPopup('Error de Red', 'Ocurrió un error al comunicarse con el servidor.', 'Entendido', 'error');
+                });
+            }
+        }
+    });
+
+    form?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.textContent = 'Publicando...';
+        submitButton.disabled = true;
+
+        fetch('/resident/avisos/create', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showGlobalPopup('Aviso Creado', data.message, 'Entendido', 'success'); 
+                hideModal();
+                form.reset();
+                // Recargar la sección si existe la función global
+                if (window.loadSection) {
+                    window.loadSection('avisos');
+                } else {
+                    // Fallback si no hay carga dinámica: recargar página
+                    window.location.reload();
                 }
-            })
-            .catch(error => {
-                console.error('Error en la petición:', error); // Abajo también se incluye el popup de error genérico
-                showGlobalPopup('Error de Red', 'Ocurrió un error al comunicarse con el servidor. Por favor, inténtalo de nuevo más tarde.', 'Entendido', 'error');
-            })
-            .finally(() => {
-                submitButton.textContent = 'Publicar Aviso';
-                submitButton.disabled = false;
-            });
+            } else {
+                showGlobalPopup('Error al Crear Aviso', data.message, 'Entendido', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error en la petición:', error);
+            showGlobalPopup('Error de Red', 'Ocurrió un error al comunicarse con el servidor.', 'Entendido', 'error');
+        })
+        .finally(() => {
+            submitButton.textContent = 'Publicar Aviso';
+            submitButton.disabled = false;
         });
-    }
+    });
 
-    // --- ANIMACIONES ---
-    const avisos = document.querySelectorAll(".aviso-card");
-    if (avisos) {
-        avisos.forEach((card, i) => {
-            card.style.animationDelay = `${i * 100}ms`;
-        });
-    }
+    // Animación de entrada
+    document.querySelectorAll(".aviso-card").forEach((card, i) => {
+        card.style.animationDelay = `${i * 100}ms`;
+    });
 
-})(); // Envolvemos todo en una IIFE para evitar conflictos en el scope global. MERGE VER.
+})();

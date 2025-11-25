@@ -41,7 +41,7 @@ function initializeView() {
 
     // --- FUNCIONES PARA LLENAR EL MODAL CON INFORMACIÓN ---
     function populateResidentModal(data) {
-        $('#residentId').val(data.id_info);
+        $('#residentId').val(data.public_id);
         $('#nombreCompleto').val(`${data.nombres} ${data.apellido_p} ${data.apellido_m}`);
         $('#estatus').val(data.estatus);
         $('#tipo').val(data.es_propietario);

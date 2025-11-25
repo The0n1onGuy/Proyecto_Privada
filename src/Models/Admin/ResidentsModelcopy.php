@@ -5,14 +5,11 @@ namespace App\Models\Admin;
 use App\Core\Database;
 use PDO;
 use Exception;
-class ResidentsModel {
+
+class ResidentsModelcopy {
 
     /**
-     * Obtiene los residentes de una privada específica, con un filtro opcional.
-     *
-     * @param int $id_privada El ID de la privada.
-     * @param string $filterType El tipo de filtro ('owners' para solo propietarios, 'all' para todos).
-     * @return array
+     * Obtiene los residentes. AHORA OBTIENE EL PUBLIC_ID.
      */
     public function getAllResidents(string $public_id_privada, $filterType = 'owners') {
         try {
@@ -20,7 +17,7 @@ class ResidentsModel {
             $sql = "
                 SELECT
                     iu.id_info,
-                    iu.public_id, 
+                    iu.public_id, -- <--- IMPORTANTE: Agregamos esto
                     iu.id_usuario,
                     iu.nombres,
                     iu.apellido_p,
@@ -60,27 +57,12 @@ class ResidentsModel {
         }
     }
     
-    /**
-     * Obtiene la información detallada de un residente por su ID de información.
-     *
-     * @param int $id_info El ID de información del residente.
-     * @return array|false
-     */
-    public function getResidentById($public_id) {
+    // ... (getResidentById se puede quedar igual o adaptarlo si lo usas con UUID en la API) ...
+    public function getResidentById($id_info) {
         // Nota: Si tu API recibe UUID, aquí deberías traducir. 
         // Por ahora asumo que tu API interna usa ID, dejémoslo así para no romper el modal de edición.
         try {
             $conn = Database::getConnection();
-            
-            $stmtInfo = $conn->prepare("SELECT id_info FROM priv_infousuario WHERE public_id = ?");
-            $stmtInfo->execute([$public_id]);
-            $id_info = $stmtInfo->fetchColumn();
-
-            if (!$id_info) return false;
-
-            // (Usando el id_info interno que acabamos de encontrar)
-            // Tu consulta original ya funcionaba con id_info, así que la dejamos igual,
-            // solo cambiamos el parámetro que recibe.
             
             $sql_main = "
                 SELECT 
@@ -90,10 +72,10 @@ class ResidentsModel {
                 JOIN priv_usuarios u ON iu.id_usuario = u.id_usuario
                 JOIN priv_estatus e ON u.id_estatus = e.id_estatus
                 JOIN priv_privadas p ON u.id_privada = p.id_privada
-                WHERE iu.id_info = :id_info"; 
+                WHERE iu.id_info = :id_info"; // Si el JS envía id_info numérico (del data-id antiguo), esto funciona.
             
             $stmt_main = $conn->prepare($sql_main);
-            $stmt_main->execute([':id_info' => $id_info]); // Usamos el ID interno traducido
+            $stmt_main->execute([':id_info' => $id_info]);
             $resident = $stmt_main->fetch(PDO::FETCH_ASSOC);
 
             if (!$resident) return false;
@@ -117,10 +99,7 @@ class ResidentsModel {
     }
 
     /**
-     * Actualiza la información de un residente en la base de datos.
-     *
-     * @param array $data Datos del residente a actualizar.
-     * @return bool True si la actualización fue exitosa, false en caso contrario.
+     * Actualiza residente usando UUID (Patrón de Traducción).
      */
     public function actualizaResident(array $data): bool
     {
@@ -129,7 +108,10 @@ class ResidentsModel {
 
         try {
             // --- PASO 1: TRADUCCIÓN DE UUID A ID INTERNO ---
-            $public_id = $data['public_id_info']; 
+            // Buscamos el id_info y id_usuario usando el public_id (que viene del form como 'id_residente' o similar)
+            // Asegúrate de que tu JS envíe el UUID en el campo correcto.
+            
+            $public_id = $data['public_id_info']; // <--- CAMBIO: Esperamos UUID aquí
 
             $stmtId = $conn->prepare("SELECT id_info, id_usuario FROM priv_infousuario WHERE public_id = ?");
             $stmtId->execute([$public_id]);
@@ -142,53 +124,19 @@ class ResidentsModel {
             $id_info_interno = $ids['id_info'];
             $id_usuario_interno = $ids['id_usuario'];
 
-            // --- PASO 2: PREPARAR LOS NOMBRES (SOLUCIÓN DEL ERROR) ---
+            // --- PASO 2: ACTUALIZAR USANDO IDs INTERNOS ---
+
+            // 1. Actualizar priv_infousuario
+            $nameParts = explode(' ', $data['nombreCompleto'], 3); // O usa nombres/apellidos separados si ya vienen así
+            // Nota: Si tu form envía nombres separados, úsalos. Si envía 'nombreCompleto', usa el explode.
+            // Asumiré que envías separados para ser consistente con 'creaResidente'.
             
-            // Inicializamos variables
-            $nombres = '';
-            $apellido_p = '';
-            $apellido_m = '';
-
-            // Si viene 'nombreCompleto' (del formulario de edición), lo dividimos
-            if (!empty($data['nombreCompleto'])) {
-                $parts = explode(' ', trim($data['nombreCompleto']));
-                $count = count($parts);
-
-                if ($count === 1) {
-                    // Solo un nombre
-                    $nombres = $parts[0];
-                } elseif ($count === 2) {
-                    // Nombre y primer apellido
-                    $nombres = $parts[0];
-                    $apellido_p = $parts[1];
-                } elseif ($count === 3) {
-                    // Nombre, paterno y materno
-                    $nombres = $parts[0];
-                    $apellido_p = $parts[1];
-                    $apellido_m = $parts[2];
-                } else {
-                    // Más de 3 partes (ej. "Juan Carlos Perez Lopez")
-                    // Asumimos que los dos últimos son apellidos
-                    $apellido_m = array_pop($parts); // Lopez
-                    $apellido_p = array_pop($parts); // Perez
-                    $nombres = implode(' ', $parts); // Juan Carlos
-                }
-            } else {
-                // Si por alguna razón ya vienen separados (fallback)
-                $nombres = $data['nombres'] ?? '';
-                $apellido_p = $data['apellido_p'] ?? '';
-                $apellido_m = $data['apellido_m'] ?? '';
-            }
-
-            // --- PASO 3: ACTUALIZAR USANDO IDs INTERNOS ---
-
-            // 1. Actualizar priv_infousuario usando las variables procesadas
             $sqlInfo = "UPDATE priv_infousuario SET nombres = :nombres, apellido_p = :apellido_p, apellido_m = :apellido_m, es_propietario = :es_propietario WHERE id_info = :id_info";
             $stmtInfo = $conn->prepare($sqlInfo);
             $stmtInfo->execute([
-                ':nombres' => $nombres,         // Usamos la variable procesada
-                ':apellido_p' => $apellido_p,   // Usamos la variable procesada
-                ':apellido_m' => $apellido_m,   // Usamos la variable procesada
+                ':nombres' => $data['nombres'], // Asumiendo inputs separados
+                ':apellido_p' => $data['apellido_p'],
+                ':apellido_m' => $data['apellido_m'],
                 ':es_propietario' => $data['es_propietario'],
                 ':id_info' => $id_info_interno
             ]);
@@ -209,7 +157,7 @@ class ResidentsModel {
                 $stmtPhone->execute([
                     ':telefono' => $data['telefono'], 
                     ':id_telefono' => $data['id_telefono'],
-                    ':id_info' => $id_info_interno 
+                    ':id_info' => $id_info_interno // Seguridad extra
                 ]);
             }
 
@@ -235,10 +183,7 @@ class ResidentsModel {
     }
 
     /**
-     * Crea un nuevo residente, su cuenta de usuario y sus contactos.
-     * @param array $data El payload del formulario de 'Añadir Residente'.
-     * @return bool
-     * @throws Exception
+     * Crea un nuevo residente CON UUIDs.
      */
     public function creaResidente(array $data): bool
     {
@@ -314,11 +259,7 @@ class ResidentsModel {
     }
 
     /**
-     * Crea un nuevo residente "extra" (no propietario) y lo asocia
-     * a un propietario existente basado en el número de casa.
-     * @param array $data El payload del formulario 'Añadir Residente Extra'.
-     * @return bool
-     * @throws \Exception
+     * Crea residente extra CON UUIDs.
      */
     public function creaResidenteExtra(array $data): bool
     {
@@ -382,14 +323,10 @@ class ResidentsModel {
             $conn->rollBack();
             throw new \Exception("Error BD: " . $e->getMessage());
         }
-        
     }
+
     /**
-     * Elimina un residente y toda su información asociada.
-     * OJO: El ID que recibimos es 'id_info', no 'id_usuario'.
-     * @param int $id_info El ID de la tabla priv_infousuario.
-     * @return bool
-     * @throws Exception
+     * Elimina residente usando UUID (Patrón de Traducción).
      */
     public function eliminaResidente(string $public_id_info): bool
     {
@@ -434,6 +371,5 @@ class ResidentsModel {
             $conn->rollBack();
             throw $e;
         }
-       
     }
 }

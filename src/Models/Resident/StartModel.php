@@ -15,63 +15,75 @@ class StartModel
         $this->conn = Database::getConnection();
     }
 
-public function getResidentInfo($userId)
+public function getResidentInfo($userPublicId)
     {
-        // **LA CORRECCIÓN ESTÁ AQUÍ**: Añadimos i.id_info a la consulta.
+        // El parámetro $userPublicId es el $_SESSION['user_id'] (public_id)
+        
         $stmt = $this->conn->prepare(
-            'SELECT p.nombre AS privada_nombre, u.num_casa, i.nombres, i.id_info
+            'SELECT 
+                 p.nombre AS privada_nombre, 
+                 u.num_casa, 
+                 i.nombres, 
+                 i.public_id AS id_info  -- ¡LA CORRECCIÓN ESTÁ AQUÍ!
              FROM priv_usuarios u 
              JOIN priv_privadas p ON u.id_privada = p.id_privada
              JOIN priv_infousuario i ON u.id_usuario = i.id_usuario
-             WHERE u.id_usuario = :id_usuario'
+             WHERE u.public_id = :user_public_id'
         );
-        $stmt->execute(['id_usuario' => $userId]);
+        $stmt->execute(['user_public_id' => $userPublicId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     /**
      * Obtiene el estatus de pago, el monto y la próxima fecha de pago del residente.
      *
-     * @param int $userId El ID del usuario residente.
-     * @param int $privadaId El ID de la privada del residente (desde la sesión).
+     * @param int $userPublicId El ID pública del usuario residente.
+     * @param int $privadaPublicId El ID pública de la privada del residente (desde la sesión).
      * @return array La información del estatus de pago.
      */
-    public function getPaymentStatus($userId, $privadaId)
-    {
-        // --- 1. Obtener datos clave de la tabla de la privada ---
-        $stmtPrivada = $this->conn->prepare(
-            'SELECT monto_mensual_residente, diacorte FROM priv_privadas WHERE id_privada = :id_privada'
-        );
-        $stmtPrivada->execute(['id_privada' => $privadaId]);
-        $privadaInfo = $stmtPrivada->fetch(PDO::FETCH_ASSOC);
+    public function getPaymentStatus($userPublicId, $privadaPublicId)
+        {
+            // --- 1. Obtener datos clave de la tabla de la privada ---
+            $stmtPrivada = $this->conn->prepare(
+                'SELECT monto_mensual_residente, diacorte FROM priv_privadas WHERE public_id = :public_id'
+            );
+            $stmtPrivada->execute(['public_id' => $privadaPublicId]);
+            $privadaInfo = $stmtPrivada->fetch(PDO::FETCH_ASSOC);
 
-        if (!$privadaInfo) {
-            return [
-                'status_class' => 'pendiente',
-                'status_text' => 'Información no disponible',
-                'next_payment_date' => 'Contactar a administración',
-                'next_payment_amount' => null 
-            ];
-        }
+            if (!$privadaInfo) {
+                return [
+                    'status_class' => 'pendiente',
+                    'status_text' => 'Información no disponible',
+                    'next_payment_date' => 'Contactar a administración',
+                    'next_payment_amount' => null 
+                ];
+            }
 
-        $montoMensual = $privadaInfo['monto_mensual_residente'];
-        $diaCorte = $privadaInfo['diacorte'];
+            $montoMensual = $privadaInfo['monto_mensual_residente'];
+            $diaCorte = $privadaInfo['diacorte'];
 
-        // --- Calcular la próxima fecha de pago ---
-        $hoy = new DateTime();
-        $fechaCorteEsteMes = new DateTime($hoy->format('Y-m-') . $diaCorte);
+            // --- Calcular la próxima fecha de pago ---
+            $hoy = new DateTime();
+            $fechaCorteEsteMes = new DateTime($hoy->format('Y-m-') . $diaCorte);
 
-        $proximaFechaPago = clone $fechaCorteEsteMes;
-        if ($hoy > $fechaCorteEsteMes) {
-            $proximaFechaPago->modify('+1 month');
-        }
+            $proximaFechaPago = clone $fechaCorteEsteMes;
+            if ($hoy > $fechaCorteEsteMes) {
+                $proximaFechaPago->modify('+1 month');
+            }
 
-        // --- Verificar el último pago del usuario ---
+            // --- 2. Verificar el último pago del usuario ---
+            
+            // ¡¡LA CORRECCIÓN ESTÁ AQUÍ!!
+            // La columna en priv_pagos que referencia al usuario también se llama 'public_id'.
         $stmtPago = $this->conn->prepare(
-            'SELECT fecha_pago FROM priv_pagos WHERE id_usuario = :id_usuario ORDER BY fecha_pago DESC LIMIT 1'
+            'SELECT fecha_pago 
+             FROM priv_pagos 
+             WHERE id_usuario = (SELECT id_usuario FROM priv_usuarios WHERE public_id = :user_public_id) 
+             ORDER BY fecha_pago DESC LIMIT 1' // <--- CAMBIO
         );
-        $stmtPago->execute(['id_usuario' => $userId]);
-        $ultimoPago = $stmtPago->fetch(PDO::FETCH_ASSOC);
+            // El parámetro debe coincidir con el placeholder
+            $stmtPago->execute(['user_public_id' => $userPublicId]); // <--- CAMBIO
+            $ultimoPago = $stmtPago->fetch(PDO::FETCH_ASSOC);
 
         if (!$ultimoPago) {
             return [

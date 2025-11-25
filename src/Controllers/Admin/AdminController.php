@@ -3,6 +3,7 @@
 namespace App\Controllers\Admin;
 
 use App\Models\Admin\AvisosModel;
+use App\Models\Admin\ServiciosModel;
 use App\Models\Admin\UtilityModel;
 use App\Models\Admin\DashboardModel;
 use App\Models\Admin\ResidentsModel;
@@ -22,7 +23,7 @@ class AdminController
     }
     private function cargarDatosDelPanel(): array
     {
-        if (!isset($_SESSION['public_id_privada'])) {
+        if (!isset($_SESSION['id_privada'])) {
             header(header: 'Location: /admin/select-private');
             exit;
         }
@@ -31,7 +32,7 @@ class AdminController
         $data['todas_las_privadas'] = $utilityModel->obtenTodosPrivadas();
         
         // Leemos el PUBLIC_ID (UUID) de la sesión
-        $public_id_actual = $_SESSION['public_id_privada'] ?? null; 
+        $public_id_actual = $_SESSION['id_privada'] ?? null; 
         $data['privada_actual'] = null;
         if (!empty($data['todas_las_privadas']) && $public_id_actual) {
             foreach ($data['todas_las_privadas'] as $privada) {
@@ -54,10 +55,10 @@ class AdminController
         $privadaModel = new UtilityModel();
         // $paymentStats = $dashboardModel->obtenPagosStat();
         // $reportes = $dashboardModel->getReportes();
-        $avisos = $dashboardModel->getAvisosD($_SESSION['public_id_privada']);
+        $avisos = $dashboardModel->getAvisosD($_SESSION['id_privada']);
         // $data['reportes'] = $reportes;
         $data['avisos'] = $avisos;
-        $data['paymentStatsJSON'] = json_encode($dashboardModel->obtenPagosStat($_SESSION['public_id_privada']));
+        $data['paymentStatsJSON'] = json_encode($dashboardModel->obtenPagosStat($_SESSION['id_privada']));
         //Llama los elementos de la vista (estilo y scripts; Codigo en javascript para logica de vista)
 
         $assets['styles'] = ['/css/Admin/admin_dashboard.css'];                
@@ -74,7 +75,7 @@ class AdminController
         $residentsModel = new ResidentsModel();
         $utilityModel = new UtilityModel();
         //Obten todos los residentes con la id de la sesion y dale un filtro 
-        $residents = $residentsModel->getAllResidents($_SESSION['public_id_privada'], $filter);
+        $residents = $residentsModel->getAllResidents($_SESSION['id_privada'], $filter);
         //Almacena en un JSON los datos y el filtro definido
         $data['residents'] = $residents;
         $data['Presidentes'] = $utilityModel->obtenTodosPrivadas();
@@ -153,8 +154,8 @@ class AdminController
                         echo json_encode(['success' => false, 'message' => 'El número de casa ya tiene un propietario.']);
                         exit;
                     }
-
-                    // --- 4. Crear residente ---
+                    $data['public_id_privada'] = $_SESSION['id_privada']; // Recuerda que $_SESSION['id_privada'] es el UUID
+                    // Crear residente ---
                     $residentsModel = new ResidentsModel(); 
                     $success = $residentsModel->creaResidente($data);
 
@@ -172,6 +173,9 @@ class AdminController
                 exit;
             case 2: // ACTUALIZAR UN RESIDENTE
                 $data = $_POST;
+                if (isset($data['id_info'])) { 
+                    $data['public_id_info'] = $data['id_info']; 
+                }
                 $residentsModel = new ResidentsModel();
                 $success = $residentsModel->actualizaResident($data);
 
@@ -187,11 +191,13 @@ class AdminController
                 $data = json_decode($json, true);
 
                 try {
-                    if (empty($data['id_info'])) {
-                    throw new Exception('No se proporcionó el ID del residente a eliminar.');
-                    }    
+                    $public_id_info = $data['public_id_info'] ?? $data['id_info'] ?? null;
+                    if (empty($public_id_info)) {
+                        throw new Exception('No se proporcionó el ID del residente.');
+                    }
+
                     $residentsModel = new ResidentsModel(); 
-                    $success = $residentsModel->eliminaResidente($data['id_info']);
+                    $success = $residentsModel->eliminaResidente($public_id_info);
                     if ($success) {
                         echo json_encode(['success' => true, 'message' => 'Colaborador eliminado exitosamente.']);
                     } else {
@@ -224,8 +230,10 @@ class AdminController
                         ]);
                         exit;
                     }
+                    
                     // Validación básica de datos
                     $data['id_privada'] = $_SESSION['id_privada'] ?? 0; // <-- ADD THIS LINE
+                    $data['public_id_privada'] = $_SESSION['id_privada'];
                     if (empty($data['nombres']) || empty($data['num_casa']) || empty($data['id_privada'])) {
                         throw new Exception('Faltan datos requeridos (nombre, casa o privada).');
                     }
@@ -276,6 +284,107 @@ class AdminController
         
         require __DIR__ . '/../../Views/Admin/Panel.php';
     }
+
+    public function operacion_Servicios($caso){
+        //REMPLAZA TODO CON RESPECTO A SERVICIOS ACTUALMENTE
+        $casoS = $caso;
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405); 
+            echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
+            exit;
+        }
+        $servicioModel = new ServiciosModel(); // DECLARO EL MODELO Y MODELO DE UTILIDAD ANTES PARA NO REPETIR EN CADA CASO Y MEJOR OPTIMIZAR
+        $utilityModel = new UtilityModel();
+
+        switch ($casoS){
+            case 1: // AQUI COLOCA TU LOGICA PARA CREAR SERVICIOS
+            
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+
+            try {
+                
+                
+                if (!empty($data['verificar']) && $data['verificar'] === true) {
+                    if (empty($data['username'])) {
+                        throw new Exception('No se proporcionó el nombre de usuario.');
+                    }
+                    $existe = $utilityModel->verificarUsuario($data['username']);
+                    echo json_encode(['existe' => $existe]);
+                    exit; 
+                }
+                if ($utilityModel->verificarUsuario($data['username'])) {
+                    echo json_encode(['success' => false, 'message' => 'El nombre de usuario ya está registrado.']);
+                    exit;
+                }
+                // ------------------------------------------------------------
+                // Bloque de creación real del colaborador
+                // ------------------------------------------------------------
+                if (empty($data['username']) || empty($data['password']) || empty($data['nombres'])) {
+                    throw new Exception('Faltan datos requeridos.');
+                }
+                // Antes de crear, también se puede verificar de nuevo (opcional)
+                
+                $success = $servicioModel->creaColaborador($data);
+
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Colaborador creado exitosamente.']);
+                } else {
+                    throw new Exception('No se pudo crear el colaborador.');
+                }
+
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+            }
+            exit;
+
+            case 2: // AQUI COLOCA TU LOGICA PARA ACTUALIZAR SERVICIOS
+                try {
+                    $input = json_decode(file_get_contents('php://input'), true);
+
+                    if (empty($input['id_usuario']) || empty($input['nombres'])) {
+                        throw new Exception('Faltan datos requeridos.');
+                    }
+                    $colaboradorModel = new ColaboradoresModel();            
+                    $success = $colaboradorModel->actualizaColaborador($input);
+                    if ($success) {
+                        echo json_encode(['success' => true, 'message' => 'Colaborador actualizado correctamente.']);
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'Error al actualizar el colaborador.']);
+                    }
+
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+                }
+                exit;
+                
+            case 3: // AQUI COLOCA TU LOGICA PARA ELIMINAR SERVICIOS
+                $json = file_get_contents('php://input');
+                $data = json_decode($json, true);
+
+                try {
+                    if (empty($data['public_id_usuario'])) {
+                        throw new Exception('No se proporcionó el ID del colaborador a eliminar.');
+                    }
+                
+                    $success = $servicioModel->eliminarColaborador($data['public_id_usuario']);
+
+                    if ($success) {
+                        echo json_encode(['success' => true, 'message' => 'Colaborador eliminado exitosamente.']);
+                    } else {
+                        throw new Exception('No se pudo eliminar el colaborador.');
+                    }
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+                }
+                exit;
+        }
+    }
     
     public function showColaboradores()
     {
@@ -286,7 +395,7 @@ class AdminController
 
         $data['roles'] = $utilityModel->obtenDatosColabRoles();
         //Haz una consulta de los colaboradores con los roles y la privada escojida
-        $colaboradores = $colaboradorModel->obtenColaboradores($_SESSION['public_id_privada'], $data['roles']);
+        $colaboradores = $colaboradorModel->obtenColaboradores($_SESSION['id_privada'], $data['roles']);
         $data['colaboradores'] = $colaboradores;
         $data['Pcolaboradores'] = $utilityModel->obtenTodosPrivadas();
         $data['colabestatus'] = $utilityModel->obtenPrimDatosEstatus();
@@ -413,7 +522,7 @@ class AdminController
         $avisosModel = new AvisosModel();
         $utilityModel = new UtilityModel();
         $data = $this->cargarDatosDelPanel();
-        $data['avisos'] = $avisosModel->getAllAvisos($_SESSION['public_id_privada']);
+        $data['avisos'] = $avisosModel->getAllAvisos($_SESSION['id_privada']);
         $assets['styles'] = ['/css/Admin/admin_avisos.css'];
         $assets['scripts'] = ['/js/Admin/admin_avisos.js'];
 
@@ -443,9 +552,7 @@ class AdminController
                 $_SESSION['id_info'] = $userInfo['id_info'] ?? null;
             }
             try {
-                // ------------------------------------------------------------
                 // Bloque de verificación de usuario duplicado sin crear el registro
-                // ------------------------------------------------------------
                 // Instancia del modelo de utilidad para verificar usuarios
                 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['id_info'])) {
                     $data = [
@@ -477,54 +584,27 @@ class AdminController
             }
             exit;
 
-            case 2: // ACTUALIZAR UN COLABORADOR
-                try {
-                    //Despues almacena en un JSON el id_usuario y nombres, revisa si los campos estan vacios y envia un mensaje
-                    $input = json_decode(file_get_contents('php://input'), true);
-
-                    if (empty($input['id_usuario']) || empty($input['nombres'])) {
-                        throw new Exception('Faltan datos requeridos.');
-                    }
-                    //Declara un objecto con el modelo y llama la actualizacion
-                    $colaboradorModel = new ColaboradoresModel();            
-                    $success = $colaboradorModel->actualizaColaborador($input);
-
-                    //Envia una respuesta de acuerdo al estado por medio de un JSON
-                    
-                    if ($success) {
-                        echo json_encode(['success' => true, 'message' => 'Colaborador actualizado correctamente.']);
-                    } else {
-                        echo json_encode(['success' => false, 'message' => 'Error al actualizar el colaborador.']);
-                    }
-
-                } catch (Exception $e) {
-                    http_response_code(500);
-                    header('Content-Type: application/json');
-                    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+            case 2: // ELIMINAR UN AVISO
+                if (!isset($_SESSION['user_id']) || !isset($_POST['id_aviso'])) {
+                    echo json_encode(['success' => false, 'message' => 'Solicitud inválida.']);
+                    return;
                 }
-                exit;
-                
-            case 3: // ELIMINAR UN COLABORADOR
-                $json = file_get_contents('php://input');
-                $data = json_decode($json, true);
 
                 try {
-                    if (empty($data['id_usuario'])) {
-                        throw new Exception('No se proporcionó el ID del colaborador a eliminar.');
-                    }
-                    
-                    $colaboradorModel = new ColaboradoresModel();
-                    $success = $colaboradorModel->eliminarColaborador($data['id_usuario']);
+                    $id_aviso = (int)$_POST['id_aviso'];
+                    $userPublicId = $_SESSION['user_id'];
+                    $success = $avisosModel->deleteAviso($id_aviso, $userPublicId);
 
                     if ($success) {
-                        echo json_encode(['success' => true, 'message' => 'Colaborador eliminado exitosamente.']);
+                        echo json_encode(['success' => true, 'message' => 'Aviso eliminado.']);
                     } else {
-                        throw new Exception('No se pudo eliminar el colaborador.');
+                        echo json_encode(['success' => false, 'message' => 'No se pudo eliminar (¿Es tu aviso?).']);
                     }
-                } catch (Exception $e) {
-                    http_response_code(500);
-                    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
-                }
+
+                } catch (\Exception $e) {
+                    error_log("Error deleteAviso: " . $e->getMessage());
+                    echo json_encode(['success' => false, 'message' => 'Error inesperado.']);
+                }                                
                 exit;
         }
     }
@@ -580,8 +660,7 @@ class AdminController
     }
     public function loadContent($view)
     {
-        // --- INICIO DE LA MODIFICACIÓN (Versión con SessionVerifier) ---
-
+        // --- INICIO DE LA MODIFICACIÓN ---
         // Instanciamos el verificador y modelo
         $sessionModel = new SessionDataModel(); 
         $verifier = new SessionVerifier($sessionModel);
@@ -593,7 +672,7 @@ class AdminController
         $vistas_privadas = ['residents', 'colaboradores', 'dashboard']; 
         
         if (in_array($view_file, $vistas_privadas)) {
-            $keys_to_check[] = 'public_id_privada'; //Le damos el UUDI a la vista si la requiere
+            $keys_to_check[] = 'id_privada'; //Le damos el UUDI a la vista si la requiere
         }
 
         // 3. Verificamos
@@ -636,12 +715,12 @@ class AdminController
             case 'dashboard':
                 $dashboardModel = new DashboardModel();
                 $privadaModel = new UtilityModel();
-                // $reportes = $dashboardModel->getReportes($_SESSION['public_id_privada']);
+                // $reportes = $dashboardModel->getReportes($_SESSION['id_privada']);
                 //Renombre la funcion a otra por conflictos de llamada en este codigo
-                $avisos = $dashboardModel->getAvisosD($_SESSION['public_id_privada']);
+                $avisos = $dashboardModel->getAvisosD($_SESSION['id_privada']);
                 // $data['reportes'] = $reportes;
                 $data['avisos'] = $avisos;
-                $data['paymentStatsJSON'] = json_encode($dashboardModel->obtenPagosStat($_SESSION['public_id_privada']));
+                $data['paymentStatsJSON'] = json_encode($dashboardModel->obtenPagosStat($_SESSION['id_privada']));
                 // $assets['styles'] = ['/css/Admin/admin_dashboard.css'];
                 // $assets['scripts'][] = 'https://cdn.jsdelivr.net/npm/chart.js';
                 $assets['styles'] = ['/css/Admin/admin_dashboard.css'];                
@@ -653,7 +732,7 @@ class AdminController
                 $filter = $_GET['filter'] ?? 'owners';
                 $residentsModel = new ResidentsModel();
                 $utilityModel = new UtilityModel();
-                $data['residents'] = $residentsModel->getAllResidents($_SESSION['public_id_privada'], $filter);
+                $data['residents'] = $residentsModel->getAllResidents($_SESSION['id_privada'], $filter);
                 $data['Presidentes'] = $utilityModel->obtenTodosPrivadas();
                 $data['residentesEstados'] = $utilityModel->obtenPrimDatosEstatus();
                 $data['currentFilter'] = $filter;
@@ -665,7 +744,7 @@ class AdminController
                 $colaboradorModel = new ColaboradoresModel();
                 $utilityModel = new UtilityModel();
                 $data['roles'] = $utilityModel->obtenDatosColabRoles();
-                $colaborador = $colaboradorModel->obtenColaboradores($_SESSION['public_id_privada'], $data['roles']);
+                $colaborador = $colaboradorModel->obtenColaboradores($_SESSION['id_privada'], $data['roles']);
                 $data['colaboradores'] = $colaborador;
                 $data['Pcolaboradores'] = $utilityModel->obtenTodosPrivadas();
                 $data['colabestatus'] = $utilityModel->obtenPrimDatosEstatus();

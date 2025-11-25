@@ -10,7 +10,18 @@ class User {
         $conn = Database::getConnection();
 
         // Consulta SQL con un JOIN para obtener el nombre del rol
-        $stmt = $conn->prepare(query: "SELECT u.*, r.rol FROM priv_usuarios u JOIN priv_roles r ON u.id_rol = r.id_rol WHERE u.usuario = :username");
+        $query = "SELECT 
+                        u.contrasenia, 
+                        u.id_rol, 
+                        u.public_id AS user_public_id, 
+                        p.public_id AS privada_public_id,
+                        r.rol 
+                  FROM priv_usuarios u 
+                  JOIN priv_roles r ON u.id_rol = r.id_rol
+                  LEFT JOIN priv_privadas p ON u.id_privada = p.id_privada
+                  WHERE u.usuario = :username";
+        $stmt = $conn->prepare($query);
+        // $stmt = $conn->prepare(query: "SELECT u.*, r.rol FROM priv_usuarios u JOIN priv_roles r ON u.id_rol = r.id_rol WHERE u.usuario = :username");
         $stmt->bindParam(':username', $username);
         $stmt->execute();
 

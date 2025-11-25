@@ -9,14 +9,22 @@
     <div id="formNuevaVisita" class="form-visita">
         <h3>Agregar Nueva Visita</h3>
         <form method="POST">
-            <input type="text" name="nombre_visitante" placeholder="Nombre del visitante" required>
-            <input type="text" name="tipo_visita" placeholder="Tipo de visita" required>
-            <input type="text" name="identificacion" placeholder="Identificación" required>
-            <select name="estatus" required>
-                <option value="">Seleccionar estatus</option>
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
+            <input type="text" name="nombre_visitante" placeholder="Nombre(s)" required>
+            <input type="text" name="apellido_visitante" placeholder="Apellido(s)" required>
+            
+            <select name="tipo_visita" required>
+                <option value="" disabled selected>Selecciona el tipo de visita</option>
+                <option value="Familiar">Familiar</option>
+                <option value="Amigo">Amigo</option>
+                <option value="Otro">Otro</option>
             </select>
+
+            <input type="text" name="observaciones" placeholder="Observaciones (opcional)">
+
+            <input type="hidden" name="id_residente" value="<?= htmlspecialchars($_SESSION['id_info']); ?>">
+            
+            <input type="hidden" name="estatus" value="Activo">
+            
             <button type="submit" class="btn-guardar">Guardar</button>
         </form>
     </div>
@@ -38,8 +46,8 @@
                 </div>
 
                 <div class="visita-detalle">
-                    <p><strong>ID de usuario:</strong> <?= htmlspecialchars($v['id_usuario']); ?></p>
                     <p><strong>Observaciones:</strong> <?= htmlspecialchars($v['observaciones']); ?></p>
+                    
                     <form method="POST" class="form-estatus">
                         <input type="hidden" name="id_visita" value="<?= $v['id_visita']; ?>">
                         <select name="estatus">

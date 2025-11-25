@@ -1,22 +1,16 @@
-<div class="avisos-content" data-session-user-id="<?= htmlspecialchars($_SESSION['user_id'] ?? 0) ?>">
+<div class="avisos-content">
     <div class="avisos-header">
         <h1>Avisos de la Comunidad</h1>
-        <div class="avisos-actions">
-            <button id="openModalBtn" class="btn-primary">Crear Nuevo Aviso</button>
-            <button id="misAvisosBtn" class="btn-secondary-outline">Mis Avisos</button>
-        </div>
+        <button id="openModalBtn" class="btn-primary">Crear Nuevo Aviso</button>
     </div>
 
-    <div class="avisos-container" id="avisosContainer">
+    <div class="avisos-container">
         <?php if (!empty($avisos)): ?>
             <?php foreach ($avisos as $aviso): ?>
-                <div class="aviso-card" 
-                    data-id="<?= htmlspecialchars($aviso['id_aviso']) ?>" 
-                    data-usuario="<?= htmlspecialchars($aviso['author_public_id']) ?>">
-                 
-                <div class="aviso-header-card">
+                <div class="aviso-card">
+                    <div class="aviso-header-card">
                         <span class="usuario">
-                            <?= htmlspecialchars($aviso['nombres'] . ' ' . $aviso['apellido_p'] . ' ' . ($aviso['apellido_m'] ?? '') . ' (Casa ' . ($aviso['num_casa'] ?? '?') . ')') ?>
+                            <?= htmlspecialchars($aviso['nombres'] . ' ' . $aviso['apellido_p'] . ' (Casa ' . $aviso['num_casa'] . ')') ?>
                         </span>
                         <span class="fecha"><?= date('d/m/Y', strtotime($aviso['fecha_pub'])) ?></span>
                     </div>
@@ -31,7 +25,6 @@
         <?php endif; ?>
     </div>
 </div>
-
 
 <div id="createAvisoModal" class="modal-overlay">
     <div class="modal-content">

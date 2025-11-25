@@ -67,76 +67,169 @@ public function showAvisos()
         $view_to_load = 'visitas.php';
         require __DIR__ . '/../../Views/Resident/Panel.php';
     }
-public function createAviso()
+    /**
+     * Procesa la creación de una nueva visita (POST)
+     */
+    public function createVisita()
     {
         header('Content-Type: application/json');
 
-        // **LA CORRECCIÓN ESTÁ AQUÍ**: Nos aseguramos de que id_info exista en la sesión.
-        // Si no existe, lo buscamos antes de continuar.
-        if (!isset($_SESSION['id_info'])) {
-            $startModel = new StartModel();
-            $userInfo = $startModel->getResidentInfo($_SESSION['user_id']);
-            $_SESSION['id_info'] = $userInfo['id_info'] ?? null;
+        // --- DEBUG: Inicio de la función ---
+        error_log("[Visitas] Iniciando createVisita. POST data: " . print_r($_POST, true));
+        error_log("[Visitas] Session user_id: " . ($_SESSION['user_id'] ?? 'NO SET'));
+
+        // 1. Verificamos sesión
+        if (!isset($_SESSION['user_id'])) {
+            error_log("[Visitas] Error: Sesión no válida (user_id no existe).");
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Sesión no válida.']);
+            return;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['id_info'])) {
-            $data = [
-                'tipo' => $_POST['tipo'] ?? 'Aviso',
-                'titulo' => $_POST['titulo'] ?? '',
-                'contenido' => $_POST['contenido'] ?? '',
-                'id_info' => $_SESSION['id_info'],
-                'id_privada' => $_SESSION['id_privada']
-            ];
+        // 2. Mapeo de Estatus (Texto -> Número)
+        // AJUSTA ESTOS VALORES SEGÚN TU BASE DE DATOS (ej. 1=Activo, 2=Inactivo)
+        $estatusTexto = $_POST['estatus'] ?? 'Activo';
+        $estatusNumerico = ($estatusTexto === 'Activo') ? 1 : 2; 
 
-            if (empty($data['titulo']) || empty($data['contenido'])) {
-                echo json_encode(['success' => false, 'message' => 'El título y el contenido no pueden estar vacíos.']);
-                return;
-            }
+        // 3. Recibimos datos
+        $data = [
+            'nombre_visitante' => $_POST['nombre_visitante'] ?? '',
+            'apellido_visitante' => $_POST['apellido_visitante'] ?? '',
+            'tipo_visita' => $_POST['tipo_visita'] ?? '',
+            'id_residente' => $_SESSION['user_id'], // Usamos el UUID del usuario logueado
+            'observaciones' => $_POST['observaciones'] ?? '',
+            'estatus' => $estatusNumerico // ¡ENVIAMOS EL NÚMERO!
+        ];
 
-            $avisosModel = new AvisosModel();
-            $success = $avisosModel->createAviso($data);
+        // --- DEBUG: Datos preparados ---
+        error_log("[Visitas] Datos a enviar al modelo: " . print_r($data, true));
 
-            if ($success) {
-                echo json_encode(['success' => true, 'message' => 'Aviso creado correctamente.']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al crear el aviso en la base de datos.']);
-            }
+        // 4. Validación
+        if (empty($data['nombre_visitante']) || empty($data['apellido_visitante']) || empty($data['tipo_visita'])) {
+            error_log("[Visitas] Error: Faltan datos obligatorios.");
+            echo json_encode(['success' => false, 'message' => 'Faltan datos obligatorios.']);
+            return;
+        }
+
+        // 5. Llamada al modelo
+        $visitasModel = new VisitasModel();
+        $success = $visitasModel->createVisita($data);
+
+        if ($success) {
+            error_log("[Visitas] Éxito: Visita creada.");
+            echo json_encode(['success' => true, 'message' => 'Visita registrada correctamente.']);
         } else {
-            http_response_code(400); // Bad Request
-            echo json_encode(['success' => false, 'message' => 'No se pudo verificar la identidad del usuario. Intente recargar la página.']);
+            error_log("[Visitas] Error: El modelo devolvió false.");
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error al guardar en base de datos. Revisa el log de errores.']);
         }
     }
-    public function deleteAviso()
+
+    /**
+     * Procesa la actualización de estatus (POST)
+     */
+    public function updateVisitaStatus()
     {
-        // Encabezado de respuesta JSON
         header('Content-Type: application/json');
 
-        // Verificación de seguridad: ¿El usuario está logueado?
-        // (Asumo que tu constructor o un middleware ya inicia la sesión)
-        if (!isset($_SESSION['id_info']) || !isset($_POST['id_aviso'])) {
-            echo json_encode(['success' => false, 'message' => 'Solicitud inválida o sesión expirada.']);
+        // --- DEBUG: Inicio update ---
+        // error_log("[Visitas] Iniciando updateVisitaStatus. POST: " . print_r($_POST, true));
+
+        if (!isset($_POST['id_visita']) || !isset($_POST['estatus'])) {
+            error_log("[Visitas] Error: Datos incompletos para update.");
+            echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
+            return;
+        }
+
+        $id_visita = $_POST['id_visita'];
+        $estatusTexto = $_POST['estatus'];
+        
+        // Conversión a Entero (Asumiendo 1=Activo, 2=Inactivo)
+        // Si tu BD usa 0 para inactivo, cambia el 2 por 0.
+        $estatusNumerico = ($estatusTexto === 'Activo') ? 1 : 2;
+
+        // error_log("[Visitas] ID: $id_visita, Estatus Texto: $estatusTexto, Estatus Numérico: $estatusNumerico");
+
+        $visitasModel = new VisitasModel();
+        $success = $visitasModel->updateEstatusVisita($id_visita, $estatusNumerico);
+
+        if ($success) {
+            error_log("[Visitas] Update exitoso.");
+            echo json_encode(['success' => true, 'message' => 'Estatus actualizado.']);
+        } else {
+            error_log("[Visitas] Error en update (Modelo devolvió false).");
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar el estatus.']);
+        }
+    }
+    public function createAviso()
+    {
+        header('Content-Type: application/json');
+
+        // 1. Seguridad: Verificar sesión
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_privada'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Sesión inválida.']);
+            return;
+        }
+
+        // 2. Generar un public_id único para el nuevo aviso
+        // Si tienes una función global de UUID o hash, úsala. Aquí un ejemplo simple:
+        $avisoPublicId = bin2hex(random_bytes(16)); 
+        // O si usas uniqid: $avisoPublicId = uniqid('aviso_', true);
+
+        // 3. Preparar datos (Usando IDs de Sesión)
+        $data = [
+            'tipo' => $_POST['tipo'] ?? 'Aviso',
+            'titulo' => $_POST['titulo'] ?? '',
+            'contenido' => $_POST['contenido'] ?? '',
+            'user_public_id' => $_SESSION['user_id'],       // UUID Usuario
+            'privada_public_id' => $_SESSION['id_privada'], // UUID Privada
+            'aviso_public_id' => $avisoPublicId             // UUID Nuevo Aviso
+        ];
+
+        if (empty($data['titulo']) || empty($data['contenido'])) {
+            echo json_encode(['success' => false, 'message' => 'Título y contenido requeridos.']);
+            return;
+        }
+
+        // 4. Ejecutar
+        $avisosModel = new AvisosModel();
+        $success = $avisosModel->createAviso($data);
+
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Aviso publicado.']);
+        } else {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error al guardar el aviso.']);
+        }
+    }
+
+    public function deleteAviso()
+    {
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['user_id']) || !isset($_POST['id_aviso'])) {
+            echo json_encode(['success' => false, 'message' => 'Solicitud inválida.']);
             return;
         }
 
         try {
             $id_aviso = (int)$_POST['id_aviso'];
-            $id_info_session = (int)$_SESSION['id_info']; // ID de la sesión
+            $userPublicId = $_SESSION['user_id'];
 
             $model = new AvisosModel();
-            
-            // Pasamos ambos IDs al modelo para la eliminación segura
-            $success = $model->deleteAviso($id_aviso, $id_info_session);
+            $success = $model->deleteAviso($id_aviso, $userPublicId);
 
             if ($success) {
-                echo json_encode(['success' => true, 'message' => 'El aviso ha sido eliminado.']);
+                echo json_encode(['success' => true, 'message' => 'Aviso eliminado.']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'No se pudo eliminar el aviso. Es posible que no seas el autor o ya fue eliminado.']);
+                echo json_encode(['success' => false, 'message' => 'No se pudo eliminar (¿Es tu aviso?).']);
             }
 
         } catch (\Exception $e) {
-            // Manejo de errores
-            error_log($e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Ocurrió un error inesperado.']);
+            error_log("Error deleteAviso: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error inesperado.']);
         }
     }
 

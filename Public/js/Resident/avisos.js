@@ -9,13 +9,11 @@
 
     let mostrandoMisAvisos = false;
 
+    // --- CORRECCIÓN 1: MANEJO DE IDs ---
+    const avisosContent = document.querySelector(".avisos-content");
+    // Quitamos parseInt. Ahora leemos el ID tal cual viene (string/UUID)
+    const usuarioActual = avisosContent?.getAttribute("data-session-user-id") || "";
 
-// Buscar el contenedor principal que tiene el ID del usuario
-const avisosContent = document.querySelector(".avisos-content");
-// Leer el ID del usuario desde el atributo data- y convertirlo a número
-const usuarioActual = parseInt(avisosContent?.getAttribute("data-session-user-id") || 0);
-
-   
     const showModal = () => modal?.classList.add("visible");
     const hideModal = () => modal?.classList.remove("visible");
 
@@ -27,46 +25,47 @@ const usuarioActual = parseInt(avisosContent?.getAttribute("data-session-user-id
         if (e.target === modal) hideModal();
     });
 
-
+    // --- CORRECCIÓN 2: LÓGICA DEL FILTRO ---
     misAvisosBtn?.addEventListener("click", () => {
         mostrandoMisAvisos = !mostrandoMisAvisos;
         const cards = document.querySelectorAll(".aviso-card");
 
+        // Cambiar texto del botón según el estado
+        if (mostrandoMisAvisos) {
+            misAvisosBtn.textContent = "Ver Todos";
+            misAvisosBtn.classList.add('active'); // Opcional: para estilo visual
+        } else {
+            misAvisosBtn.textContent = "Mis Avisos";
+            misAvisosBtn.classList.remove('active');
+        }
+
         cards.forEach(card => {
-            const idUsuario = parseInt(card.getAttribute("data-usuario"));
-            const deleteBtn = card.querySelector(".btn-delete");
+            // Quitamos parseInt. Leemos el ID de la tarjeta tal cual.
+            const idUsuarioTarjeta = card.getAttribute("data-usuario") || "";
 
             if (mostrandoMisAvisos) {
-                misAvisosBtn.textContent = "Todos los avisos";
-                if (idUsuario === usuarioActual) {
-                    card.style.display = "block";
-                    deleteBtn.style.display = "inline-block";
+                // MODO FILTRO: Comparamos texto con texto
+                if (idUsuarioTarjeta === usuarioActual) {
+                    card.style.display = ""; // Quita 'none', deja que el CSS decida (visible)
                 } else {
-                    card.style.display = "none";
+                    card.style.display = "none"; // Oculta
                 }
             } else {
-                misAvisosBtn.textContent = "Mis Avisos";
-                card.style.display = "block";
-                deleteBtn.style.display = "none";
+                // MODO VER TODOS: Limpiamos el estilo para que se vean todas
+                card.style.display = ""; 
             }
         });
     });
 
-
+    // Lógica de eliminar aviso
     avisosContainer?.addEventListener("click", (e) => {
-        if (e.target.classList.contains("btn-delete")) {
+        if (e.target.classList.contains("btn-eliminar-aviso")) {
             const idAviso = e.target.getAttribute("data-id");
-            // 1. Obtener la tarjeta que se va a eliminar
-            const card = e.target.closest(".aviso-card");
-
-            const confirmacion = confirm("¿Seguro que deseas eliminar este aviso?");
             
-            if (confirmacion) {
-                // Preparamos los datos para enviar
+            if (confirm("¿Estás seguro de eliminar este aviso?")) {
                 const formData = new FormData();
                 formData.append('id_aviso', idAviso);
 
-                // Realizamos la petición fetch
                 fetch('/resident/avisos/delete', {
                     method: 'POST',
                     body: formData
@@ -74,25 +73,21 @@ const usuarioActual = parseInt(avisosContent?.getAttribute("data-session-user-id
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // 2. Si el servidor confirma, eliminamos la tarjeta del DOM
-                        card.style.opacity = '0'; // Opcional: para una transición
-                        card.addEventListener('transitionend', () => card.remove());
-                        // Si no usas transición, solo usa: card.remove();
-                        
-                        showGlobalPopup('Aviso Eliminado', data.message, 'Entendido', 'success');
+                        showGlobalPopup('Éxito', data.message, 'Entendido', 'success');
+                        // Eliminar la tarjeta del DOM visualmente
+                        const card = e.target.closest('.aviso-card');
+                        if (card) card.remove();
                     } else {
-                        // 3. Si falla (p.ej. no es su aviso), mostramos error
-                        showGlobalPopup('Error al Eliminar', data.message, 'Entendido', 'error');
+                        showGlobalPopup('Error', data.message, 'Entendido', 'error');
                     }
                 })
                 .catch(error => {
-                    console.error('Error en la petición:', error);
+                    console.error('Error:', error);
                     showGlobalPopup('Error de Red', 'Ocurrió un error al comunicarse con el servidor.', 'Entendido', 'error');
                 });
             }
         }
     });
-
 
     form?.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -111,8 +106,12 @@ const usuarioActual = parseInt(avisosContent?.getAttribute("data-session-user-id
                 showGlobalPopup('Aviso Creado', data.message, 'Entendido', 'success'); 
                 hideModal();
                 form.reset();
+                // Recargar la sección si existe la función global
                 if (window.loadSection) {
                     window.loadSection('avisos');
+                } else {
+                    // Fallback si no hay carga dinámica: recargar página
+                    window.location.reload();
                 }
             } else {
                 showGlobalPopup('Error al Crear Aviso', data.message, 'Entendido', 'error');
@@ -128,7 +127,7 @@ const usuarioActual = parseInt(avisosContent?.getAttribute("data-session-user-id
         });
     });
 
-
+    // Animación de entrada
     document.querySelectorAll(".aviso-card").forEach((card, i) => {
         card.style.animationDelay = `${i * 100}ms`;
     });

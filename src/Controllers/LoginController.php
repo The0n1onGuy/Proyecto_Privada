@@ -34,13 +34,15 @@ class LoginController
         $user = $userModel->verifyCredentials($username, $password);
 
         if ($user) {
-            $_SESSION['user_id'] = $user['id_usuario'];
+            $_SESSION['user_id'] = $user['user_public_id'];
             $_SESSION['user_role'] = (int)$user['id_rol'];
-            $_SESSION['public_id_usuario'] = $user['public_id'];
+
+            // $_SESSION['public_id_usuario'] = $user['public_id'];
             
             if ($_SESSION['user_role'] === 2 || $_SESSION['user_role'] === 5) {
 
-                $_SESSION['id_privada'] = $user ['id_privada'];
+                // $_SESSION['id_privada'] = $user ['id_privada'];
+                $_SESSION['id_privada'] = $user ['privada_public_id'];
 
             }
 
