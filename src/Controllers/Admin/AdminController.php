@@ -2,8 +2,9 @@
 
 namespace App\Controllers\Admin;
 
-use App\Models\Admin\AvisosModel;
+
 use App\Models\Admin\ServiciosModel;
+use App\Models\Admin\AvisosModel;
 use App\Models\Admin\UtilityModel;
 use App\Models\Admin\DashboardModel;
 use App\Models\Admin\ResidentsModel;
@@ -177,13 +178,16 @@ class AdminController
                     $data['public_id_info'] = $data['id_info']; 
                 }
                 $residentsModel = new ResidentsModel();
-                $success = $residentsModel->actualizaResident($data);
+                $result = $residentsModel->actualizaResident($data);
 
-                if ($success) {
-                    echo json_encode(['success' => true, 'message' => 'Residente act correctamente.']);
-                } else {
-                    echo json_encode(['success' => false, 'message' => 'Error al actualizar el residente.']);
-                }
+                // Enviamos el resultado directamente al JS
+                echo json_encode($result);
+                // $success = $residentsModel->actualizaResident($data);
+                // if ($success) {
+                //     echo json_encode(['success' => true, 'message' => 'Residente act correctamente.']);
+                // } else {
+                //     echo json_encode(['success' => false, 'message' => 'Error al actualizar el residente.']);
+                // }
                 exit;
                 
             case 3: // ELIMINAR UN RESIDENTE
@@ -408,6 +412,31 @@ class AdminController
         
         require __DIR__ . '/../../Views/Admin/Panel.php';
     }
+
+    public function obtenDatosdelColaborador($public_id)
+    {
+        // API para obtener datos de un colaborador específico
+        header('Content-Type: application/json');
+        
+        // Validación básica de sesión (ya hecha por el router, pero doble check no sobra)
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'No autorizado']);
+            exit;
+        }
+
+        $colaboradorModel = new ColaboradoresModel();
+        $data = $colaboradorModel->obtenColaboradorporID($public_id);
+
+        if ($data) {
+            echo json_encode(['success' => true, 'data' => $data]);
+        } else {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Colaborador no encontrado.']);
+        }
+        exit;
+    }
+
     public function operacion_Colaborador($caso){
         $casoS = $caso;
         header('Content-Type: application/json');
@@ -543,46 +572,44 @@ class AdminController
         }
         switch ($casoS){
             case 1: // CREAR AVISOS
-            // Se obtiene el contenido JSON enviado desde el cliente (por ejemplo, desde fetch() en JS)
-            $json = file_get_contents('php://input');
-            // Se decodifica el JSON en un arreglo asociativo para poder manipular los datos
-            $data = json_decode($json, true);
-            if (!isset($_SESSION['id_info'])) {
-                $userInfo = $utilityModel->obtenDatosAdmin($_SESSION['user_id']);
-                $_SESSION['id_info'] = $userInfo['id_info'] ?? null;
-            }
-            try {
-                // Bloque de verificación de usuario duplicado sin crear el registro
-                // Instancia del modelo de utilidad para verificar usuarios
-                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['id_info'])) {
-                    $data = [
-                        'tipo' => $_POST['tipo'] ?? 'Aviso',
-                        'titulo' => $_POST['titulo'] ?? '',
-                        'contenido' => $_POST['contenido'] ?? '',
-                        'id_info' => $_SESSION['id_info'],
-                        'id_privada' => $_SESSION['id_privada']
-                    ];
-
-                    if (empty($data['titulo']) || empty($data['contenido'])) {
-                        echo json_encode(['success' => false, 'message' => 'El título y el contenido no pueden estar vacíos.']);
-                        return;
-                    }
-                    $success = $avisosModel->createAviso($data);
-
-                    if ($success) {
-                        echo json_encode(['success' => true, 'message' => 'Aviso creado correctamente.']);
-                    } else {
-                        echo json_encode(['success' => false, 'message' => 'Error al crear el aviso en la base de datos.']);
-                    }
-                } else {
-                    http_response_code(400); // Bad Request
-                    echo json_encode(['success' => false, 'message' => 'No se pudo verificar la identidad del usuario. Intente recargar la página.']);
+                // Se obtiene el contenido JSON enviado desde el cliente (por ejemplo, desde fetch() en JS)
+                if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_privada'])) {
+                    http_response_code(401);
+                    echo json_encode(['success' => false, 'message' => 'Sesión inválida.']);
+                    return;
                 }
-            } catch (Exception $e) {
-                http_response_code(500);
-                echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
-            }
-            exit;
+
+                // 2. Generar un public_id único para el nuevo aviso
+                // Si tienes una función global de UUID o hash, úsala. Aquí un ejemplo simple:
+                $avisoPublicId = bin2hex(random_bytes(16)); 
+                // O si usas uniqid: $avisoPublicId = uniqid('aviso_', true);
+
+                // 3. Preparar datos (Usando IDs de Sesión)
+                $data = [
+                    'tipo' => $_POST['tipo'] ?? 'Aviso',
+                    'titulo' => $_POST['titulo'] ?? '',
+                    'contenido' => $_POST['contenido'] ?? '',
+                    'user_public_id' => $_SESSION['user_id'],       // UUID Usuario
+                    'privada_public_id' => $_SESSION['id_privada'], // UUID Privada
+                    'aviso_public_id' => $avisoPublicId             // UUID Nuevo Aviso
+                ];
+
+                if (empty($data['titulo']) || empty($data['contenido'])) {
+                    echo json_encode(['success' => false, 'message' => 'Título y contenido requeridos.']);
+                    return;
+                }
+
+                // 4. Ejecutar
+                $avisosModel = new AvisosModel();
+                $success = $avisosModel->createAviso($data);
+
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Aviso publicado.']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Error al guardar el aviso.']);
+                }
+                exit;
 
             case 2: // ELIMINAR UN AVISO
                 if (!isset($_SESSION['user_id']) || !isset($_POST['id_aviso'])) {
@@ -760,6 +787,10 @@ class AdminController
                 $assets['scripts'] = ['/js/Admin/admin_config.js'];
                 break;
             case 'avisos':
+                $avisosModel = new AvisosModel();
+                // Usamos $_SESSION['id_privada'] que contiene el UUID de la privada
+                $data['avisos'] = $avisosModel->getAllAvisos($_SESSION['id_privada']);
+                
                 $assets['styles'] = ['/css/Admin/admin_avisos.css'];
                 $assets['scripts'] = ['/js/Admin/admin_avisos.js',];
                 break;

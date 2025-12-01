@@ -204,3 +204,64 @@
   flex-direction: column;
   gap: 8px;
 }
+
+/* ================================
+   BOTON DE MANTENNER
+   ================================ */
+
+/* Estilos para el botón de retención (Hold Button) */
+.btn-hold-container {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    background-color: #f8f9fa;
+    border: 2px solid #d9534f;
+    border-radius: 8px;
+    cursor: pointer;
+    overflow: hidden;
+    user-select: none; /* Evita seleccionar texto al mantener click */
+    transition: all 0.2s;
+}
+
+.btn-hold-container:active {
+    transform: scale(0.98);
+}
+
+.btn-hold-text {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #d9534f;
+    z-index: 2;
+    pointer-events: none; /* El click pasa al container */
+}
+
+.btn-hold-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background-color: #d9534f; /* Color rojo de peligro */
+    z-index: 1;
+    transition: width 0s linear; /* La transición se controla con JS */
+}
+
+.btn-hold-container.holding .btn-hold-progress {
+    width: 100%;
+    transition: width 3s linear; /* 3 SEGUNDOS DE ESPERA */
+}
+
+.btn-hold-container.holding .btn-hold-text {
+    color: white; /* Cambia texto a blanco mientras llena */
+    transition: color 3s linear;
+}
+
+.btn-hold-container.complete {
+    background-color: #28a745; /* Verde al completar */
+    border-color: #28a745;
+}

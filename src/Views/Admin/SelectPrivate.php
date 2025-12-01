@@ -63,12 +63,12 @@
 
                     <!-- 🔹 Input tipo "radio" oculto, para que el usuario seleccione una privada -->
                     <input type="radio" 
-                       id="privada-<?php echo $privada['id_privada']; // (El ID numérico SÓLO para el 'for'/'id' del label) ?>" 
+                       id="privada-<?php echo $privada['public_id']; // (El ID numérico SÓLO para el 'for'/'id' del label) ?>" 
                        name="id_privada_publica"  value="<?php echo htmlspecialchars($privada['public_id']); ?>" 
                        hidden>
 
                     <!-- 🔹 Tarjeta visual que representa cada privada -->
-                    <label for="privada-<?php echo $privada['id_privada']; ?>" class="privada-card">
+                    <label for="privada-<?php echo $privada['public_id']; ?>" class="privada-card">
 
                         <!-- Imagen dinámica que se carga según el nombre de la privada -->
                         <img src="<?php echo htmlspecialchars($rutaImagen); ?>" 

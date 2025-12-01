@@ -18,7 +18,7 @@
     const hideModal = () => modal?.classList.remove("visible");
 
     openModalBtn?.addEventListener("click", showModal);
-    closeModalBtn?.addEventListener("click", hideModal);
+    closeModalBtn?.addEventListener("click", hideModal); 
     cancelBtn?.addEventListener("click", hideModal);
 
     modal?.addEventListener("click", (e) => {

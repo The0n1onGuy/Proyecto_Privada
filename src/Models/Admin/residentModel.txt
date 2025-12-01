@@ -1,3 +1,37 @@
+if ($es_propietario_actual === '0' && $nuevo_rol_propietario === '1') {                
+                // Buscar si YA EXISTE un propietario en esa misma casa (vinculado al mismo id_usuario)
+                // y que NO sea el mismo que estamos editando.
+                $stmtOwnerCheck = $conn->prepare("
+                    SELECT id_info, nombres, apellido_p 
+                    FROM priv_infousuario 
+                    WHERE id_usuario = ? AND es_propietario = '1' AND id_info != ?
+                ");
+                $stmtOwnerCheck->execute([$id_usuario_actual, $id_info_interno]);
+                $existingOwner = $stmtOwnerCheck->fetch(PDO::FETCH_ASSOC);
+
+                if ($existingOwner) {
+                    // ¡HAY CONFLICTO!
+                    
+                    // CASO A: No se ha confirmado el intercambio -> PEDIRLO
+                    if (empty($data['confirm_swap'])) {
+                        $conn->rollBack();
+                        return [
+                            'success' => false, 
+                            'requires_swap' => true, // Bandera para el JS
+                            'current_owner_name' => $existingOwner['nombres'] . ' ' . $existingOwner['apellido_p'],
+                            'message' => 'Conflicto de propiedad detectado.'
+                        ];
+                    }
+
+                    // Confirmado, EJECUTAR EL INTERCAMBIO
+                    // Degradamos al propietario anterior a Residente (0)
+                    $stmtDemote = $conn->prepare("UPDATE priv_infousuario SET es_propietario = '0' WHERE id_info = ?");
+                    $stmtDemote->execute([$existingOwner['id_info']]);
+                    
+                    // El usuario actual será promovido a 1 en el update normal de abajo
+                }
+            }
+
 <?php
 
 namespace App\Models\Admin;
@@ -117,170 +151,116 @@ class ResidentsModelcopy {
     }
 
     /**
-     * Actualiza residente con PROTOCOLO DE SUCESIÓN.
-     * Retorna array con estado y datos adicionales si se requiere acción del usuario.
-     */
-    /**
      * Actualiza la información de un residente en la base de datos.
      *
      * @param array $data Datos del residente a actualizar.
      * @return bool True si la actualización fue exitosa, false en caso contrario.
      */
-    public function actualizaResident(array $data): array // Cambiamos retorno a array
+    public function actualizaResident(array $data): bool
     {
         $conn = Database::getConnection();
         $conn->beginTransaction();
 
         try {
-            // OBTENER DATOS ACTUALES
+            // TRADUCCIÓN DE UUID A ID INTERNO ---
             $public_id = $data['public_id_info']; 
-            
-            $stmtCurrent = $conn->prepare("
-                SELECT iu.id_info, iu.id_usuario, iu.es_propietario, u.num_casa, u.id_privada
-                FROM priv_infousuario iu
-                JOIN priv_usuarios u ON iu.id_usuario = u.id_usuario
-                WHERE iu.public_id = ?
-            ");
-            $stmtCurrent->execute([$public_id]);
-            $currentData = $stmtCurrent->fetch(PDO::FETCH_ASSOC);
 
-            if (!$currentData) throw new Exception("Residente no encontrado.");
-            
-            $id_info_interno = $currentData['id_info'];
-            $id_usuario_actual = $currentData['id_usuario'];
-            $es_propietario_actual = $currentData['es_propietario'];
-            $num_casa_actual = $currentData['num_casa'];
-            $id_privada_actual = $currentData['id_privada'];
-            
-            // Datos entrantes
-            $nuevo_rol_propietario = isset($data['es_propietario']) ? (string)$data['es_propietario'] : (string)$es_propietario_actual;
-            $nuevo_estatus = $data['estatus'];
-            $nuevo_num_casa = trim($data['num_casa']);
+            $stmtId = $conn->prepare("SELECT id_info, id_usuario FROM priv_infousuario WHERE public_id = ?");
+            $stmtId->execute([$public_id]);
+            $ids = $stmtId->fetch(PDO::FETCH_ASSOC);
 
-            if ($es_propietario_actual === '0' && $nuevo_rol_propietario === '1') {                
-                // Buscar si YA EXISTE un propietario en esa misma casa (vinculado al mismo id_usuario)
-                // y que NO sea el mismo que estamos editando.
-                $stmtOwnerCheck = $conn->prepare("
-                    SELECT id_info, nombres, apellido_p 
-                    FROM priv_infousuario 
-                    WHERE id_usuario = ? AND es_propietario = '1' AND id_info != ?
-                ");
-                $stmtOwnerCheck->execute([$id_usuario_actual, $id_info_interno]);
-                $existingOwner = $stmtOwnerCheck->fetch(PDO::FETCH_ASSOC);
-
-                if ($existingOwner) {
-                    // ¡HAY CONFLICTO!
-                    
-                    // CASO A: No se ha confirmado el intercambio -> PEDIRLO
-                    if (empty($data['confirm_swap'])) {
-                        $conn->rollBack();
-                        return [
-                            'success' => false, 
-                            'requires_swap' => true, // Bandera para el JS
-                            'current_owner_name' => $existingOwner['nombres'] . ' ' . $existingOwner['apellido_p'],
-                            'message' => 'Conflicto de propiedad detectado.'
-                        ];
-                    }
-
-                    // Confirmado, EJECUTAR EL INTERCAMBIO
-                    // Degradamos al propietario anterior a Residente (0)
-                    $stmtDemote = $conn->prepare("UPDATE priv_infousuario SET es_propietario = '0' WHERE id_info = ?");
-                    $stmtDemote->execute([$existingOwner['id_info']]);
-                    
-                    // El usuario actual será promovido a 1 en el update normal de abajo
-                }
+            if (!$ids) {
+                throw new Exception("Residente no encontrado.");
             }
-            // ---------------------------------------------------------
-            // DETECCIÓN DE "VACÍO DE PODER" (Propietario -> Residente/Inactivo)
-            // ---------------------------------------------------------
-            $es_degradacion = ($es_propietario_actual == 1 && $nuevo_rol_propietario == 0);
-            $es_desactivacion = ($es_propietario_actual == 1 && $nuevo_estatus === 'Inactivo'); // Ajusta string según tu DB
-
-            if ($es_degradacion || $es_desactivacion) {
-                
-                // Buscar si hay OTROS residentes en la misma casa (candidatos a heredar)
-                $stmtDependents = $conn->prepare("
-                    SELECT public_id, nombres, apellido_p 
-                    FROM priv_infousuario 
-                    WHERE id_usuario = ? AND id_info != ?
-                ");
-                $stmtDependents->execute([$id_usuario_actual, $id_info_interno]);
-                $candidatos = $stmtDependents->fetchAll(PDO::FETCH_ASSOC);
-                if (count($candidatos) > 0) {
-                    // No se ha enviado un heredero todavía, PEDIRLO
-                    if (empty($data['heir_public_id'])) {
-                        $conn->rollBack();
-                        return [
-                            'success' => false, 
-                            'requires_heir' => true, 
-                            'candidates' => $candidatos,
-                            'message' => 'Se requiere asignar un nuevo propietario.'
-                        ];
-                    }
-                    //Procesa al heredero
-                    $heir_public_id = $data['heir_public_id'];
-                    $stmtPromote = $conn->prepare("UPDATE priv_infousuario SET es_propietario = '1' WHERE public_id = ?");
-                    $stmtPromote->execute([$heir_public_id]);
-                }
-            }
-            $nombres = $data['nombres'] ?? ''; 
-            $apellido_p = $data['apellido_p'] ?? '';
-            $apellido_m = $data['apellido_m'] ?? '';
             
+            $id_info_interno = $ids['id_info'];
+            $id_usuario_interno = $ids['id_usuario'];
+
+            // PREPARAR LOS NOMBRES (SOLUCIÓN DEL ERROR) ---
+            
+            // Inicializamos variables de los nombres
+            $nombres = '';
+            $apellido_p = '';
+            $apellido_m = '';
+
+            // Si viene 'nombreCompleto' (del formulario de edición), lo dividimos
             if (!empty($data['nombreCompleto'])) {
                 $parts = explode(' ', trim($data['nombreCompleto']));
                 $count = count($parts);
-                if ($count === 1) { $nombres = $parts[0]; }
-                elseif ($count === 2) { $nombres = $parts[0]; $apellido_p = $parts[1]; }
-                elseif ($count === 3) { $nombres = $parts[0]; $apellido_p = $parts[1]; $apellido_m = $parts[2]; }
-                else { $apellido_m = array_pop($parts); $apellido_p = array_pop($parts); $nombres = implode(' ', $parts); }
+
+                if ($count === 1) {
+                    // Solo un nombre
+                    $nombres = $parts[0];
+                } elseif ($count === 2) {
+                    // Nombre y primer apellido
+                    $nombres = $parts[0];
+                    $apellido_p = $parts[1];
+                } elseif ($count === 3) {
+                    // Nombre, paterno y materno
+                    $nombres = $parts[0];
+                    $apellido_p = $parts[1];
+                    $apellido_m = $parts[2];
+                } else {
+                    // Más de 3 partes (ej. "Juan Carlos Perez Lopez")
+                    $apellido_m = array_pop($parts); 
+                    $apellido_p = array_pop($parts); 
+                    $nombres = implode(' ', $parts); 
+                }
             } else {
+                // Caso ya separados
                 $nombres = $data['nombres'] ?? '';
                 $apellido_p = $data['apellido_p'] ?? '';
                 $apellido_m = $data['apellido_m'] ?? '';
             }
 
-            // ---------------------------------------------------------
-            // UPDATE PRINCIPAL
-            // ---------------------------------------------------------
-            
             $sqlInfo = "UPDATE priv_infousuario SET nombres = :nombres, apellido_p = :apellido_p, apellido_m = :apellido_m, es_propietario = :es_propietario WHERE id_info = :id_info";
             $stmtInfo = $conn->prepare($sqlInfo);
             $stmtInfo->execute([
-                ':nombres' => $nombres,
-                ':apellido_p' => $apellido_p,
-                ':apellido_m' => $apellido_m,
-                ':es_propietario' => $nuevo_rol_propietario,
+                ':nombres' => $nombres,         // Usamos la variable procesada
+                ':apellido_p' => $apellido_p,   // Usamos la variable procesada
+                ':apellido_m' => $apellido_m,   // Usamos la variable procesada
+                ':es_propietario' => $data['es_propietario'],
                 ':id_info' => $id_info_interno
             ]);
 
-            // Actualizar tabla padre (priv_usuarios) - Num casa y estatus           
-            $estatus_cuenta = ($es_degradacion && !empty($data['heir_public_id'])) ? 'Activo' : $data['estatus'];
-            
+            // 2. Actualizar priv_usuarios
             $sqlUser = "UPDATE priv_usuarios SET num_casa = :num_casa, id_estatus = (SELECT id_estatus FROM priv_estatus WHERE estatus = :estatus) WHERE id_usuario = :id_usuario";
-            $conn->prepare($sqlUser)->execute([
+            $stmtUser = $conn->prepare($sqlUser);
+            $stmtUser->execute([
                 ':num_casa' => $data['num_casa'],
-                ':estatus' => $estatus_cuenta, 
-                ':id_usuario' => $id_usuario_actual
+                ':estatus' => $data['estatus'],
+                ':id_usuario' => $id_usuario_interno
             ]);
 
+            // 3. Actualizar teléfono (Usamos IDs internos de teléfono, el frontend los envía)
             if (!empty($data['id_telefono']) && !empty($data['telefono'])) {
-                 $sqlPhone = "UPDATE priv_telusuario SET telefono = ? WHERE id_telefono = ? AND id_info = ?";
-                 $conn->prepare($sqlPhone)->execute([$data['telefono'], $data['id_telefono'], $id_info_interno]);
+                $sqlPhone = "UPDATE priv_telusuario SET telefono = :telefono WHERE id_telefono = :id_telefono AND id_info = :id_info";
+                $stmtPhone = $conn->prepare($sqlPhone);
+                $stmtPhone->execute([
+                    ':telefono' => $data['telefono'], 
+                    ':id_telefono' => $data['id_telefono'],
+                    ':id_info' => $id_info_interno 
+                ]);
             }
+
+            // 4. Actualizar correo
             if (!empty($data['id_correo']) && !empty($data['correo'])) {
-                 $sqlMail = "UPDATE priv_corresusuario SET correo = ? WHERE id_correo = ? AND id_info = ?";
-                 $conn->prepare($sqlMail)->execute([$data['correo'], $data['id_correo'], $id_info_interno]);
+                $sqlMail = "UPDATE priv_corresusuario SET correo = :correo WHERE id_correo = :id_correo AND id_info = :id_info";
+                $stmtMail = $conn->prepare($sqlMail);
+                $stmtMail->execute([
+                    ':correo' => $data['correo'], 
+                    ':id_correo' => $data['id_correo'],
+                    ':id_info' => $id_info_interno
+                ]);
             }
 
             $conn->commit();
-            return ['success' => true, 'message' => 'Residente actualizado correctamente.'];
+            return true;
 
         } catch (\Exception $e) {
             $conn->rollBack();
-            error_log("Error update resident: " . $e->getMessage());
-            // Retornamos array de error en lugar de lanzar excepción para controlar el flujo
-            return ['success' => false, 'message' => 'Error interno: ' . $e->getMessage()];
+            error_log("Error al actualizar residente: " . $e->getMessage());
+            throw $e;
         }
     }
 

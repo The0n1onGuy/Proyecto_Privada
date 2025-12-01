@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Resident;
+namespace App\Models\Admin;
 
 use App\Core\Database;
 use PDO;
@@ -30,7 +30,7 @@ class AvisosModel
                     i.apellido_p, 
                     i.apellido_m,
                     u.num_casa,
-                    u.public_id AS author_public_id  -- ¡AGREGADO! El UUID del autor
+                    u.public_id AS author_public_id  
                 FROM priv_avisos a
                 JOIN priv_infousuario i ON a.id_info = i.id_info
                 JOIN priv_usuarios u ON i.id_usuario = u.id_usuario

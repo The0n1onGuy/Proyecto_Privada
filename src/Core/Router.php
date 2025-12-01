@@ -98,13 +98,17 @@ class Router
 
             $controller = new AdminController();            
             $method = $_SERVER['REQUEST_METHOD'];
-
-            //Llama el API para obtener los datos de residentes
+            //LLAMAS DE API 
+            //Obtener los datos de residentes
             if (preg_match('/^\/admin\/api\/resident\/([\w-]+)$/', $url, $matches)) {
                 $controller->getResidentData($matches[1]);
                 return;
+            }//Obtener los datos de residentes
+            if (preg_match('/^\/admin\/api\/collaborator\/([\w-]+)$/', $url, $matches)) {
+                $controller->obtenDatosdelColaborador($matches[1]);
+                return;
             }
-            //Llama el API para mostrar un modal dentro de configuracion
+            //Mostrar un modal dentro de configuracion
             if (preg_match('/^\/admin\/config-modal\/([\w-]+)$/', $url, $matches)) {
                 $modalName = $matches[1]; // Captura 'edit-profile'
                 $controller->procesa_Modal_Configuracion($modalName);
@@ -414,7 +418,7 @@ class Router
 
     // --- NUEVO INICIO ---
     /**
-     * 2. MÉTODO HELPER PARA EJECUTAR LA VERIFICACIÓN
+     * MÉTODO HELPER PARA EJECUTAR LA VERIFICACIÓN
      * Ejecuta el SessionVerifier con las claves proporcionadas.
      *
      * @param array $keysToVerify Claves de sesión a verificar.

@@ -368,5 +368,65 @@
         </form>
     </div>
 </div>
+<!-- ------------ -->
+<!-- MODALES NUEVOS -->
+<!-- ------------ -->
+ 
+<div id="heredaracionModal" class="modal-overlay" style="z-index: 10000;"> <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h5 style="color: #d9534f;">⚠️ Acción Requerida: Asignar Nuevo Propietario</h5>
+            </div>
+        <div class="modal-body">
+            <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px;">
+                El propietario actual está siendo degradado o desactivado, pero hay otros residentes en esta casa. 
+                <br><strong>Debes seleccionar quién será el nuevo propietario.</strong>
+            </p>
+            
+            <form id="heirForm">
+                <input type="hidden" id="heir_original_payload"> <div class="form-group">
+                    <label for="selectHeir">Seleccionar Heredero:</label>
+                    <select id="selectHeir" name="heir_public_id" required class="form-control-selector">
+                        </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancelHeirBtn" class="btn-secondary">Cancelar Todo</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: #d9534f; border:none;">Confirmar Cambio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="swapModal" class="modal-overlay" style="z-index: 10001;">
+    <div class="modal-content" style="max-width: 450px; text-align: center;">
+        <div class="modal-header" style="justify-content: center; border-bottom: none;">
+            <h5 style="color: #d9534f; font-size: 1.2rem;">⚠️ Cambio de Propietario Detectado</h5>
+        </div>
+        
+        <div class="modal-body">
+            <div style="margin-bottom: 20px;">
+                <svg height="60px" width="60px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 12H8M8 12L11 9M8 12L11 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#d9534f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            
+            <p style="font-size: 1rem; color: #333; margin-bottom: 10px;">
+                Esta casa ya tiene un propietario: <strong id="currentOwnerName"></strong>.
+            </p>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 25px;">
+                ¿Deseas realizar el intercambio? <br>
+                El propietario actual pasará a ser <b>Residente</b> y el usuario seleccionado será el nuevo <b>Propietario</b>.
+            </p>
+
+            <input type="hidden" id="swap_original_payload">
+
+            <div id="btnHoldSwap" class="btn-hold-container">
+                <div class="btn-hold-progress"></div>
+                <div class="btn-hold-text">MANTÉN PRESIONADO 3s PARA CONFIRMAR</div>
+            </div>
+
+            <button type="button" id="cancelSwapBtn" class="btn-secondary" style="margin-top: 15px; width: 100%;">Cancelar Operación</button>
+        </div>
+    </div>
+</div>
 
 <script src="/js/Admin/admin_residentesextras.js"></script>

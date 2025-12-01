@@ -1,4 +1,19 @@
 function initializeView() {
+    // ------------------------------------------------------------
+    // Definición de íconos SVG reutilizables para mostrar mensajes visuales
+    // ------------------------------------------------------------
+    const iconoError = `
+<svg height="25px" width="25px" fill="#ff0000" viewBox="-3.5 0 19 19" xmlns="http://www.w3.org/2000/svg" stroke="#ff0000" style="vertical-align:middle;">
+<path d="M11.383 13.644A1.03 1.03 0 0 1 9.928 15.1L6 11.172 2.072 15.1a1.03 1.03 0 1 1-1.455-1.456l3.928-3.928L.617 5.79a1.03 1.03 0 1 1 1.455-1.456L6 8.261l3.928-3.928a1.03 1.03 0 0 1 1.455 1.456L7.455 9.716z"></path>
+</svg>`;
+
+    const iconoCorrecto = `
+<svg height="20px" width="20px" version="1.1" id="_x32_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <style type="text/css"> .st0{fill:#2bff00;} </style> <g> <path class="st0" d="M469.402,35.492C334.09,110.664,197.114,324.5,197.114,324.5L73.509,184.176L0,254.336l178.732,222.172 l65.15-2.504C327.414,223.414,512,55.539,512,55.539L469.402,35.492z"></path> </g> </g></svg>`;
+
+    const iconoAdvertencia = `
+<svg height="25px" width="25px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#898234" style="vertical-align:middle;">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M9.82664 2.22902C10.7938 0.590326 13.2063 0.590325 14.1735 2.22902L23.6599 18.3024C24.6578 19.9933 23.3638 22 21.4865 22H2.51362C0.63634 22 -0.657696 19.9933 0.340215 18.3024L9.82664 2.22902ZM10.0586 7.05547C10.0268 6.48227 10.483 6 11.0571 6H12.9429C13.517 6 13.9732 6.48227 13.9414 7.05547L13.5525 14.0555C13.523 14.5854 13.0847 15 12.554 15H11.446C10.9153 15 10.477 14.5854 10.4475 14.0555L10.0586 7.05547ZM14 18C14 19.1046 13.1046 20 12 20C10.8954 20 10 19.1046 10 18C10 16.8954 10.8954 16 12 16C13.1046 16 14 16.8954 14 18Z" fill="#fff833"></path>
+</svg>`;
 
     // --- FUNCIONES PARA ABRIR MODAL DE RESIDENTE ---
     function openResidentModal(residentId) {
@@ -11,7 +26,7 @@ function initializeView() {
                     populateResidentModal(response.data);
                     $('#residentModal').addClass('visible');
                 } else {
-                    alert(response.message);
+                    showResultPopup('Error', response.message, 'error');
                 }
             },
             error: function(xhr) {
@@ -19,14 +34,14 @@ function initializeView() {
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMessage += '\nError del servidor: ' + xhr.responseJSON.message;
                 }
-                alert(errorMessage);
+                showResultPopup('Error de Conexión', errorMessage, 'error');
             }
         });
     }
 
     // --- FUNCIONES PARA LLENAR EL MODAL CON INFORMACIÓN ---
     function populateResidentModal(data) {
-        $('#residentId').val(data.id_info);
+        $('#residentId').val(data.public_id);
         $('#nombreCompleto').val(`${data.nombres} ${data.apellido_p} ${data.apellido_m}`);
         $('#estatus').val(data.estatus);
         $('#tipo').val(data.es_propietario);
@@ -103,12 +118,11 @@ function initializeView() {
         if (password.length < 8) errors.push("Debe tener al menos 8 caracteres");
         if (!/[A-Z]/.test(password)) errors.push("Debe incluir al menos una letra mayúscula");
         if (!/[0-9]/.test(password)) errors.push("Debe incluir al menos un número");
-        if (!/[!@#$%^&*(),.?\":{}|<>_\-]/.test(password)) errors.push("Debe incluir al menos un carácter especial");
 
         if (errors.length > 0) {
-            passwordMessage.text("❌ " + errors.join(" | ")).css("color", "red");
+            passwordMessage.html(`${iconoError} ${errors.join(" | ")}`).css("color", "red");
         } else {
-            passwordMessage.text("✅ Contraseña válida").css("color", "green");
+            passwordMessage.html(`${iconoCorrecto} Contraseña válida`).css("color", "green");
         }
     });
 
@@ -122,13 +136,13 @@ function initializeView() {
             if (!$(this).val()) { isValid = false; $(this).css('border-color', 'red'); } 
             else { $(this).css('border-color', ''); }
         });
-        if (!isValid) { alert('Por favor, complete todos los campos obligatorios.'); return; }
+        if (!isValid) { showResultPopup('Error', 'Por favor, complete todos los campos obligatorios.', 'error'); return; }
 
         // 2. Validación de teléfonos (10 dígitos)
         const phone = $('#telefono').val().trim();
         const phoneRegex = /^[0-9]{10}$/;
         if (phone && !phoneRegex.test(phone)) {
-            alert('El número telefónico debe tener exactamente 10 dígitos numéricos.');
+            showResultPopup('Error', 'El número telefónico debe tener exactamente 10 dígitos numéricos.', 'error');
             return;
         }
 
@@ -139,29 +153,54 @@ function initializeView() {
             const validPassword =
                 password.length >= 8 &&
                 /[A-Z]/.test(password) &&
-                /[0-9]/.test(password) &&
-                /[!@#$%^&*(),.?":{}|<>_\-]/.test(password);
+                /[0-9]/.test(password);
             if (!validPassword) {
-                alert("Por favor, asegúrese de que la contraseña cumpla todos los requisitos.");
-                passwordMessage.text("❌ Contraseña inválida. Revise los requisitos.").css("color", "red");
+                showResultPopup("Error", "Por favor, asegúrese de que la contraseña cumpla todos los requisitos.", "error");
+                passwordMessage.html(`${iconoError} Contraseña inválida. Revise los requisitos.`).css("color", "red");
                 return;
             } else {
-                passwordMessage.text("✅ Contraseña válida").css("color", "green");
+                passwordMessage.html(`${iconoCorrecto} Contraseña válida`).css("color", "green");
             }
         }
 
         // 4. Enviar datos al servidor
-        const formData = $(this).serialize();
+        const originalFormData = $(this).serialize(); 
+
         $.ajax({
             url: '/admin/residentes/update',
             type: 'POST',
-            data: formData,
+            data: originalFormData,
             dataType: 'json',
             success: function(response) {
+                
+                // --- NUEVO: DETECCIÓN DE SUCESIÓN ---
+                if (response.success === false && response.requires_heir === true) {
+                    
+                    // 1. Ocultar modal de edición temporalmente
+                    $('#residentModal').removeClass('visible');
+                    
+                    // 2. Llenar el select del modal de heredero
+                    const selectHeir = $('#selectHeir');
+                    selectHeir.empty();
+                    selectHeir.append('<option value="" disabled selected>Seleccione un residente...</option>');
+                    
+                    response.candidates.forEach(c => {
+                        selectHeir.append(`<option value="${c.public_id}">${c.nombres} ${c.apellido_p}</option>`);
+                    });
+
+                    // 3. Guardar la data original para re-enviarla
+                    $('#heir_original_payload').val(originalFormData); // Guardamos string serializado
+
+                    // 4. Mostrar modal de heredero
+                    $('#heredaracionModal').addClass('visible');
+                    return; // Detenemos aquí
+                }
+                // ------------------------------------
+
                 $('#residentModal').removeClass('visible');
                 if (response.success) {
                     showResultPopup('¡Éxito!', response.message, 'success');
-                    loadSection(window.location.hash.substring(1) || 'residents');
+                    setTimeout(() => { location.reload(); }, 1500);
                 } else {
                     showResultPopup('Error', response.message, 'error');
                 }
@@ -173,7 +212,49 @@ function initializeView() {
         });
     });
 
-    // --- VARIABLES PARA MODAL NUEVO RESIDENTE ---
+    // --- MANEJO DEL MODAL DE HEREDERO ---
+    
+    // Botón Cancelar
+    $('#cancelHeirBtn').on('click', function() {
+        $('#heredaracionModal').removeClass('visible');
+        $('#residentModal').addClass('visible'); // Regresar al anterior
+    });
+
+    // Envio del formulario de heredero
+    $('#heirForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const heirId = $('#selectHeir').val();
+        if (!heirId) {
+            alert("Debe seleccionar un heredero.");
+            return;
+        }
+
+        // Recuperar datos originales y agregar el heredero
+        let formData = $('#heir_original_payload').val();
+        formData += "&heir_public_id=" + encodeURIComponent(heirId);
+
+        // Reintentar la actualización
+        $.ajax({
+            url: '/admin/residentes/update',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                $('#heredaracionModal').removeClass('visible');
+                if (response.success) {
+                    showResultPopup('¡Cambio de Propietario Exitoso!', 'El residente ha sido degradado y el nuevo propietario asignado.', 'success');
+                    setTimeout(() => { location.reload(); }, 2000);
+                } else {
+                    showResultPopup('Error', response.message, 'error');
+                }
+            },
+            error: function() {
+                showResultPopup('Error', 'Error crítico al procesar la sucesión.', 'error');
+            }
+        });
+    });
+        // --- VARIABLES PARA MODAL NUEVO RESIDENTE ---
     const addModal = $('#addResidentModal');
     const addForm = $('#addResidentForm');
 
@@ -188,9 +269,10 @@ function initializeView() {
     function hideAddModal() { addModal.removeClass('visible'); }
     $('#closeAddModalBtn, #cancelAddBtn').on('click', hideAddModal);
 
-    // --- VALIDACIÓN DE CONTRASEÑA EN TIEMPO REAL ---
+    // --- VALIDACIÓN DE CONTRASEÑA NUEVO RESIDENTE ---
     const passwordInput = document.getElementById("add_password");
     const passwordMessage = document.getElementById("password_message");
+
     passwordInput.addEventListener("input", function () {
         const password = passwordInput.value;
         const errors = [];
@@ -198,53 +280,202 @@ function initializeView() {
         if (password.length < 8) errors.push("Debe tener al menos 8 caracteres");
         if (!/[A-Z]/.test(password)) errors.push("Debe incluir al menos una letra mayúscula");
         if (!/[0-9]/.test(password)) errors.push("Debe incluir al menos un número");
-        if (!/[!@#$%^&*(),.?\":{}|<>_\-]/.test(password)) errors.push("Debe incluir al menos un carácter especial");
 
         if (errors.length > 0) {
-            passwordMessage.textContent = "❌ " + errors.join(" | ");
+            passwordMessage.innerHTML = `${iconoError} ${errors.join(" | ")}`;
             passwordMessage.style.color = "red";
         } else {
-            passwordMessage.textContent = "✅ Contraseña válida";
+            passwordMessage.innerHTML = `${iconoCorrecto} Contraseña válida`;
             passwordMessage.style.color = "green";
         }
     });
+// ------------------------------------------------------------
+// Verificación de duplicidad del nombre de usuario
+// ------------------------------------------------------------
+$('#add_username').on('blur', function() {
+    const usernameNuevo = $(this).val().trim();
 
-    // --- ENVÍO FORMULARIO NUEVO RESIDENTE ---
+    if (!usernameNuevo) return; // No hacer nada si está vacío
+
+    fetch('/admin/residentes/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: usernameNuevo, verificar: true })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.existe) {
+            showResultPopup(
+                'Usuario duplicado',
+                'El nombre de usuario ya está registrado. Por favor, elija otro.',
+                'error'
+            );
+            $('#add_username').css('border-color', 'red');
+        } else {
+            $('#add_username').css('border-color', 'green');
+        }
+    })
+    .catch(error => {
+        console.error('Error al verificar usuario:', error);
+        showResultPopup(
+            'Error de Conexión',
+            'No se pudo verificar el usuario. Inténtelo nuevamente.',
+            'error'
+        );
+    });
+});
+
+// ------------------------------------------------------------
+// Verificación de duplicidad del propietario
+// ------------------------------------------------------------
+$('#add_num_casa').on('blur', function() {
+    const numCasaNuevo = $(this).val().trim();
+
+    if (!numCasaNuevo) return;
+
+    fetch('/admin/residentes/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ num_casa: numCasaNuevo, verificar_casa: true })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.existe) {
+            showResultPopup(
+                'Número de casa duplicado',
+                'Este número de casa ya tiene propietario. Por favor, elija otro.',
+                'error'
+            );
+            $('#add_num_casa').css('border-color', 'red');
+        } else {
+            $('#add_num_casa').css('border-color', 'green');
+        }
+    })
+    .catch(error => {
+        console.error('Error al verificar número de casa:', error);
+        showResultPopup(
+            'Error de Conexión',
+            'No se pudo verificar el número de casa. Inténtelo nuevamente.',
+            'error'
+        );
+    });
+});
+
+// $('#num_casa').on('blur', function() {
+//     const numCasaNuevo = $(this).val().trim();
+
+//     if (!numCasaNuevo) return;
+
+//     fetch('/admin/residentes/create', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ num_casa: numCasaNuevo, verificar_casa: true })
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.existe) {
+//             showResultPopup(
+//                 'Número de casa duplicado',
+//                 'Este número de casa ya tiene propietario. Por favor, elija otro.',
+//                 'error'
+//             );
+//             $('#num_casa').css('border-color', 'red');
+//         } else {
+//             $('#num_casa').css('border-color', 'green');
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error al verificar número de casa:', error);
+//         showResultPopup(
+//             'Error de Conexión',
+//             'No se pudo verificar el número de casa. Inténtelo nuevamente.',
+//             'error'
+//         );
+//     });
+// });
+
+// Validación de edad al seleccionar la fecha de nacimiento
+const fechaNacimientoInput = document.getElementById("add_fecha_nac");
+const edadMessage = document.createElement("div"); 
+edadMessage.style.marginTop = "5px";
+fechaNacimientoInput.parentNode.appendChild(edadMessage);
+
+// Función para calcular edad
+function calcularEdad(fecha) {
+    const hoy = new Date();
+    const fechaNacimiento = new Date(fecha);
+    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+    const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+    const dia = hoy.getDate() - fechaNacimiento.getDate();
+
+    if (mes < 0 || (mes === 0 && dia < 0)) {
+        edad--;
+    }
+    return edad;
+}
+
+// Mostrar mensaje en tiempo real
+fechaNacimientoInput.addEventListener("change", function () {
+    if (!this.value) {
+        edadMessage.innerHTML = "";
+        return;
+    }
+    const edad = calcularEdad(this.value);
+    if (edad >= 18) {
+        edadMessage.innerHTML = `<span style="color:green; font-weight:bold;">Residente mayor de edad (${edad} años)</span>`;
+    } else {
+        edadMessage.innerHTML = `<span style="color:red; font-weight:bold;">Residente menor de edad (${edad} años)</span>`;
+    }
+});
+
+
+// --- ENVÍO FORMULARIO NUEVO RESIDENTE ---
     addForm.on('submit', function(e) {
         e.preventDefault();
 
-        // 1. Validar campos obligatorios
+        const fechaNacimiento = fechaNacimientoInput.value;
+    if (!fechaNacimiento) return; // Ya validado por required
+
+    const edad = calcularEdad(fechaNacimiento);
+    if (edad < 18) {
+        e.preventDefault(); // Evita el envío
+        showResultPopup('Error', 'No se puede registrar un residente menor de edad.', 'error');
+        fechaNacimientoInput.focus();
+        return;
+    }
+
+
+        // Validar campos obligatorios
         let isValid = true;
         addForm.find('input[required], select[required]').each(function() {
             if (!$(this).val()) { isValid = false; $(this).css('border-color', 'red'); } 
             else { $(this).css('border-color', ''); }
         });
-        if (!isValid) { alert('Por favor, complete todos los campos obligatorios.'); return; }
+        if (!isValid) { showResultPopup('Error', 'Por favor, complete todos los campos obligatorios.', 'error'); return; }
 
-        // 2. Validar teléfonos (10 dígitos)
+        // Validar teléfonos
         const phone1 = $('#add_phone1').val().trim();
         const phone2 = $('#add_phone2').val().trim();
         const phoneRegex = /^[0-9]{10}$/;
         if ((phone1 && !phoneRegex.test(phone1)) || (phone2 && !phoneRegex.test(phone2))) {
-            alert('Cada número telefónico debe tener exactamente 10 dígitos numéricos (sin letras ni símbolos).');
+            showResultPopup('Error', 'Cada número telefónico debe tener exactamente 10 dígitos numéricos (sin letras ni símbolos).', 'error');
             return;
         }
 
-        // 3. Validación final de contraseña
+        // Validar contraseña
         const password = $('#add_password').val();
         const validPassword =
             password.length >= 8 &&
             /[A-Z]/.test(password) &&
-            /[0-9]/.test(password) &&
-            /[!@#$%^&*(),.?":{}|<>_\-]/.test(password);
+            /[0-9]/.test(password);
         if (!validPassword) {
-            alert("Por favor, asegúrese de que la contraseña cumpla todos los requisitos antes de continuar.");
-            passwordMessage.textContent = "❌ Contraseña inválida. Revise los requisitos.";
+            showResultPopup("Error", "Por favor, asegúrese de que la contraseña cumpla todos los requisitos.", "error");
+            passwordMessage.innerHTML = `${iconoError} Contraseña inválida. Revise los requisitos.`;
             passwordMessage.style.color = "red";
             return;
         }
 
-        // 4. Crear payload
+        // Crear payload
         const payload = {
             nombres: $('#add_nombres').val(),
             apellido_p: $('#add_apellido_p').val(),
@@ -265,7 +496,7 @@ function initializeView() {
         if (phone1) payload.telefonos.push(phone1);
         if (phone2) payload.telefonos.push(phone2);
 
-        // 5. Enviar al servidor
+        // Enviar al servidor
         fetch('/admin/residentes/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -273,10 +504,16 @@ function initializeView() {
         })
         .then(response => response.json())
         .then(data => {
+            hideAddModal();
             if (data.success) {
-                hideAddModal();
-                showResultPopup('¡Éxito!', 'Residente creado exitosamente.', 'success');
-            } else {
+    showResultPopup('¡Éxito!', 'Residente creado exitosamente.', 'success');
+
+    // Recargar la página después de 2 segundos
+    setTimeout(() => {
+        location.reload();
+    }, 2000);
+}
+ else {
                 showResultPopup('Error', data.message, 'error');
             }
         })
@@ -286,79 +523,6 @@ function initializeView() {
         });
     });
 
-    // --- FORMULARIO RESIDENTE EXTRA ---
-    const addExtraModal = $('#addExtraModal');
-    const addExtraForm = $('#addExtraForm');
-
-    // Abrir modal extra
-    $('#addExtraBtn').on('click', function() {
-        addExtraForm[0].reset();
-        addExtraForm.find('input, select').css('border-color', '');
-        addExtraModal.addClass('visible');
-    });
-
-    // Cerrar modal extra
-    function hideAddExtraModal() { addExtraModal.removeClass('visible'); }
-    $('#closeExtraModalBtn, #cancelExtraBtn').on('click', hideAddExtraModal);
-
-    // Enviar formulario residente extra
-    addExtraForm.on('submit', function(e) {
-        e.preventDefault();
-
-        // 1. Validar campos obligatorios
-        let isValid = true;
-        addExtraForm.find('input[required], select[required]').each(function() {
-            if (!$(this).val()) { isValid = false; $(this).css('border-color', 'red'); } 
-            else { $(this).css('border-color', ''); }
-        });
-        if (!isValid) { alert('Por favor, complete todos los campos obligatorios.'); return; }
-
-        // 2. Validar teléfonos
-        const phone1 = $('#addExtraForm #extra_add_phone1').val().trim();
-        const phone2 = $('#addExtraForm #extra_add_phone2').val().trim();
-        const phoneRegex = /^[0-9]{10}$/;
-        if ((phone1 && !phoneRegex.test(phone1)) || (phone2 && !phoneRegex.test(phone2))) {
-            alert('Cada número telefónico debe tener exactamente 10 dígitos numéricos (sin letras ni símbolos).');
-            return;
-        }
-
-        // 3. Crear payload
-        const payload = {
-            nombres: $('#addExtraForm #extra_add_nombres').val(),
-            apellido_p: $('#addExtraForm #extra_add_apellido_p').val(),
-            apellido_m: $('#addExtraForm #extra_add_apellido_m').val(),
-            es_propietario: $('input[name="es_propietario"]:checked', addExtraForm).val(),
-            num_casa: $('#addExtraForm #add_extra_num_casa').val(),
-            privada: $('#addExtraForm #extra_add_privada').val(),
-            estatus: $('#addExtraForm #extra_add_estatus').val(),
-            correos: [],
-            telefonos: []
-        };
-        if ($('#addExtraForm #extra_add_email1').val()) payload.correos.push($('#addExtraForm #extra_add_email1').val().trim());
-        if ($('#addExtraForm #extra_add_email2').val()) payload.correos.push($('#addExtraForm #extra_add_email2').val().trim());
-        if (phone1) payload.telefonos.push(phone1);
-        if (phone2) payload.telefonos.push(phone2);
-
-        // 4. Enviar al servidor
-        fetch('/admin/residentes/createEX', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                hideAddExtraModal();
-                showResultPopup('¡Éxito!', 'Residente extra creado exitosamente.', 'success');
-            } else {
-                showResultPopup('Error', data.message, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showResultPopup('Error de Conexión', 'Ocurrió un error de comunicación.', 'error');
-        });
-    });
 
     // --- ELIMINAR RESIDENTE ---
     $('#tablaResidentes tbody').on('click', '.btn-delete', function() {
@@ -376,9 +540,18 @@ function initializeView() {
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    showResultPopup('¡Éxito!', 'Residente eliminado exitosamente.', 'success');
-                } else {
+               if (data.success) {
+    showResultPopup('¡Éxito!', 'Residente eliminado exitosamente.', 'success');
+
+    // Remueve la fila inmediatamente
+    row.remove();
+
+    // Recarga la página después de 2 segundos
+    setTimeout(() => {
+        location.reload();
+    }, 2000);
+}
+ else {
                     showResultPopup('Error', data.message, 'error');
                 }
             })
@@ -387,5 +560,95 @@ function initializeView() {
                 showResultPopup('Error de Conexión', 'Ocurrió un error de comunicación.', 'error');
             });
         }
+    });
+    
+    // ------------------------------------------------------------
+    // Validación en tiempo real de números telefónicos
+    // ------------------------------------------------------------
+    function validarTelefonoEnTiempoReal(inputId, messageId) {
+        const phoneInput = document.getElementById(inputId);
+        const message = document.getElementById(messageId);
+        const phoneRegex = /^[0-9]{10}$/;
+
+        if (!phoneInput || !message) return; // Evita errores si los elementos no existen
+
+        phoneInput.addEventListener("input", function () {
+            const phone = phoneInput.value.trim();
+
+            if (phone === "") {
+                message.innerHTML = "";
+            } else if (!/^[0-9]*$/.test(phone)) {
+                message.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        ${iconoError}
+                        <span style="color:red;">Solo se permiten números</span>
+                    </div>`;
+            } else if (!phoneRegex.test(phone)) {
+                message.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        ${iconoAdvertencia}
+                        <span style="color:orange;">El número debe tener 10 dígitos</span>
+                    </div>`;
+            } else {
+                message.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        ${iconoCorrecto}
+                        <span style="color:green;">Número válido</span>
+                    </div>`;
+            }
+        });
+    }
+
+    // Activar validación en los campos
+    validarTelefonoEnTiempoReal("add_phone1", "phone1_message");
+    validarTelefonoEnTiempoReal("add_phone2", "phone2_message");
+    validarTelefonoEnTiempoReal("extra_add_phone1", "phone1_messageextra");
+    validarTelefonoEnTiempoReal("extra_add_phone2", "phone2_messageextra");
+    validarTelefonoEnTiempoReal("inputTelefono", "mensajeTelefonoExistente");
+
+// --- FUNCIONALIDAD PARA MOSTRAR FORMULARIO SEGÚN SELECCIÓN DE PROPIETARIO ---
+function toggleResidentForm() {
+    const propietarioSi = document.getElementById('propietario_si');
+    const propietarioNo = document.getElementById('propietario_no');
+    const propietarioForm = document.getElementById('addResidentForm');
+    const extraForm = document.getElementById('addExtraForm');
+
+    function actualizarFormulario() {
+        if (propietarioSi.checked) {
+            propietarioForm.style.display = 'block';
+            extraForm.style.display = 'none';
+        } else {
+            propietarioForm.style.display = 'none';
+            extraForm.style.display = 'block';
+        }
+    }
+
+    // Inicializar según valor por defecto
+    actualizarFormulario();
+
+    // Escuchar cambios en los radios
+    propietarioSi.addEventListener('change', actualizarFormulario);
+    propietarioNo.addEventListener('change', actualizarFormulario);
+}
+
+// Llamar la función al abrir modal
+$('#addResidentBtn').on('click', function() {
+    addForm[0].reset();
+    addForm.find('input, select').css('border-color', '');
+    addModal.addClass('visible');
+
+    toggleResidentForm(); // Activar lógica de propietario / extra
+});
+
+}
+
+
+// ============================================================
+// Configuración global personalizada (agregada por el usuario)
+// ============================================================
+if (window.DataTable) {
+    $.extend(true, window.DataTable.defaults, {
+        bLengthChange: false, // Oculta el menú "Mostrar X registros"
+        bInfo: false          // Oculta el texto "Mostrando registros del 1 al X..."
     });
 }

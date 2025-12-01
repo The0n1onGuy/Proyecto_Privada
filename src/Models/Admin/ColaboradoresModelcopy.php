@@ -6,7 +6,7 @@ use App\Core\Database;
 use PDO;
 use Exception;
 // Obtener todos los usuarios
-class ColaboradoresModel {
+class ColaboradoresModelcopy {
     private const ESTATUS_ACTIVO = 1;
     private const ESTATUS_INACTIVO = 2;
     /**
@@ -141,66 +141,43 @@ class ColaboradoresModel {
         $conn->beginTransaction();
 
         try {
-            // --- PASO 1: TRADUCCIÓN DE UUID A ID INTERNO ---
-            // Tu frontend envía el UUID en el campo 'id_usuario' (o 'collaboratorId' en el HTML)
-            $public_id = $data['id_usuario']; 
-
-            // Buscamos el id_usuario numérico usando el UUID
-            $stmtId = $conn->prepare("SELECT id_usuario FROM priv_usuarios WHERE public_id = ?");
-            $stmtId->execute([$public_id]);
-            $id_usuario_interno = $stmtId->fetchColumn();
-
-            if (!$id_usuario_interno) {
-                throw new Exception("Colaborador no encontrado con ese ID público.");
-            }
-
-            // --- PASO 2: ACTUALIZAR DATOS PRINCIPALES USANDO EL ID INTERNO ---
-            
-            // Actualizar priv_usuarios
-            // Nota: Aquí ya no usamos el UUID en el WHERE, usamos el ID numérico que acabamos de encontrar
+            // ---ACTUALIZAR DATOS PRINCIPALES DEL COLABORADOR ---
             $sqlUser = "UPDATE priv_usuarios SET 
                             id_rol = (SELECT id_rol FROM priv_roles WHERE rol = :rol), 
                             id_estatus = (SELECT id_estatus FROM priv_estatus WHERE estatus = :estatus),
                             id_privada = (SELECT id_privada FROM priv_privadas WHERE nombre = :privada)
                         WHERE id_usuario = :id_usuario";
-            
             $stmtUser = $conn->prepare($sqlUser);
             $stmtUser->execute([
                 ':rol' => $data['rol'],
                 ':estatus' => $data['estatus'],
-                ':privada' => $data['privada'], // Ojo: Si 'privada' también es un UUID, necesitarás traducirlo también o cambiar la subconsulta. 
-                                                // Asumiré por ahora que sigues enviando el NOMBRE de la privada como en tu código original.
-                ':id_usuario' => $id_usuario_interno // <--- AQUÍ USAMOS EL ID NUMÉRICO
+                ':privada' => $data['privada'],
+                ':id_usuario' => $data['id_usuario']
             ]);
 
-            // Actualizar priv_infousuario
             $sqlInfo = "UPDATE priv_infousuario SET 
                             nombres = :nombres, 
                             apellido_p = :apellido_p, 
                             apellido_m = :apellido_m
                         WHERE id_usuario = :id_usuario";
-            
             $stmtInfo = $conn->prepare($sqlInfo);
             $stmtInfo->execute([
                 ':nombres' => $data['nombres'],
                 ':apellido_p' => $data['apellido_p'],
                 ':apellido_m' => $data['apellido_m'],
-                ':id_usuario' => $id_usuario_interno // <--- AQUÍ TAMBIÉN
+                ':id_usuario' => $data['id_usuario']
             ]);
 
-            // --- GESTIONAR CORREOS Y TELÉFONOS (Sin cambios mayores, solo pasar el ID correcto si es necesario) ---
-            
-            // Nota: Para editar correos/teléfonos específicos, tu frontend envía 'correo_id' y 'telefono_id'.
-            // Si esos son IDs numéricos internos, funcionan directo. Si son UUIDs, también habría que traducirlos.
-            // Asumiré que para los sub-registros (correos/teléfonos) sigues usando IDs numéricos internos en el frontend
-            // ya que los obtienes de `getCorreosByUsuarioId`.
-
+            // --- GESTIONAR CORREOS BASADO EN LA ACCIÓN ---
             if (!empty($data['correo_id'])) {
                 switch ($data['email_action']) {
                     case 'edit':
-                        $sql = "UPDATE priv_corresusuario SET correo = :correo WHERE id_correo = :id_correo"; // WHERE id_correo es directo
+                        $sql = "UPDATE priv_corresusuario SET correo = :correo WHERE id_correo = :id_correo";
                         $stmt = $conn->prepare($sql);
-                        $stmt->execute([':correo' => $data['correo_actual'], ':id_correo' => $data['correo_id']]);
+                        $stmt->execute([
+                            ':correo' => $data['correo_actual'],
+                            ':id_correo' => $data['correo_id']
+                        ]);
                         break;
                     case 'delete':
                         $sql = "UPDATE priv_corresusuario SET id_estatus = ? WHERE id_correo = ?";
@@ -210,26 +187,27 @@ class ColaboradoresModel {
                 }
             }
             
-            // Añadir nuevo correo (Necesita id_info)
+            // Añadir nuevo correo si se proporcionó
             if (!empty($data['correo_nuevo'])) {
-                // Buscamos id_info usando el id_usuario_interno
                 $stmtInfoId = $conn->prepare("SELECT id_info FROM priv_infousuario WHERE id_usuario = ?");
-                $stmtInfoId->execute([$id_usuario_interno]);
+                $stmtInfoId->execute([$data['id_usuario']]);
                 $id_info = $stmtInfoId->fetchColumn();
-                
                 if ($id_info) {
                     $sql = "INSERT INTO priv_corresusuario (id_info, correo, id_estatus) VALUES (?, ?, ?)";
                     $conn->prepare($sql)->execute([$id_info, $data['correo_nuevo'], self::ESTATUS_ACTIVO]);
                 }
             }
 
-            // Gestionar teléfonos (Idem correos)
+            // --- 3. GESTIONAR TELÉFONOS BASADO EN LA ACCIÓN ---
             if (!empty($data['telefono_id'])) {
                 switch ($data['phone_action']) {
                     case 'edit':
                         $sql = "UPDATE priv_telusuario SET telefono = :telefono WHERE id_telefono = :id_telefono";
                         $stmt = $conn->prepare($sql);
-                        $stmt->execute([':telefono' => $data['telefono_actual'], ':id_telefono' => $data['telefono_id']]);
+                        $stmt->execute([
+                            ':telefono' => $data['telefono_actual'],
+                            ':id_telefono' => $data['telefono_id']
+                        ]);
                         break;
                     case 'delete':
                         $sql = "UPDATE priv_telusuario SET id_estatus = ? WHERE id_telefono = ?";
@@ -239,16 +217,16 @@ class ColaboradoresModel {
                 }
             }
             
-            // Añadir nuevo teléfono
+            // Añadir nuevo teléfono si se proporcionó
             if (!empty($data['telefono_nuevo'])) {
-                if (empty($id_info)) { // Reutilizamos si ya lo buscamos
+                if (empty($id_info)) { // Reuse id_info if available
                      $stmtInfoId = $conn->prepare("SELECT id_info FROM priv_infousuario WHERE id_usuario = ?");
-                     $stmtInfoId->execute([$id_usuario_interno]);
+                     $stmtInfoId->execute([$data['id_usuario']]);
                      $id_info = $stmtInfoId->fetchColumn();
                 }
                 if ($id_info) {
                     $sql = "INSERT INTO priv_telusuario (id_info, telefono, id_estatus) VALUES (?, ?, ?)";
-                    $conn->prepare($sql)->execute([$id_info, $data['telefono_nuevo'], self::ESTATUS_ACTIVO]);
+                    $conn->prepare($sql)->execute([$id_info, $data['telefono_nuevo'],self::ESTATUS_ACTIVO]);
                 }
             }
             
@@ -258,6 +236,7 @@ class ColaboradoresModel {
         } catch (Exception $e) {
             $conn->rollBack();
             error_log("Actualizacion fallida!: " . $e->getMessage());
+            // Lanza la excepción para que el controlador la maneje
             throw $e;
         }
     }

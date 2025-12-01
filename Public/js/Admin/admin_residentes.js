@@ -164,28 +164,190 @@ function initializeView() {
         }
 
         // 4. Enviar datos al servidor
-        const formData = $(this).serialize();
+        const originalFormData = $(this).serialize(); 
+
         $.ajax({
             url: '/admin/residentes/update',
             type: 'POST',
-            data: formData,
+            data: originalFormData,
             dataType: 'json',
             success: function(response) {
-                $('#residentModal').removeClass('visible');
-               if (response.success) {
-    showResultPopup('¡Éxito!', response.message, 'success');
+                
+                // --- NUEVO: DETECCIÓN DE SUCESIÓN ---
+                if (response.success === false && response.requires_heir === true) {
+                    
+                    // Ocultar modal de edición temporalmente
+                    $('#residentModal').removeClass('visible');
+                    
+                    
+                    // Llenar el select del modal de heredero
+                    const selectHeir = $('#selectHeir');
+                    selectHeir.empty();
+                    selectHeir.append('<option value="" disabled selected>Seleccione un residente...</option>');
+                    
+                    response.candidates.forEach(c => {
+                        selectHeir.append(`<option value="${c.public_id}">${c.nombres} ${c.apellido_p}</option>`);
+                    });
 
-    // Recargar la página después de 2 segundos
-    setTimeout(() => {
-        location.reload();
-    }, 1500);
-}else {
+                    // 3. Guardar la data original para re-enviarla
+                    $('#heir_original_payload').val(originalFormData); // Guardamos string serializado
+
+                    // 4. Mostrar modal de heredero
+                    $('#heredaracionModal').addClass('visible');
+                    return; // Detenemos aquí
+                }
+                // ------------------------------------
+                if (response.success === false && response.requires_swap === true) {
+                        $('#residentModal').removeClass('visible'); // Ocultar form principal
+                        
+                        // Llenar datos del modal Swap
+                        $('#currentOwnerName').text(response.current_owner_name);
+                        $('#swap_original_payload').val(originalFormData); // Guardar datos para reintentar
+                        
+                        // Resetear botón por si acaso
+                        resetHoldButton();
+                        
+                        $('#swapModal').addClass('visible');
+                        return; // Detener flujo
+                    }
+                $('#residentModal').removeClass('visible');
+                if (response.success) {
+                    showResultPopup('¡Éxito!', response.message, 'success');
+                    setTimeout(() => { location.reload(); }, 1500);
+                } else {
                     showResultPopup('Error', response.message, 'error');
                 }
             },
             error: function() {
                 $('#residentModal').removeClass('visible');
                 showResultPopup('Error de Conexión', 'Ocurrió un error al contactar al servidor.', 'error');
+            }
+        });
+    });
+
+    // ------------------------------------------------------------
+    // LÓGICA DEL BOTÓN "HOLD" 
+    // ------------------------------------------------------------
+    let holdTimer;
+    const holdDuration = 3000; // 3 segundos
+    const holdBtn = $('#btnHoldSwap');
+    const progressBar = holdBtn.find('.btn-hold-progress');
+    const holdText = holdBtn.find('.btn-hold-text');
+
+    // Función para iniciar el conteo
+    function startHold(e) {
+        if (e.type === 'touchstart') e.preventDefault(); // Evitar scroll en móvil
+        if (holdBtn.hasClass('complete')) return; // Ya se completó
+
+        holdBtn.addClass('holding');
+        
+        holdTimer = setTimeout(() => {
+            // ¡TIEMPO COMPLETADO!
+            finishHold();
+        }, holdDuration);
+    }
+
+    // Función para cancelar si suelta antes
+    function cancelHold() {
+        if (holdBtn.hasClass('complete')) return;
+        
+        clearTimeout(holdTimer);
+        holdBtn.removeClass('holding');
+    }
+
+    // Función cuando se logra el tiempo
+    function finishHold() {
+        holdBtn.addClass('complete');
+        holdText.text('¡CONFIRMADO! PROCESANDO...');
+        
+        // Ejecutar la acción real
+        submitSwap();
+    }
+
+    // Función para resetear (al cerrar modal)
+    function resetHoldButton() {
+        clearTimeout(holdTimer);
+        holdBtn.removeClass('holding complete');
+        holdText.text('MANTÉN PRESIONADO 3s PARA CONFIRMAR');
+    }
+
+    // Event Listeners (Mouse y Touch)
+    holdBtn.on('mousedown touchstart', startHold);
+    holdBtn.on('mouseup mouseleave touchend', cancelHold);
+
+    // Cancelar modal
+    $('#cancelSwapBtn').on('click', function() {
+        $('#swapModal').removeClass('visible');
+        $('#residentModal').addClass('visible'); // Volver al editor
+        resetHoldButton();
+    });
+
+    // Función que hace el POST final
+    function submitSwap() {
+        let formData = $('#swap_original_payload').val();
+        formData += "&confirm_swap=true"; // Agregar la bandera de confirmación
+
+        $.ajax({
+            url: '/admin/residentes/update',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                $('#swapModal').removeClass('visible');
+                if (response.success) {
+                    showResultPopup('¡Intercambio Exitoso!', 'Se han actualizado los roles correctamente.', 'success');
+                    setTimeout(() => { location.reload(); }, 2000);
+                } else {
+                    showResultPopup('Error', response.message, 'error');
+                    resetHoldButton();
+                }
+            },
+            error: function() {
+                showResultPopup('Error', 'Error crítico al procesar el intercambio.', 'error');
+                resetHoldButton();
+            }
+        });
+    }
+
+    // --- MANEJO DEL MODAL DE HEREDERO ---
+    
+    // Botón Cancelar
+    $('#cancelHeirBtn').on('click', function() {
+        $('#heredaracionModal').removeClass('visible');
+        $('#residentModal').addClass('visible'); // Regresar al anterior
+    });
+
+    // Envio del formulario de heredero
+    $('#heirForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const heirId = $('#selectHeir').val();
+        if (!heirId) {
+            alert("Debe seleccionar un heredero.");
+            return;
+        }
+
+        // Recuperar datos originales y agregar el heredero
+        let formData = $('#heir_original_payload').val();
+        formData += "&heir_public_id=" + encodeURIComponent(heirId);
+
+        // Reintentar la actualización
+        $.ajax({
+            url: '/admin/residentes/update',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                $('#heredaracionModal').removeClass('visible');
+                if (response.success) {
+                    showResultPopup('¡Cambio de Propietario Exitoso!', 'El residente ha sido degradado y el nuevo propietario asignado.', 'success');
+                    setTimeout(() => { location.reload(); }, 2000);
+                } else {
+                    showResultPopup('Error', response.message, 'error');
+                }
+            },
+            error: function() {
+                showResultPopup('Error', 'Error crítico al procesar la sucesión.', 'error');
             }
         });
     });

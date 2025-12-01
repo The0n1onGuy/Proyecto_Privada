@@ -9,9 +9,8 @@
 
     let mostrandoMisAvisos = false;
 
-    // --- CORRECCIÓN 1: MANEJO DE IDs ---
+    
     const avisosContent = document.querySelector(".avisos-content");
-    // Quitamos parseInt. Ahora leemos el ID tal cual viene (string/UUID)
     const usuarioActual = avisosContent?.getAttribute("data-session-user-id") || "";
 
     const showModal = () => modal?.classList.add("visible");
@@ -25,7 +24,7 @@
         if (e.target === modal) hideModal();
     });
 
-    // --- CORRECCIÓN 2: LÓGICA DEL FILTRO ---
+    // LÓGICA DEL FILTRO ---
     misAvisosBtn?.addEventListener("click", () => {
         mostrandoMisAvisos = !mostrandoMisAvisos;
         const cards = document.querySelectorAll(".aviso-card");
@@ -66,7 +65,7 @@
                 const formData = new FormData();
                 formData.append('id_aviso', idAviso);
 
-                fetch('/resident/avisos/delete', {
+                fetch('/admin/avisos/delete', {
                     method: 'POST',
                     body: formData
                 })
@@ -96,7 +95,7 @@
         submitButton.textContent = 'Publicando...';
         submitButton.disabled = true;
 
-        fetch('/resident/avisos/create', {
+        fetch('/admin/avisos/create', {
             method: 'POST',
             body: formData
         })

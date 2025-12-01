@@ -117,120 +117,181 @@ class ResidentsModel {
     }
 
     /**
+     * Actualiza residente con PROTOCOLO DE SUCESIÓN.
+     * Retorna array con estado y datos adicionales si se requiere acción del usuario.
+     */
+    /**
      * Actualiza la información de un residente en la base de datos.
      *
      * @param array $data Datos del residente a actualizar.
      * @return bool True si la actualización fue exitosa, false en caso contrario.
      */
-    public function actualizaResident(array $data): bool
+    public function actualizaResident(array $data): array // Cambiamos retorno a array
     {
         $conn = Database::getConnection();
         $conn->beginTransaction();
 
         try {
-            // --- PASO 1: TRADUCCIÓN DE UUID A ID INTERNO ---
+            // OBTENER DATOS ACTUALES
             $public_id = $data['public_id_info']; 
+            
+            $stmtCurrent = $conn->prepare("
+                SELECT iu.id_info, iu.id_usuario, iu.es_propietario, u.num_casa, u.id_privada
+                FROM priv_infousuario iu
+                JOIN priv_usuarios u ON iu.id_usuario = u.id_usuario
+                WHERE iu.public_id = ?
+            ");
+            $stmtCurrent->execute([$public_id]);
+            $currentData = $stmtCurrent->fetch(PDO::FETCH_ASSOC);
 
-            $stmtId = $conn->prepare("SELECT id_info, id_usuario FROM priv_infousuario WHERE public_id = ?");
-            $stmtId->execute([$public_id]);
-            $ids = $stmtId->fetch(PDO::FETCH_ASSOC);
+            if (!$currentData) throw new Exception("Residente no encontrado.");
+            
+            $id_info_interno = $currentData['id_info'];
+            $id_usuario_actual = $currentData['id_usuario'];
+            $es_propietario_actual = $currentData['es_propietario'];
+            $num_casa_actual = $currentData['num_casa'];
+            $id_privada_actual = $currentData['id_privada'];
+            
+            // Datos entrantes
+            $nuevo_rol_propietario = isset($data['es_propietario']) ? (string)$data['es_propietario'] : (string)$es_propietario_actual;
+            $nuevo_estatus = $data['estatus'];
+            $nuevo_num_casa = trim($data['num_casa']);
 
-            if (!$ids) {
-                throw new Exception("Residente no encontrado.");
+            if ($es_propietario_actual === '0' && $nuevo_rol_propietario === '1' && $nuevo_num_casa === $num_casa_actual) {
+                $stmtOwnerCheck = $conn->prepare("SELECT id_info, nombres, apellido_p FROM priv_infousuario WHERE id_usuario = ? AND es_propietario = '1' AND id_info != ?");
+                $stmtOwnerCheck->execute([$id_usuario_actual, $id_info_interno]);
+                $existingOwner = $stmtOwnerCheck->fetch(PDO::FETCH_ASSOC);
+
+                if ($existingOwner) {
+                    if (empty($data['confirm_swap'])) {
+                        $conn->rollBack();
+                        return ['success' => false, 'requires_swap' => true, 'current_owner_name' => $existingOwner['nombres'] . ' ' . $existingOwner['apellido_p'], 'message' => 'Conflicto de propiedad detectado.'];
+                    }
+                    // Degradamos al anterior
+                    $conn->prepare("UPDATE priv_infousuario SET es_propietario = '0' WHERE id_info = ?")->execute([$existingOwner['id_info']]);
+                }
+            }
+            // ---------------------------------------------------------
+            // DETECCIÓN DE "VACÍO DE PODER" (Propietario -> Residente/Inactivo)
+            // ---------------------------------------------------------
+            $es_degradacion = ($es_propietario_actual == 1 && $nuevo_rol_propietario == 0);
+            $es_desactivacion = ($es_propietario_actual == 1 && $nuevo_estatus === 'Inactivo'); // Ajusta string según tu DB
+
+            if ($es_degradacion || $es_desactivacion) {
+                $stmtDependents = $conn->prepare("SELECT public_id, nombres, apellido_p FROM priv_infousuario WHERE id_usuario = ? AND es_propietario = '0' AND id_info != ?");
+                $stmtDependents->execute([$id_usuario_actual, $id_info_interno]);
+                $candidatos = $stmtDependents->fetchAll(PDO::FETCH_ASSOC);
+
+                if (count($candidatos) > 0) {
+                    if (empty($data['heir_public_id'])) {
+                        $conn->rollBack();
+                        return ['success' => false, 'requires_heir' => true, 'candidates' => $candidatos, 'message' => 'Se requiere asignar un nuevo propietario.'];
+                    }
+                    // Ascendemos al heredero
+                    $conn->prepare("UPDATE priv_infousuario SET es_propietario = '1' WHERE public_id = ?")->execute([$data['heir_public_id']]);
+                }
             }
             
-            $id_info_interno = $ids['id_info'];
-            $id_usuario_interno = $ids['id_usuario'];
-
-            // --- PASO 2: PREPARAR LOS NOMBRES (SOLUCIÓN DEL ERROR) ---
             
-            // Inicializamos variables
-            $nombres = '';
-            $apellido_p = '';
-            $apellido_m = '';
+            $id_usuario_destino = $id_usuario_actual; // Por defecto, se queda en su grupo actual
+            if ($es_propietario_actual === '0' && $nuevo_num_casa !== $num_casa_actual) {
+                
+                // Buscar al dueño de la casa destino en la misma privada
+                $stmtTargetOwner = $conn->prepare("
+                    SELECT u.id_usuario 
+                    FROM priv_usuarios u
+                    JOIN priv_infousuario iu ON u.id_usuario = iu.id_usuario
+                    WHERE u.num_casa = :num_casa 
+                      AND u.id_privada = :id_privada
+                      AND iu.es_propietario = '1'
+                    LIMIT 1
+                ");
+                $stmtTargetOwner->execute([':num_casa' => $nuevo_num_casa, ':id_privada' => $id_privada_actual]);
+                $newOwnerId = $stmtTargetOwner->fetchColumn();
 
-            // Si viene 'nombreCompleto' (del formulario de edición), lo dividimos
+                if (!$newOwnerId) {
+                    throw new Exception("No se puede mover al residente: La casa '$nuevo_num_casa' no existe o no tiene un propietario asignado.");
+                }
+
+                // CAMBIO CLAVE: El residente cambia de ID padre (se muda)
+                $id_usuario_destino = $newOwnerId; 
+                
+                // NOTA: NO actualizamos priv_usuarios, porque el residente solo se desvincula.
+            } 
+            
+            // CASO 2: Es PROPIETARIO y cambia el número de su casa
+            elseif ($es_propietario_actual === '1' && $nuevo_num_casa !== $num_casa_actual) {
+                // Actualizamos la tabla padre, moviendo a toda la familia
+                $conn->prepare("UPDATE priv_usuarios SET num_casa = :num_casa WHERE id_usuario = :id_usuario")
+                     ->execute([':num_casa' => $nuevo_num_casa, ':id_usuario' => $id_usuario_actual]);
+            }
+            // Atomiza los nombres
+            $nombres = $data['nombres'] ?? ''; 
+            $apellido_p = $data['apellido_p'] ?? '';
+            $apellido_m = $data['apellido_m'] ?? '';
+            
             if (!empty($data['nombreCompleto'])) {
                 $parts = explode(' ', trim($data['nombreCompleto']));
                 $count = count($parts);
-
-                if ($count === 1) {
-                    // Solo un nombre
-                    $nombres = $parts[0];
-                } elseif ($count === 2) {
-                    // Nombre y primer apellido
-                    $nombres = $parts[0];
-                    $apellido_p = $parts[1];
-                } elseif ($count === 3) {
-                    // Nombre, paterno y materno
-                    $nombres = $parts[0];
-                    $apellido_p = $parts[1];
-                    $apellido_m = $parts[2];
-                } else {
-                    // Más de 3 partes (ej. "Juan Carlos Perez Lopez")
-                    // Asumimos que los dos últimos son apellidos
-                    $apellido_m = array_pop($parts); // Lopez
-                    $apellido_p = array_pop($parts); // Perez
-                    $nombres = implode(' ', $parts); // Juan Carlos
-                }
+                if ($count === 1) { $nombres = $parts[0]; }
+                elseif ($count === 2) { $nombres = $parts[0]; $apellido_p = $parts[1]; }
+                elseif ($count === 3) { $nombres = $parts[0]; $apellido_p = $parts[1]; $apellido_m = $parts[2]; }
+                else { $apellido_m = array_pop($parts); $apellido_p = array_pop($parts); $nombres = implode(' ', $parts); }
             } else {
-                // Si por alguna razón ya vienen separados (fallback)
                 $nombres = $data['nombres'] ?? '';
                 $apellido_p = $data['apellido_p'] ?? '';
                 $apellido_m = $data['apellido_m'] ?? '';
             }
 
-            // --- PASO 3: ACTUALIZAR USANDO IDs INTERNOS ---
-
-            // 1. Actualizar priv_infousuario usando las variables procesadas
-            $sqlInfo = "UPDATE priv_infousuario SET nombres = :nombres, apellido_p = :apellido_p, apellido_m = :apellido_m, es_propietario = :es_propietario WHERE id_info = :id_info";
+            // ---------------------------------------------------------
+            // UPDATE PRINCIPAL
+            // ---------------------------------------------------------
+            
+             $sqlInfo = "UPDATE priv_infousuario SET 
+                            nombres = :nombres, 
+                            apellido_p = :apellido_p, 
+                            apellido_m = :apellido_m, 
+                            es_propietario = :es_propietario,
+                            id_usuario = :id_usuario_destino -- <--- ESTO MUEVE AL RESIDENTE
+                        WHERE id_info = :id_info";
+                        
             $stmtInfo = $conn->prepare($sqlInfo);
             $stmtInfo->execute([
-                ':nombres' => $nombres,         // Usamos la variable procesada
-                ':apellido_p' => $apellido_p,   // Usamos la variable procesada
-                ':apellido_m' => $apellido_m,   // Usamos la variable procesada
-                ':es_propietario' => $data['es_propietario'],
+                ':nombres' => $nombres,
+                ':apellido_p' => $apellido_p,
+                ':apellido_m' => $apellido_m,
+                ':es_propietario' => $nuevo_rol_propietario,
+                ':id_usuario_destino' => $id_usuario_destino,
                 ':id_info' => $id_info_interno
             ]);
 
-            // 2. Actualizar priv_usuarios
-            $sqlUser = "UPDATE priv_usuarios SET num_casa = :num_casa, id_estatus = (SELECT id_estatus FROM priv_estatus WHERE estatus = :estatus) WHERE id_usuario = :id_usuario";
-            $stmtUser = $conn->prepare($sqlUser);
-            $stmtUser->execute([
-                ':num_casa' => $data['num_casa'],
-                ':estatus' => $data['estatus'],
-                ':id_usuario' => $id_usuario_interno
-            ]);
-
-            // 3. Actualizar teléfono (Usamos IDs internos de teléfono, el frontend los envía)
-            if (!empty($data['id_telefono']) && !empty($data['telefono'])) {
-                $sqlPhone = "UPDATE priv_telusuario SET telefono = :telefono WHERE id_telefono = :id_telefono AND id_info = :id_info";
-                $stmtPhone = $conn->prepare($sqlPhone);
-                $stmtPhone->execute([
-                    ':telefono' => $data['telefono'], 
-                    ':id_telefono' => $data['id_telefono'],
-                    ':id_info' => $id_info_interno 
-                ]);
+            // Actualizar Estatus de la cuenta (Solo si no nos mudamos a otra casa ajena)
+            if ($id_usuario_destino === $id_usuario_actual) {
+                // Asumimos que si hay sucesión, la cuenta sigue activa
+                $estatus_final = ($es_degradacion && !empty($data['heir_public_id'])) ? 'Activo' : $data['estatus'];
+                
+                $conn->prepare("UPDATE priv_usuarios SET id_estatus = (SELECT id_estatus FROM priv_estatus WHERE estatus = :estatus) WHERE id_usuario = :id_usuario")
+                     ->execute([':estatus' => $estatus_final, ':id_usuario' => $id_usuario_actual]);
             }
 
-            // 4. Actualizar correo
+
+            if (!empty($data['id_telefono']) && !empty($data['telefono'])) {
+                 $sqlPhone = "UPDATE priv_telusuario SET telefono = ? WHERE id_telefono = ? AND id_info = ?";
+                 $conn->prepare($sqlPhone)->execute([$data['telefono'], $data['id_telefono'], $id_info_interno]);
+            }
             if (!empty($data['id_correo']) && !empty($data['correo'])) {
-                $sqlMail = "UPDATE priv_corresusuario SET correo = :correo WHERE id_correo = :id_correo AND id_info = :id_info";
-                $stmtMail = $conn->prepare($sqlMail);
-                $stmtMail->execute([
-                    ':correo' => $data['correo'], 
-                    ':id_correo' => $data['id_correo'],
-                    ':id_info' => $id_info_interno
-                ]);
+                 $sqlMail = "UPDATE priv_corresusuario SET correo = ? WHERE id_correo = ? AND id_info = ?";
+                 $conn->prepare($sqlMail)->execute([$data['correo'], $data['id_correo'], $id_info_interno]);
             }
 
             $conn->commit();
-            return true;
+            return ['success' => true, 'message' => 'Residente actualizado correctamente.'];
 
         } catch (\Exception $e) {
             $conn->rollBack();
-            error_log("Error al actualizar residente: " . $e->getMessage());
-            throw $e;
+            error_log("Error update resident: " . $e->getMessage());
+            // Retornamos array de error en lugar de lanzar excepción para controlar el flujo
+            return ['success' => false, 'message' => 'Error interno: ' . $e->getMessage()];
         }
     }
 
@@ -246,7 +307,7 @@ class ResidentsModel {
         $conn->beginTransaction();
 
         try {
-            // --- PASO 1: Crear usuario en `priv_usuarios` CON UUID ---
+            //  Crear usuario en `priv_usuarios` CON UUID ---
             $sqlUser = "INSERT INTO priv_usuarios (usuario, contrasenia, id_estatus, id_rol, id_privada, num_casa, public_id)
                         VALUES (
                             :username, 

@@ -6,61 +6,27 @@ $(document).ready(function() {
 
     //--------------------------------------------------------------------------------------Boton de editar
     $('#tablaColaboradores tbody').on('click', '.btn-edit', function() {
-       const publicId = $(this).data('id'); 
-        
-        // Bloqueamos el botón visualmente o mostramos un loader si quieres
-        const btn = $(this);
-        btn.prop('disabled', true);
-
-        fetch(`/admin/api/collaborator/${publicId}`)
-            .then(response => response.json())
-            .then(data => {
-                btn.prop('disabled', false);
-                if (data.success) {
-                    populaModal(data.data); // Función encapsulada
-                    $('#collaboratorModal').addClass('visible');
-                } else {
-                    showResultPopup('Error', data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error al cargar colaborador:', error);
-                btn.prop('disabled', false);
-                showResultPopup('Error de Conexión', 'No se pudieron cargar los datos.', 'error');
-            });
-    });
-    function populaModal(data) {
-        // Guardamos contactos originales para lógica de borrado/edición
+        const collaboratorData = $(this).data('colaborador');
         originalContacts = {
-            emails: data.correos ? [...data.correos] : [],
-            phones: data.telefonos ? [...data.telefonos] : []
+            emails: collaboratorData.correos ? [...collaboratorData.correos] : [],
+            phones: collaboratorData.telefonos ? [...collaboratorData.telefonos] : []
         };
 
-        // Llenar campos simples
-        // OJO: Usamos el public_id como ID oculto para que el update sepa a quién actualizar
-        $('#collaboratorId').val(data.public_id); 
-        $('#nombres').val(data.nombres);
-        $('#apellido_p').val(data.apellido_p);
-        $('#apellido_m').val(data.apellido_m);
-        $('#rol').val(data.rol);
-        
-        // Para la privada, asegúrate de que el <select> tenga values de public_id, no nombres.
-        // Si tu modelo getCollaboratorByPublicId devuelve 'privada_nombre', 
-        // tal vez necesites ajustar el select para seleccionar por texto, 
-        // o mejor, devolver 'public_id_privada' desde el backend.
-        $('#privada option').filter(function() {
-            // Intentamos coincidir por texto (nombre) como lo tenías antes
-            return $(this).text().trim() === data.privada_nombre; 
-        }).prop('selected', true);
+        $('#collaboratorId').val(collaboratorData.id_usuario);
+        $('#nombres').val(collaboratorData.nombres);
+        $('#apellido_p').val(collaboratorData.apellido_p);
+        $('#apellido_m').val(collaboratorData.apellido_m);
+        $('#rol').val(collaboratorData.rol);
+        $('#privada').val(collaboratorData.privada_nombre);
+        $('#estatus').val(collaboratorData.estatus);
 
-        $('#estatus').val(data.estatus);
-
-        // Llenar selectores de contacto
         populateContactSelector('email', originalContacts.emails);
         populateContactSelector('phone', originalContacts.phones);
 
         $('#modalTitle').text('Editar Colaborador');
-    }
+        $('#collaboratorModal').addClass('visible');
+    });
+
     const contactStates = { email: 'view', phone: 'view' };
 
     function setContactState(type, state) {
