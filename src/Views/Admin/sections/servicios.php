@@ -18,46 +18,55 @@
                     <th>#</th>
                     <th>Empresa</th>
                     <th>Encargado</th> 
-                    <th>Numero Telefonico</th> 
-                    <th>Correo Electronico</th> 
+                    <th>Telefonos</th> <th>Correos</th> 
                     <th>Precio Base</th> 
                     <th>Fecha inicial</th> 
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <?php if (!empty($servicios)): ?>
-                <?php $contador = 1; ?>
-                <?php foreach ($servicios as $item): ?>
-                    <tr>
-                        <td><?= $contador++ ?></td> 
-                        
-                        <td style="font-weight: bold; color: #2c3e50;">
-                            <?= htmlspecialchars($item['nombre_empresa']) ?>
-                        </td>
-                        
-                        <td>
-                            <span class="badge service-badge">
-                                <?= htmlspecialchars($item['nom_serv']) ?>
-                            </span>
-                        </td>
+                <?php if (!empty($lista_proveedores)): ?>
+                    <?php $contador = 1; ?>
+                    <?php foreach ($lista_proveedores as $prov): ?>
+                        <tr>
+                            <td><?= $contador++ ?></td> 
+                            
+                            <td style="font-weight: bold; color: #2c3e50;">
+                                <?= htmlspecialchars($prov['nombre_empresa']) ?>
+                            </td>
+                            
+                            <td><?= htmlspecialchars($prov['nombre_encargado']) ?></td>
 
-                        <td><?= htmlspecialchars($item['nombre_encargado']) ?></td>
+                            <td>
+                                <span class="badge-contact phone">
+                                    <?= htmlspecialchars($prov['telefonos'] ?? 'Sin registro') ?>
+                                </span>
+                            </td>
 
-                        <td><?= htmlspecialchars($item['categoria'] ) ?></td>
+                            <td>
+                                <span class="badge-contact email">
+                                    <?= htmlspecialchars($prov['correos'] ?? 'Sin registro') ?>
+                                </span>
+                            </td>
 
-                        <td>
-                            <button class="btn-edit" data-id="<?php echo $resident['public_id']; ?>"><svg height="25px" width="40px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8.29289 3.70711L1 11V15H5L12.2929 7.70711L8.29289 3.70711Z" fill="#031159"></path> <path d="M9.70711 2.29289L13.7071 6.29289L15.1716 4.82843C15.702 4.29799 16 3.57857 16 2.82843C16 1.26633 14.7337 0 13.1716 0C12.4214 0 11.702 0.297995 11.1716 0.828428L9.70711 2.29289Z" fill="#031159"></path> </g></svg></button>
-                            <button class="btn-delete" data-id="<?php echo $resident['public_id']; ?>"><svg height="25px" width="40px" fill="#01075b" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#01075b"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.755,20.283,4,8H20L18.245,20.283A2,2,0,0,1,16.265,22H7.735A2,2,0,0,1,5.755,20.283ZM21,4H16V3a1,1,0,0,0-1-1H9A1,1,0,0,0,8,3V4H3A1,1,0,0,0,3,6H21a1,1,0,0,0,0-2Z"></path></g></svg></button>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                            <td>$<?= htmlspecialchars($prov['precio_base']) ?></td>
+                            <td><?= htmlspecialchars($prov['fecha_asignacion']) ?></td>
+
+                            <td>
+                                <button class="btn-edit-prov" data-id="<?= $prov['proveedor_public_id']; ?>" title="Editar Proveedor">
+                                    <svg height="25px" width="40px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8.29289 3.70711L1 11V15H5L12.2929 7.70711L8.29289 3.70711Z" fill="#031159"></path> <path d="M9.70711 2.29289L13.7071 6.29289L15.1716 4.82843C15.702 4.29799 16 3.57857 16 2.82843C16 1.26633 14.7337 0 13.1716 0C12.4214 0 11.702 0.297995 11.1716 0.828428L9.70711 2.29289Z" fill="#031159"></path> </g></svg>
+                                </button>
+                                <button class="btn-delete-prov" data-id="<?= $prov['proveedor_public_id']; ?>" title="Eliminar Proveedor">
+                                    <svg height="25px" width="40px" fill="#01075b" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#01075b"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.755,20.283,4,8H20L18.245,20.283A2,2,0,0,1,16.265,22H7.735A2,2,0,0,1,5.755,20.283ZM21,4H16V3a1,1,0,0,0-1-1H9A1,1,0,0,0,8,3V4H3A1,1,0,0,0,3,6H21a1,1,0,0,0,0-2Z"></path></g></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>
 </div>
-
 
 <!-- Tabla de Servicios -->
 <div class="section-card">
@@ -67,14 +76,13 @@
             <i class="fas fa-plus"></i> Añadir  servicio
         </button>
     </div>
-    <!-- Filtro para proveedores individuales o general -->
+    <!-- Filtro para proveedores -->
     <div class="card-header filter-header" style="position: relative;">
         <div class="filter-container superposed">
-            <label for="proveedorFilter">Mostrar:</label>
+            <label for="proveedorFilter">Filtrar por:</label>
             <select id="proveedorFilter" name="proveedorFilter">
-                <option value="proveedorx" <?php echo ($currentFilter === 'owners') ? 'selected' : ''; ?>>Solo Propietarios</option>
-                <option value="all" <?php echo ($currentFilter === 'all') ? 'selected' : ''; ?>>Todos</option>
-            </select>
+                <option value="all">Todos</option>
+                </select>
         </div>
     </div>
     
@@ -83,62 +91,52 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Empresa</th>
                     <th>Servicio</th>
+                    <th>Categoría</th> 
+                    <th>Empresa Proveedora</th>
                     <th>Encargado</th> 
-                    <th>Categoria</th> 
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <?php if (!empty($servicios)): ?>
-                <?php $contador = 1; ?>
-                <?php foreach ($servicios as $item): ?>
-                    <tr>
-                        <td><?= $contador++ ?></td> 
-                        
-                        <td style="font-weight: bold; color: #2c3e50;">
-                            <?= htmlspecialchars($item['nombre_empresa']) ?>
-                        </td>
-                        
-                        <td>
-                            <span class="badge service-badge">
-                                <?= htmlspecialchars($item['nom_serv']) ?>
-                            </span>
-                        </td>
+                <?php if (!empty($lista_servicios)): ?>
+                    <?php $contador = 1; ?>
+                    <?php foreach ($lista_servicios as $serv): ?>
+                        <tr>
+                            <td><?= $contador++ ?></td> 
+                            
+                            <td>
+                                <span class="badge service-badge">
+                                    <?= htmlspecialchars($serv['nom_serv']) ?>
+                                </span>
+                            </td>
+                            
+                            <td><?= htmlspecialchars($serv['categoria']) ?></td>
 
-                        <td><?= htmlspecialchars($item['nombre_encargado']) ?></td>
+                            <td style="font-weight: bold; color: #2c3e50;">
+                                <?= htmlspecialchars($serv['nombre_empresa']) ?>
+                            </td>
 
-                        <td><?= htmlspecialchars($item['categoria'] ) ?></td>
+                            <td><?= htmlspecialchars($serv['nombre_encargado']) ?></td>
 
-                        <td>
-                            <button class="btn-view" data-id="<?php echo $item['public_id']; ?>"> VISUALIZAR</button>
-                            <button class="btn-edit" data-id="<?php echo $resident['public_id']; ?>"><svg height="25px" width="40px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8.29289 3.70711L1 11V15H5L12.2929 7.70711L8.29289 3.70711Z" fill="#031159"></path> <path d="M9.70711 2.29289L13.7071 6.29289L15.1716 4.82843C15.702 4.29799 16 3.57857 16 2.82843C16 1.26633 14.7337 0 13.1716 0C12.4214 0 11.702 0.297995 11.1716 0.828428L9.70711 2.29289Z" fill="#031159"></path> </g></svg></button>
-                            <button class="btn-delete" data-id="<?php echo $resident['public_id']; ?>"><svg height="25px" width="40px" fill="#01075b" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#01075b"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.755,20.283,4,8H20L18.245,20.283A2,2,0,0,1,16.265,22H7.735A2,2,0,0,1,5.755,20.283ZM21,4H16V3a1,1,0,0,0-1-1H9A1,1,0,0,0,8,3V4H3A1,1,0,0,0,3,6H21a1,1,0,0,0,0-2Z"></path></g></svg></button>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                            <td>
+                                <button class="btn-view-serv" data-id="<?= $serv['servicio_asignado_id']; ?>">
+                                    <svg height="25px" width="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M15.0007 12C15.0007 13.6569 13.6576 15 12.0007 15C10.3439 15 9.00073 13.6569 9.00073 12C9.00073 10.3431 10.3439 9 12.0007 9C13.6576 9 15.0007 10.3431 15.0007 12Z" stroke="#031159" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12.0012 5C7.52354 5 3.73326 7.94288 2.45898 12C3.73324 16.0571 7.52354 19 12.0012 19C16.4788 19 20.2691 16.0571 21.5434 12C20.2691 7.94291 16.4788 5 12.0012 5Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                                </button>
+                                <button class="btn-edit-serv" data-id="<?= $serv['servicio_asignado_id']; ?>">
+                                    <svg height="25px" width="40px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8.29289 3.70711L1 11V15H5L12.2929 7.70711L8.29289 3.70711Z" fill="#031159"></path> <path d="M9.70711 2.29289L13.7071 6.29289L15.1716 4.82843C15.702 4.29799 16 3.57857 16 2.82843C16 1.26633 14.7337 0 13.1716 0C12.4214 0 11.702 0.297995 11.1716 0.828428L9.70711 2.29289Z" fill="#031159"></path> </g></svg>
+                                </button>
+                                <button class="btn-delete-serv" data-id="<?= $serv['servicio_asignado_id']; ?>">
+                                    <svg height="25px" width="40px" fill="#01075b" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#01075b"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.755,20.283,4,8H20L18.245,20.283A2,2,0,0,1,16.265,22H7.735A2,2,0,0,1,5.755,20.283ZM21,4H16V3a1,1,0,0,0-1-1H9A1,1,0,0,0,8,3V4H3A1,1,0,0,0,3,6H21a1,1,0,0,0,0-2Z"></path></g></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>
 </div>
-
-<div class="section-card">
-    <div class="card-header">
-        <h6>Integración con Proveedores</h6>
-    </div>
-
-    <div class="card-body">
-        <p>
-            Este módulo está diseñado para trabajar en conjunto con el apartado de <strong>Proveedores</strong>.
-            Desde aquí podrás vincular colaboradores con proveedores específicos, controlar servicios
-            tercerizados y generar reportes conjuntos.
-        </p>
-    </div>
-</div>
-
-
 
 <div id="serviceModal" class="modal-overlay">
     <div class="modal-content">

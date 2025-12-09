@@ -30,7 +30,7 @@ class AvisosModel
                     i.apellido_p, 
                     i.apellido_m,
                     u.num_casa,
-                    u.public_id AS author_public_id  -- ¡AGREGADO! El UUID del autor
+                    u.public_id AS author_public_id  -- El UUID del autor
                 FROM priv_avisos a
                 JOIN priv_infousuario i ON a.id_info = i.id_info
                 JOIN priv_usuarios u ON i.id_usuario = u.id_usuario
@@ -51,7 +51,7 @@ class AvisosModel
                         contenido, 
                         tipo, 
                         fecha_pub, 
-                        id_info  -- ¡Cambiado de id_usuario a id_info!
+                        id_info 
                     ) 
                     VALUES (
                         :titulo, 

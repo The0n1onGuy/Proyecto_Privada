@@ -1,12 +1,9 @@
-<div class="content-header">
-    <h1>Gestión de Residentes</h1>
-    <p>Consulta la información de los residentes de la privada.</p>
-</div>
 
-<div class="section-card">
+
+<div class="section-card" style="margin-bottom: 20px;">
     <div class="card-header">
         <h6>Listado de Residentes</h6>
-        <div class="filter-container">
+        <div class="filter-container" id="customFilterDestination">
             <label for="residentFilter">Mostrar:</label>
             <select id="residentFilter" name="residentFilter">
                 <option value="owners" <?php echo ($currentFilter === 'owners') ? 'selected' : ''; ?>>Solo Propietarios</option>
@@ -24,7 +21,6 @@
                 <th>Correos</th>
                 <th>Teléfonos</th>
                 <th>Casa</th>
-                <th>Privada</th>
                 <th>Estatus</th>
             </tr>
         </thead>
@@ -32,7 +28,7 @@
             <?php if (!empty($residents)): ?>
                 <?php foreach ($residents as $resident): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($resident['id_info']); ?></td>
+                        <td><h1></h1><?php echo $__resident_counter = ($__resident_counter ?? 0) + 1; ?><h1></h1></td>
                         <td><?php echo htmlspecialchars($resident['nombres'] . ' ' . $resident['apellido_p']); ?></td>
                         <td><?php echo $resident['es_propietario'] ? '<span class="badge owner">Propietario</span>' : '<span class="badge resident">Residente</span>'; ?></td>
                         <td>
@@ -70,11 +66,11 @@
                             ?>
                         </td>
                         <td><?php echo htmlspecialchars($resident['num_casa']); ?></td>
-                        <td><?php echo htmlspecialchars($resident['privada_nombre']); ?></td>
                         <td><?php echo htmlspecialchars($resident['estatus']); ?></td>
-                    </tr>
-                <?php endforeach; ?>
+                    </tr>  <?php endforeach; ?>
             <?php endif; ?>
+
         </tbody>
     </table>
+    
 </div>

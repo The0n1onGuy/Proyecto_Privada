@@ -8,19 +8,21 @@ use PDO;
 class ResidentsModel {
 
     /**
-     * Obtiene los residentes de una privada específica, con un filtro opcional.
+     * Obtiene los residentes de una privada específica usando su Public ID.
      *
-     * @param int $id_privada El ID de la privada.
+     * @param string $privadaId El Public ID de la privada.
      * @param string $filterType El tipo de filtro ('owners' para solo propietarios, 'all' para todos).
      * @return array
      */
-    public function getAllResidents($id_privada, $filterType = 'owners') {
+    public function getAllResidents($privadaId, $filterType = 'owners') {
         try {
             $conn = Database::getConnection();
+            
+            // CAMBIO 1: Seleccionamos iu.public_id AS id_info para proteger el ID interno
+            // CAMBIO 2: Agregamos el JOIN con priv_privadas si no estaba implícito para filtrar por p.public_id
             $sql = "
                 SELECT
-                    iu.id_info,
-                    iu.id_usuario,
+                    iu.public_id AS id_info, 
                     iu.nombres,
                     iu.apellido_p,
                     iu.apellido_m,
@@ -36,27 +38,31 @@ class ResidentsModel {
                 JOIN priv_privadas p ON u.id_privada = p.id_privada
                 LEFT JOIN priv_corresusuario ct ON iu.id_info = ct.id_info
                 LEFT JOIN priv_telusuario tt ON iu.id_info = tt.id_info
-                WHERE u.id_privada = :id_privada";
+                WHERE p.public_id = :privadaPublicId"; // Filtramos por el ID público de la privada
 
             // Aplica el filtro si es para 'owners'
             if ($filterType === 'owners') {
                 $sql .= " AND iu.es_propietario = 1";
             }
-            // Si es 'all', no se añade ninguna condición extra, trayendo a todos.
+            // Si es 'all', no se añade ninguna condición extra.
 
             $sql .= "
                 GROUP BY iu.id_info
                 ORDER BY u.num_casa ASC, iu.es_propietario DESC, iu.id_info ASC
                 ";
+            
             $stmt = $conn->prepare($sql);
-            $stmt->bindparam(':id_privada', $id_privada, PDO::PARAM_INT);
+            
+            // CAMBIO 3: Vinculamos como STRING porque el public_id suele ser un hash/uuid
+            $stmt->bindValue(':privadaPublicId', $privadaId, PDO::PARAM_STR);
+            
             $stmt->execute();
             
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (\PDOException $e) {
-            // Manejo de errores
-            error_log("Error al obtener los residentes: " . $e->getMessage());
+            // Manejo de errores silencioso o log
+            error_log("Error en ResidentsModel::getAllResidents: " . $e->getMessage());
             return [];
         }
     }

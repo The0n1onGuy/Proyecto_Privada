@@ -17,42 +17,58 @@ $(document).off('change.residentsFilter').on('change.residentsFilter', '#residen
 // --- FUNCIÓN GLOBAL DE INICIALIZACIÓN PARA ESTA VISTA ---
 // Esta función será llamada por resident_panel.js después de cargar el contenido HTML y este script.
 function initializeResidentsView() {
-    console.log("Inicializando vista de residentes..."); // Para depuración
+    console.log("Inicializando vista de residentes...");
 
     const tablaResidentes = $('#tablaResidentes');
 
-    // Verifica si la tabla existe en el DOM antes de intentar inicializarla
     if(tablaResidentes.length === 0) {
-        console.warn("Tabla #tablaResidentes no encontrada en el DOM.");
+        console.warn("Tabla #tablaResidentes no encontrada.");
         return;
     }
 
-    // Destruye cualquier instancia previa de DataTable en esta tabla
-    // Usar "destroy": true en las opciones también ayuda, pero hacerlo explícito aquí es más seguro.
     if ($.fn.DataTable.isDataTable(tablaResidentes)) {
-        console.log("Destruyendo DataTable existente..."); // Para depuración
         tablaResidentes.DataTable().destroy();
-        // A veces es útil limpiar el tbody después de destruir para evitar duplicados visuales momentáneos
-        // tablaResidentes.find('tbody').empty();
     }
 
-    // Inicializa DataTable
-    console.log("Inicializando DataTable..."); // Para depuración
     tablaResidentes.DataTable({
         "language": {
-            "url": "/js/Utilities/spanish.json" // Asegúrate que este archivo exista y sea accesible
+            "url": "/js/Utilities/spanish.json"
         },
+        "responsive": true,
+        
+        // --- AQUÍ ESTÁ EL TRUCO DEL DOM ---
+        // Explicación de las letras:
+        // 'top-wrapper' = clase contenedora superior
+        // 'my-custom-filter' = clase donde inyectaremos tu select
+        // 'f' = filter (input de búsqueda)
+        // 'rt' = processing (r) y table (t)
+        // 'p' = pagination (paginación)
+        // Nota: Hemos eliminado la 'l' (length) intencionalmente.
+        "dom": '<"top-wrapper" <"my-custom-filter"> f > rt <"bottom" p >',
+
         "order": [
-            [5, "asc"], // Ordenar por número de casa (columna índice 5)
-            [2, "desc"] // Luego por Tipo (Propietario primero) (columna índice 2)
+            [5, "asc"], 
+            [2, "desc"]
         ],
-        // Opciones adicionales que pueden ayudar:
-        "retrieve": true, // Intenta reutilizar la instancia si ya existe (aunque destroy debería manejarlo)
-        "paging": true, // Asegúrate de que la paginación esté como la deseas (true por defecto)
-        "searching": true, // Asegúrate de que la búsqueda esté como la deseas (true por defecto)
-        "info": true // Asegúrate de que la información esté como la deseas (true por defecto)
-        // Considera añadir 'destroy: true' si sigues teniendo problemas, aunque ya lo hacemos manualmente.
-        // "destroy": true
+        
+        // --- FUNCIÓN QUE SE EJECUTA AL TERMINAR DE CREAR LA TABLA ---
+        "initComplete": function(settings, json) {
+            // 1. Seleccionamos tu contenedor de filtro original
+            var $originalFilter = $('#customFilterDestination');
+            
+            // 2. Seleccionamos el destino dentro de la tabla (el hueco que creamos en 'dom')
+            var $destination = $('.my-custom-filter');
+            
+            // 3. Movemos el filtro dentro de la estructura de DataTables
+            $originalFilter.appendTo($destination);
+            
+            // 4. (Opcional) Ajustamos estilos visuales para que se vea bonito junto al buscador
+            $originalFilter.css({
+                'display': 'flex',
+                'align-items': 'center',
+                'margin-right': '20px' // Espacio entre el filtro y otros elementos si los hubiera
+            });
+        }
     });
 }
 

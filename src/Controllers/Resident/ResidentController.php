@@ -271,6 +271,9 @@ public function showAvisos()
             return;
         }
 
+        $userId = $_SESSION['user_id'];
+        $privadaId = $_SESSION['id_privada'];
+
         switch ($view_file) {
             case 'start':
                 // --- Lógica añadida ---
@@ -296,11 +299,16 @@ public function showAvisos()
             case 'residents':
                 $residentsModel = new ResidentsModel();
                 $filter = $_GET['filter'] ?? 'owners';
-                $residents = $residentsModel->getAllResidents($_SESSION['id_privada'], $filter);
+                
+                // CAMBIO: Usamos la variable $privadaPublicId
+                // Asegúrate de que tu sistema de Login llene $_SESSION['privada_public_id']
+                $residents = $residentsModel->getAllResidents($privadaId, $filter);
+                
                 $data['residents'] = $residents;
                 $data['currentFilter'] = $filter;
                 $assets['styles'] = ['/css/Utilities/DataTables.css'];
                 $assets['styles'][] = ['/css/Resident/residents.css'];
+                $assets['styles'][] = ['/css/Resident/Datatables.css'];
                 $assets['scripts'] = ['/js/Resident/residents.js'];
                 
                 break;

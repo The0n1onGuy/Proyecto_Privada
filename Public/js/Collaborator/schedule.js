@@ -1,10 +1,9 @@
 function initializeScheduleView() {
-    console.log("Inicializando vista del calendario..."); // Para depuración
+    console.log("Inicializando vista del calendario...");
 
-    // --- 1. CONFIGURACIÓN INICIAL ---
     const container = document.getElementById('schedule-container');
     if (!container) {
-        console.log("Contenedor de calendario no encontrado.");
+        console.error("Contenedor 'schedule-container' no encontrado.");
         return; 
     }
 
@@ -14,101 +13,123 @@ function initializeScheduleView() {
     const modalBody = document.getElementById('modal-content-body');
     const modalCloseBtn = document.getElementById('modal-close-btn');
 
-    // Cargar los datos del PHP
-    // Usamos '|| "[]"' como fallback seguro por si 'dataset.calendardata' está vacío
-    const calendarData = JSON.parse(container.dataset.calendardata || "[]");
+    // Parseo seguro de datos PHP
+    let calendarData = {};
+    try {
+        calendarData = JSON.parse(container.dataset.calendardata || "{}");
+    } catch (e) {
+        console.error("Error parseando calendarData:", e);
+    }
 
-    // --- 2. FUNCIÓN PARA DIBUJAR EL CALENDARIO ---
+    // --- CONSTRUIR CALENDARIO ---
     function buildCalendar(year, month) {
-        grid.innerHTML = ''; // Limpiar el grid
+        grid.innerHTML = ''; 
 
-        const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0=Domingo, 1=Lunes
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
-        const startOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+        // Ajuste para que Lunes sea el primer día visualmente si quieres (0=Domingo)
+        const startOffset = firstDayOfMonth; 
 
+        // Celdas vacías previas
         for (let i = 0; i < startOffset; i++) {
             grid.insertAdjacentHTML('beforeend', '<div class="day-cell empty-cell"></div>');
         }
 
+        // Días del mes
         for (let day = 1; day <= daysInMonth; day++) {
-            const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             
-            let dayCellHTML = `<div class="day-cell" data-date="${date}">
-                                <div class="day-number">${day}</div>`;
+            let dayContent = '';
 
-            if (calendarData[date]) {
-                for (const estatus in calendarData[date]) {
-                    const data = calendarData[date][estatus];
-                    dayCellHTML += `<div class="activity-summary-block status-${estatus}">
-                                        ${data.count} ${estatus}
-                                    </div>`;
-                }
+            // Verificamos si hay datos para este día específico
+            if (calendarData[dateStr] && Array.isArray(calendarData[dateStr])) {
+                calendarData[dateStr].forEach(item => {
+                    // item.class viene del PHP (event-warning, event-success, etc.)
+                    dayContent += `
+                        <div class="activity-summary-block ${item.class}">
+                            <span class="badge-count">${item.count}</span> ${item.status_name}
+                        </div>
+                    `;
+                });
             }
 
-            dayCellHTML += `</div>`;
-            grid.insertAdjacentHTML('beforeend', dayCellHTML);
+            const cellHTML = `
+                <div class="day-cell" data-date="${dateStr}">
+                    <div class="day-number">${day}</div>
+                    <div class="day-events">
+                        ${dayContent}
+                    </div>
+                </div>`;
+            
+            grid.insertAdjacentHTML('beforeend', cellHTML);
         }
     }
 
-    // --- 3. FUNCIONES PARA EL MODAL Y AJAX ---
+    // --- FETCH AJAX (Click en el día) ---
     async function fetchAndShowActivities(date) {
-        modalBody.innerHTML = '<p>Cargando actividades...</p>';
+        modalBody.innerHTML = '<div class="loading-spinner">Cargando actividades...</div>';
         modalTitle.innerText = `Actividades del ${date}`;
         modalOverlay.style.display = 'flex';
 
         try {
             const formData = new URLSearchParams();
-            formData.append('fecha', date);
+            formData.append('fecha', date); // Coincide con $_POST['fecha']
 
-            const response = await fetch('/collaborator/getActivitiesForDate', {
+            const response = await fetch('/collaborator/getActivitiesForDate', { // Ruta correcta
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
                 body: formData
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al cargar los datos.');
-            }
-
+            if (!response.ok) throw new Error('Error de red al cargar datos.');
+            
             const activities = await response.json();
+            
+            // Validar si devolvió error de PHP
+            if (activities.error) throw new Error(activities.error);
+
             populateModal(activities);
 
         } catch (error) {
-            modalBody.innerHTML = `<p>Ocurrió un error: ${error.message}</p>`;
+            console.error(error);
+            modalBody.innerHTML = `<p class="error-msg">No se pudieron cargar las actividades.</p>`;
         }
     }
 
+    // --- PINTAR MODAL ---
     function populateModal(activities) {
-        if (activities.length === 0) {
-            modalBody.innerHTML = '<p>No hay actividades programadas para esta fecha.</p>';
+        if (!activities || activities.length === 0) {
+            modalBody.innerHTML = '<p class="no-data">No hay actividades programadas para este día.</p>';
             return;
         }
 
-        let modalHTML = '';
+        let html = '<ul class="activity-list">';
         activities.forEach(act => {
-            modalHTML += `
-                <div class="activity-detail-item">
-                    <strong>${act.nombre_actividad}</strong> (${act.nombre_servicio})<br>
-                    <strong>Privada:</strong> ${act.nombre_privada}<br>
-                    <strong>Responsable:</strong> ${act.nombre_responsable || 'No asignado'}<br>
-                    <strong>Estatus:</strong> ${act.nombre_estatus}<br>
-                    <strong>Tiene Reporte:</strong> ${act.tiene_reporte}
-                </div>
+            // Diseño limpio sin horarios, solo QUÉ y QUIÉN
+            html += `
+                <li class="activity-item">
+                    <div class="act-header">
+                        <span class="act-title">${act.nombre_actividad}</span>
+                        <span class="act-status pill">${act.nombre_estatus}</span>
+                    </div>
+                    <div class="act-details">
+                        <p><strong>Ubicación:</strong> ${act.nombre_privada}</p>
+                        <p><strong>Responsable:</strong> ${act.nombre_responsable}</p>
+                        <p><strong>Servicio:</strong> ${act.nombre_servicio || 'General'}</p>
+                    </div>
+                </li>
             `;
         });
-        modalBody.innerHTML = modalHTML;
+        html += '</ul>';
+        modalBody.innerHTML = html;
     }
 
-    // --- 4. EVENT LISTENERS ---
-    
-    // Usamos .off().on() para evitar duplicar listeners en recargas AJAX
-    $(grid).off('click').on('click', (e) => {
-        const dayCell = e.target.closest('.day-cell');
-        if (!dayCell || dayCell.classList.contains('empty-cell')) {
-            return;
-        }
-        const date = dayCell.dataset.date;
+    // --- LISTENERS ---
+    $(grid).off('click').on('click', '.day-cell', function() {
+        if ($(this).hasClass('empty-cell')) return;
+        const date = $(this).data('date');
         fetchAndShowActivities(date);
     });
 
@@ -119,13 +140,10 @@ function initializeScheduleView() {
 
     $(modalCloseBtn).off('click').on('click', closeModal);
     $(modalOverlay).off('click').on('click', (e) => {
-        if (e.target === modalOverlay) {
-            closeModal();
-        }
+        if (e.target === modalOverlay) closeModal();
     });
 
-    // --- 5. INICIALIZACIÓN ---
-    const today = new Date();
-    buildCalendar(today.getFullYear(), today.getMonth());
-
+    // Inicializar hoy
+    const now = new Date();
+    buildCalendar(now.getFullYear(), now.getMonth());
 }

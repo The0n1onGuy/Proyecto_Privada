@@ -275,9 +275,11 @@ class AdminController
     {
         $serviciosModel = new ServiciosModel(); // DECLARO EL MODELO Y MODELO DE UTILIDAD ANTES PARA NO REPETIR EN CADA CASO Y OPTIMIZAR
         $utilityModel = new UtilityModel();
-        $servicios = $serviciosModel->obtenServicios($_SESSION['id_privada']);
+        // $servicios = $serviciosModel->obtenServicios($_SESSION['id_privada']);
         //Almacena en un JSON los datos y el filtro definido
-        $data['servicios'] = $servicios;
+        // $data['servicios'] = $servicios;
+        $data['lista_proveedores'] = $serviciosModel->obtenProveedoresPorPrivada($_SESSION['id_privada']);
+        $data['lista_servicios'] = $serviciosModel->obtenServiciosAsignados($_SESSION['id_privada']);
         // $data['Priv_servicios'] = $utilityModel->obtenTodosPrivadas();
         // $data['estatus_servicios'] = $utilityModel->obtenPrimDatosEstatus();       
         $assets['styles'] = ['/css/Admin/admin_servicios.css'];
@@ -798,12 +800,12 @@ class AdminController
             case 'servicios':
                 $serviciosModel = new ServiciosModel(); // DECLARO EL MODELO Y MODELO DE UTILIDAD ANTES PARA NO REPETIR EN CADA CASO Y OPTIMIZAR
                 $utilityModel = new UtilityModel();
-                $servicios = $serviciosModel->obtenServicios($_SESSION['id_privada']);
                 //Almacena en un JSON los datos y el filtro definido
-                $data['servicios'] = $servicios;
+                $data['lista_proveedores'] = $serviciosModel->obtenProveedoresPorPrivada($_SESSION['id_privada']);
+                $data['lista_servicios'] = $serviciosModel->obtenServiciosAsignados($_SESSION['id_privada']);
 
                 $assets['styles'] = ['/css/Admin/admin_servicios.css'];
-                $assets['scripts'] = ['/js/Admin/admin_servicios.js' , '/js/Admin/admin_serviciosAnadir.js'];
+                $assets['scripts'] = ['/js/Admin/admin_servicios.js' , '/js/Admin/admin_proveedor.js'];
                 break;
             case 'configs':
                 $assets['styles'][] = '/css/Admin/config.css';

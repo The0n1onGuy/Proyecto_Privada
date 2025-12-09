@@ -24,7 +24,7 @@ public function getResidentInfo($userPublicId)
                  p.nombre AS privada_nombre, 
                  u.num_casa, 
                  i.nombres, 
-                 i.public_id AS id_info  -- ¡LA CORRECCIÓN ESTÁ AQUÍ!
+                 i.public_id AS id_info
              FROM priv_usuarios u 
              JOIN priv_privadas p ON u.id_privada = p.id_privada
              JOIN priv_infousuario i ON u.id_usuario = i.id_usuario
@@ -73,8 +73,6 @@ public function getResidentInfo($userPublicId)
 
             // --- 2. Verificar el último pago del usuario ---
             
-            // ¡¡LA CORRECCIÓN ESTÁ AQUÍ!!
-            // La columna en priv_pagos que referencia al usuario también se llama 'public_id'.
         $stmtPago = $this->conn->prepare(
             'SELECT fecha_pago 
              FROM priv_pagos 

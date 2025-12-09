@@ -3,105 +3,61 @@
 namespace App\Models\Admin;
 use App\Core\Database;
 use PDO;
-use Exception;
 
-class ServiciosModel {
+class ServiciosModelcopy {
     private const ESTATUS_ACTIVO = 1;
-
+    private const ESTATUS_INACTIVO = 2;
     /**
-     * Obtiene los proveedores activos en la privada con sus contactos concatenados.
-     * Ideal para la tabla "Proveedores Registrados".
-     */
-    public function obtenProveedoresPorPrivada(string $public_id_privada) {
+     * Obtiene la lista de servicios y proveedores activos para una privada específica.
+     * @param string $public_id_privada El UUID de la privada actual.
+     */    
+    public function obtenServicios(string $public_id_privada){
         try {
             $conn = Database::getConnection();
             
             $sql = "
             SELECT 
-                prov.public_id AS proveedor_public_id,
+                
+                pps.public_id,
+                
+                -- Datos del Proveedor
                 prov.nombre_empresa,
                 prov.nombre_encargado,
                 
-                -- CORRECCIÓN: Usamos agregación para evitar error de GROUP BY
-                MIN(pps.fecha_asignacion) as fecha_asignacion,
-                SUM(s.precio_base) as precio_base, 
-
-                -- Concatenar teléfonos
-                (SELECT GROUP_CONCAT(tel.telefono SEPARATOR ', ') 
-                 FROM priv_telprove tel 
-                 WHERE tel.id_proveedor = prov.id_proveedor 
-                 AND tel.id_estatus = 1) AS telefonos,
-
-                -- Concatenar correos
-                (SELECT GROUP_CONCAT(mail.correo SEPARATOR ', ') 
-                 FROM priv_correoprove mail 
-                 WHERE mail.id_proveedor = prov.id_proveedor 
-                 AND mail.id_estatus = 1) AS correos
-
+                -- Datos del Servicio
+                serv.nom_serv,
+                
+                -- Datos de Categoría (Opcional, para contexto)
+                cat.nombre AS categoria,
+                
+                -- Estatus en la relación
+                e.estatus
+                
             FROM priv_privada_servicios pps
-            JOIN priv_privadas p ON pps.id_privada_fk = p.id_privada
-            JOIN priv_proveedor prov ON pps.id_proveedor_fk = prov.id_proveedor
-            JOIN priv_servicios s ON pps.id_servicio_fk = s.id_servicio
             
-            WHERE p.public_id = :public_id
-            AND pps.id_estatus = 1
-            GROUP BY prov.id_proveedor, prov.public_id, prov.nombre_empresa, prov.nombre_encargado"; 
-            // CORRECCIÓN: Se agrupa por todas las columnas no agregadas del SELECT
+            JOIN priv_privadas p ON pps.id_privada_fk = p.id_privada
+            JOIN priv_servicios serv ON pps.id_servicio_fk = serv.id_servicio
+            JOIN priv_proveedor prov ON pps.id_proveedor_fk = prov.id_proveedor
+            JOIN priv_servicios_categorias cat ON serv.id_categoria_fk = cat.id_categoria
+            JOIN priv_estatus e ON pps.id_estatus = e.id_estatus
+
+            WHERE p.public_id = :public_id";
 
             $stmt = $conn->prepare($sql);
             $stmt->execute([':public_id' => $public_id_privada]);
             
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        } catch (Exception $e) {
-            error_log("Error obteniendo proveedores: " . $e->getMessage());
+        } catch (\PDOException $e) {
+            error_log("Error en obtener servicios: " . $e->getMessage());
             return [];
         }
     }
+
     /**
-     * Obtiene la lista de servicios asignados.
-     * Soporta un filtro opcional por UUID de proveedor para el futuro.
+     * Obtiene los detalles completos de una asignación de servicio por su UUID.
+     * @param string $public_id El UUID de la tabla puente (privada y servicios).
      */
-    public function obtenServiciosAsignados(string $public_id_privada, ?string $proveedor_public_id = null) {
-        try {
-            $conn = Database::getConnection();
-            
-            $sql = "
-            SELECT 
-                pps.public_id AS servicio_asignado_id, -- UUID de la relación (para eliminar/editar la asignación)
-                s.nom_serv,
-                cat.nombre AS categoria,
-                prov.nombre_empresa,
-                prov.nombre_encargado,
-                prov.public_id AS proveedor_id_ref -- Referencia por si quieres filtrar clickeando
-                
-            FROM priv_privada_servicios pps
-            JOIN priv_privadas p ON pps.id_privada_fk = p.id_privada
-            JOIN priv_servicios s ON pps.id_servicio_fk = s.id_servicio
-            JOIN priv_proveedor prov ON pps.id_proveedor_fk = prov.id_proveedor
-            JOIN priv_servicios_categorias cat ON s.id_categoria_fk = cat.id_categoria
-            
-            WHERE p.public_id = :public_id
-            AND pps.id_estatus = 1";
-
-            // Lógica base para tu futuro filtro
-            $params = [':public_id' => $public_id_privada];
-            
-            if ($proveedor_public_id) {
-                $sql .= " AND prov.public_id = :prov_id";
-                $params[':prov_id'] = $proveedor_public_id;
-            }
-
-            $stmt = $conn->prepare($sql);
-            $stmt->execute($params);
-            
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        } catch (Exception $e) {
-            error_log("Error obteniendo servicios: " . $e->getMessage());
-            return [];
-        }
-    }
     public function obtenServicioDetalles($public_id) {
         try {
             $conn = Database::getConnection();
@@ -147,22 +103,6 @@ class ServiciosModel {
             error_log("Error obteniendo los detalles del servicio: " . $e->getMessage());
             return false;
         }
-    }
-    public function obtenTelefonosProveedor($id_proveedor) {
-        $conn = Database::getConnection();
-        $sql = "SELECT telefono FROM priv_telprove WHERE id_proveedor = ? AND id_estatus = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$id_proveedor, self::ESTATUS_ACTIVO]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    // Obtener correos del proveedor
-    public function obtenCorreosProveedor($id_proveedor) {
-        $conn = Database::getConnection();
-        $sql = "SELECT correo FROM priv_correoprove WHERE id_proveedor = ? AND id_estatus = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$id_proveedor, self::ESTATUS_ACTIVO]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
     public function crearServicios(array $data){
@@ -242,4 +182,23 @@ class ServiciosModel {
             throw $e;
         }
     }
+
+    // Obtener teléfonos del proveedor
+    public function obtenTelefonosProveedor($id_proveedor) {
+        $conn = Database::getConnection();
+        $sql = "SELECT telefono FROM priv_telprove WHERE id_proveedor = ? AND id_estatus = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$id_proveedor, self::ESTATUS_ACTIVO]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Obtener correos del proveedor
+    public function obtenCorreosProveedor($id_proveedor) {
+        $conn = Database::getConnection();
+        $sql = "SELECT correo FROM priv_correoprove WHERE id_proveedor = ? AND id_estatus = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$id_proveedor, self::ESTATUS_ACTIVO]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
 }

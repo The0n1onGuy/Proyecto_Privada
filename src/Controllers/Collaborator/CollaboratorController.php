@@ -11,44 +11,47 @@ class CollaboratorController
 {
 
 /**
-     * Carga los datos necesarios para la vista 'schedule'.
-     * Esta función privada evita duplicar código entre showSchedule y loadContent.
-     *
-     * @return array Los datos para la vista (ej. ['calendarData' => [...] ]).
+     * Método auxiliar para cargar datos del calendario (usado en la carga inicial)
      */
     private function cargarDatosSchedule(): array
     {
-        // 1. Obtener el mes actual
         $fecha_inicio = date('Y-m-01');
-        $fecha_fin = date('Y-m-t');
+        $fecha_fin = date('Y-m-t'); // Último día del mes actual
         
-        // 2. Aplicar filtro si el usuario es un Colaborador (Rol 5)
-        $id_filtro_usuario = null;
-            
-        // ----- ¡CORRECCIÓN 1! -----
-        // Tu sesión usa 'user_role' y el valor es un ID numérico (ej. 5), no un string.
+        $userPublicId = null;
         if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 5) { 
-            $id_filtro_usuario = $_SESSION['user_id'];
+            $userPublicId = $_SESSION['user_id'];
         }
 
-        // 3. Obtener el resumen de actividades
         $scheduleModel = new ScheduleModel();
-        $summaryData = $scheduleModel->getMonthlyActivitySummary($fecha_inicio, $fecha_fin, $id_filtro_usuario);
+        $summaryData = $scheduleModel->getMonthlyActivitySummary($fecha_inicio, $fecha_fin, $userPublicId);
 
-        // 4. Procesar los datos para el Front-End
         $calendarData = [];
+        
+        // Reestructuramos para que JS lo lea fácil
         foreach ($summaryData as $row) {
-            $fecha = $row['fecha_programada'];
-            // Usamos 'nombre_estatus' tal como lo definiste en el Modelo
-            $estatus = $row['nombre_estatus']; 
-            $calendarData[$fecha][$estatus] = [
+            $date = $row['fecha_programada'];
+            $status = strtolower($row['nombre_estatus']);
+            
+            // Asignar colores
+            $colorClass = 'event-default';
+            if (strpos($status, 'pendiente') !== false) $colorClass = 'event-warning'; // Amarillo
+            if (strpos($status, 'completada') !== false) $colorClass = 'event-success'; // Verde
+            if (strpos($status, 'cancelada') !== false) $colorClass = 'event-danger';  // Rojo
+            if (strpos($status, 'proceso') !== false) $colorClass = 'event-info';    // Azul
+
+            if (!isset($calendarData[$date])) {
+                $calendarData[$date] = [];
+            }
+            
+            $calendarData[$date][] = [
                 'count' => $row['total_actividades'],
-                // (Opcional) Puedes asignar colores fijos aquí si el modelo no los trae
-                // 'color' => $this->getColorForStatus($estatus) 
+                'status_name' => $row['nombre_estatus'],
+                'class' => $colorClass
             ];
         }
 
-        // 5. Devolver los datos listos para 'extract()'
+        // Devolvemos array asociativo
         return ['calendarData' => $calendarData];
     }
 
@@ -57,54 +60,37 @@ class CollaboratorController
      */
     public function showSchedule() 
     {
-        // 1. Cargar los datos del calendario
         $data = $this->cargarDatosSchedule();
-        
-        // 2. Definir los assets para esta vista
-        
-        // ----- ¡CORRECCIÓN 2! -----
-        // La ruta de tu JS era 'Resident' en lugar de 'Collaborator'
         $assets['styles'] = ['/css/Collaborator/schedule.css'];
         $assets['scripts'] = ['/js/Collaborator/schedule.js']; 
 
-        // 3. Definir la vista a cargar dentro del panel
         $view_to_load = 'schedule.php';
         
-        // 4. Cargar la plantilla principal (Panel.php)
-        // Panel.php usará $data, $assets y $view_to_load
         require __DIR__ . '/../../Views/Collaborator/Panel.php';
     }
 
-    /**
-     * Maneja la llamada AJAX POST para obtener actividades de un día específico.
-     */
-    public function getActivitiesForDate() 
+    public function getActivitiesForDate()
     {
-        // 1. Obtener la fecha del request (ej. $_POST['fecha'])
-        $fecha_seleccionada = $_POST['fecha'] ?? null; 
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        header('Content-Type: application/json');
+
+        // 1. Recibimos 'fecha' por POST (Coincide con tu JS)
+        $date = $_POST['fecha'] ?? null;
         
-        if (!$fecha_seleccionada) {
-            http_response_code(400); // Bad Request
-            echo json_encode(['error' => 'No se proporcionó la fecha.']);
+        if (!$date) {
+            echo json_encode(['error' => 'Fecha no proporcionada']);
             exit;
         }
 
-        // 2. Aplicar filtro
-        $id_filtro_usuario = null;
-        
-        // ----- ¡CORRECCIÓN 3! -----
-        // Corregir la clave de sesión ('user_role') y el valor (5)
+        $userPublicId = null;
         if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 5) {
-            $id_filtro_usuario = $_SESSION['user_id'];
+            $userPublicId = $_SESSION['user_id'];
         }
 
-        // 3. Obtener los detalles
         $scheduleModel = new ScheduleModel();
-        $details = $scheduleModel->getDetailedActivitiesForDate($fecha_seleccionada, $id_filtro_usuario);
+        $activities = $scheduleModel->getActivitiesForDate($date, $userPublicId);
 
-        // 4. Devolver los datos como JSON
-        header('Content-Type: application/json');
-        echo json_encode($details);
+        echo json_encode($activities);
         exit;
     }
     
@@ -156,6 +142,28 @@ public function loadContent($view)
         
         // 5. Cargar datos específicos para cada vista
         switch ($view_file) {
+            case 'get-daily':
+                // 1. Limpiamos el buffer para asegurar que solo salga JSON
+                if (ob_get_length()) ob_clean();
+                
+                // 2. Obtenemos parámetros
+                $date = $_GET['date'] ?? date('Y-m-d');
+                $userPublicId = null;
+
+                // 3. Validamos usuario (misma lógica que en cargarDatosSchedule)
+                if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 5) { 
+                    $userPublicId = $_SESSION['user_id'];
+                }
+
+                // 4. Consultamos el modelo
+                $scheduleModel = new ScheduleModel();
+                $activities = $scheduleModel->getActivitiesForDate($date, $userPublicId);
+
+                // 5. Devolvemos JSON puro y terminamos la ejecución
+                header('Content-Type: application/json');
+                echo json_encode($activities);
+                exit; // ¡Importante! Detiene la ejecución para no cargar vistas HTML
+            // -----------------------------
             case 'schedule':
                 
                 // ----- ¡CORRECCIÓN 4! -----

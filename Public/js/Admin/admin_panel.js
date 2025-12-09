@@ -332,17 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     function initializeServiciosTable() {
-        $('#tablaServicios').DataTable({
-            "destroy": true,
-            "language": { "url": "/js/Utilities/spanish.json" },
-            "order": [[0, "desc"]],
-            "paging":   false,      // Disables pagination (Next/Previous buttons)
-            "searching": false,     // Disables the search box
-            "info":     false,      // Hides "Showing 1 of X entries"
-            "lengthChange": false, // Hides the "Show X entries" dropdown
-            "scrollY":  "200px",    // Enables vertical scrolling with a fixed height
-            "scrollCollapse": true // Makes the table smaller if there are few rows
-        });
         $('#tablaProveedores').DataTable({
             "destroy": true,
             "language": { "url": "/js/Utilities/spanish.json" },
@@ -354,6 +343,18 @@ document.addEventListener('DOMContentLoaded', function() {
             "scrollY":  "200px",    // Enables vertical scrolling with a fixed height
             "scrollCollapse": true // Makes the table smaller if there are few rows
         });
+        $('#tablaServicios').DataTable({
+            "destroy": true,
+            "language": { "url": "/js/Utilities/spanish.json" },
+            "order": [[0, "desc"]],
+            "paging":   false,      // Disables pagination (Next/Previous buttons)
+            "searching": false,     // Disables the search box
+            "info":     false,      // Hides "Showing 1 of X entries"
+            "lengthChange": false, // Hides the "Show X entries" dropdown
+            "scrollY":  "200px",    // Enables vertical scrolling with a fixed height
+            "scrollCollapse": true // Makes the table smaller if there are few rows
+        });
+        
     }
     // Manejador para el filtro de proveedores
     $(document).on('change', '#proveedorFilter', function() {
