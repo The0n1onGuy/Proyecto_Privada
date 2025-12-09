@@ -94,7 +94,6 @@ class Router
                 header('Location: /'); // Botar al login
                 exit;
             }
-            // --- NUEVO FIN ---
 
             $controller = new AdminController();            
             $method = $_SERVER['REQUEST_METHOD'];
@@ -113,6 +112,11 @@ class Router
                 $modalName = $matches[1]; // Captura 'edit-profile'
                 $controller->procesa_Modal_Configuracion($modalName);
                 return; // Detenemos aquí para no cargar el layout
+            }
+            //Mostrar un modal de los detalles del servicio
+            if (preg_match('/^\/admin\/api\/servicio\/([\w-]+)$/', $url, $matches)) {
+                $controller->obtenServicioData($matches[1]);
+                return;
             }
 
             // --- MANEJO DE PETICIONES POST
@@ -152,6 +156,10 @@ class Router
                     case '/admin/servicios/delete':
                         $controller->operacion_Servicios(3);
                         return;
+                    //FUNCIONES DE SERVICIOS
+                    case '/admin/proveedores/create':
+                        $controller->operacion_Servicios(1);
+                        return; 
                     //FUNCIONES DE AVISOS
                     case '/admin/avisos/create':
                         // $controller->Procesa_Crear_Colaborador();

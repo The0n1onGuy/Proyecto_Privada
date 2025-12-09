@@ -24,15 +24,15 @@
         if (e.target === modal) hideModal();
     });
 
-    // LÓGICA DEL FILTRO ---
+    // LÓGICA DEL FILTRO 
     misAvisosBtn?.addEventListener("click", () => {
         mostrandoMisAvisos = !mostrandoMisAvisos;
         const cards = document.querySelectorAll(".aviso-card");
 
-        // Cambiar texto del botón según el estado
+        // Cambia texto del botón según el estado
         if (mostrandoMisAvisos) {
             misAvisosBtn.textContent = "Ver Todos";
-            misAvisosBtn.classList.add('active'); // Opcional: para estilo visual
+            misAvisosBtn.classList.add('active'); 
         } else {
             misAvisosBtn.textContent = "Mis Avisos";
             misAvisosBtn.classList.remove('active');
@@ -50,7 +50,7 @@
                     card.style.display = "none"; // Oculta
                 }
             } else {
-                // MODO VER TODOS: Limpiamos el estilo para que se vean todas
+                //Limpiamos el estilo para que se vean todas
                 card.style.display = ""; 
             }
         });
@@ -73,7 +73,7 @@
                 .then(data => {
                     if (data.success) {
                         showGlobalPopup('Éxito', data.message, 'Entendido', 'success');
-                        // Eliminar la tarjeta del DOM visualmente
+                        // Eliminar tarjeta del DOM visualmente
                         const card = e.target.closest('.aviso-card');
                         if (card) card.remove();
                     } else {

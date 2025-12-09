@@ -3,14 +3,26 @@
 namespace App\Controllers\Admin;
 
 
-use App\Models\Admin\ServiciosModel;
+
 use App\Models\Admin\AvisosModel;
-use App\Models\Admin\UtilityModel;
+use App\Models\Admin\ColaboradoresModel;
 use App\Models\Admin\DashboardModel;
 use App\Models\Admin\ResidentsModel;
-use App\Models\Admin\ColaboradoresModel;
+use App\Models\Admin\ProveedorModel;
 use App\Core\SessionVerifier;
 use App\Models\SessionDataModel;
+use App\Models\Admin\ServiciosModel;
+use App\Models\Admin\UtilityModel;
+
+// use App\Models\Admin\ServiciosModel;
+// use App\Models\Admin\AvisosModel;
+// use App\Models\Admin\UtilityModel;
+// use App\Models\Admin\DashboardModel;
+// use App\Models\Admin\ResidentsModel;
+// use App\Models\Admin\ProveedorModel;
+// use App\Models\Admin\ColaboradoresModel;
+// use App\Core\SessionVerifier;
+// use App\Models\SessionDataModel;
 use Exception;
 
 class AdminController
@@ -259,28 +271,15 @@ class AdminController
                     }
     }
     
-    
-    public function showPrivadas()
-    {
-        // $usersModel = new UsersModel();
-        // $users = $usersModel->getusers();
-
-        // $data['users'] = $users;   
-        
-        // $assets['styles'] = ['/css/admin_users.css'];
-        // $assets['scripts'] = ['/js/dataTables.js',];
-
-        $view_to_load = 'privadas.php';
-        
-        require __DIR__ . '/../../Views/Admin/Panel.php';
-    }
     public function showServicios()
     {
-        // $usersModel = new UsersModel();
-        // $users = $usersModel->getusers();
-
-        // $data['users'] = $users;   
-        
+        $serviciosModel = new ServiciosModel(); // DECLARO EL MODELO Y MODELO DE UTILIDAD ANTES PARA NO REPETIR EN CADA CASO Y OPTIMIZAR
+        $utilityModel = new UtilityModel();
+        $servicios = $serviciosModel->obtenServicios($_SESSION['id_privada']);
+        //Almacena en un JSON los datos y el filtro definido
+        $data['servicios'] = $servicios;
+        // $data['Priv_servicios'] = $utilityModel->obtenTodosPrivadas();
+        // $data['estatus_servicios'] = $utilityModel->obtenPrimDatosEstatus();       
         $assets['styles'] = ['/css/Admin/admin_servicios.css'];
         $assets['scripts'] = ['/js/Admin/admin_servicios.js' , '/js/Admin/admin_proveedor.js'];
 
@@ -288,7 +287,27 @@ class AdminController
         
         require __DIR__ . '/../../Views/Admin/Panel.php';
     }
+    public function obtenServicioData($public_id)
+    {
+        header('Content-Type: application/json');
+        
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'No autorizado']);
+            exit;
+        }
 
+        $serviciosModel = new ServiciosModel();
+        $data = $serviciosModel->obtenServicioDetalles($public_id);
+
+        if ($data) {
+            echo json_encode(['success' => true, 'data' => $data]);
+        } else {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Servicio no encontrado.']);
+        }
+        exit;
+    }
     public function operacion_Servicios($caso){
         //REMPLAZA TODO CON RESPECTO A SERVICIOS ACTUALMENTE
         $casoS = $caso;
@@ -299,43 +318,22 @@ class AdminController
             exit;
         }
         $servicioModel = new ServiciosModel(); // DECLARO EL MODELO Y MODELO DE UTILIDAD ANTES PARA NO REPETIR EN CADA CASO Y MEJOR OPTIMIZAR
+        $proveedorModel = new ProveedorModel();
         $utilityModel = new UtilityModel();
 
         switch ($casoS){
-            case 1: // AQUI COLOCA TU LOGICA PARA CREAR SERVICIOS
-            
+            case 1: // CREANDO SERVICIOS
             $json = file_get_contents('php://input');
             $data = json_decode($json, true);
 
             try {
-                
-                
-                if (!empty($data['verificar']) && $data['verificar'] === true) {
-                    if (empty($data['username'])) {
-                        throw new Exception('No se proporcionó el nombre de usuario.');
-                    }
-                    $existe = $utilityModel->verificarUsuario($data['username']);
-                    echo json_encode(['existe' => $existe]);
-                    exit; 
-                }
-                if ($utilityModel->verificarUsuario($data['username'])) {
-                    echo json_encode(['success' => false, 'message' => 'El nombre de usuario ya está registrado.']);
-                    exit;
-                }
-                // ------------------------------------------------------------
-                // Bloque de creación real del colaborador
-                // ------------------------------------------------------------
-                if (empty($data['username']) || empty($data['password']) || empty($data['nombres'])) {
-                    throw new Exception('Faltan datos requeridos.');
-                }
                 // Antes de crear, también se puede verificar de nuevo (opcional)
-                
-                $success = $servicioModel->creaColaborador($data);
+                $success = $proveedorModel->crearProveedor($data);
 
                 if ($success) {
                     echo json_encode(['success' => true, 'message' => 'Colaborador creado exitosamente.']);
                 } else {
-                    throw new Exception('No se pudo crear el colaborador.');
+                    throw new Exception('No se pudo crear proveedor.');
                 }
 
             } catch (Exception $e) {
@@ -387,10 +385,30 @@ class AdminController
                     echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
                 }
                 exit;
+            case 4: // Añadir proveedor sin servicio
+                $json = file_get_contents('php://input');
+                $data = json_decode($json, true);
+
+                try {
+                    if (empty($data['public_id_usuario'])) {
+                        throw new Exception('No se proporcionó el ID del colaborador a eliminar.');
+                    }
+                
+                    $success = $proveedorModel->crearProveedor($data);
+
+                    if ($success) {
+                        echo json_encode(['success' => true, 'message' => 'Colaborador eliminado exitosamente.']);
+                    } else {
+                        throw new Exception('No se pudo eliminar el colaborador.');
+                    }
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Error del servidor: ' . $e->getMessage()]);
+                }
+                exit;
         }
     }
-    
-    public function showColaboradores()
+         public function showColaboradores()
     {
         $data = $this->cargarDatosDelPanel();
         //Llama en un objecto la clase y funciones
@@ -412,7 +430,6 @@ class AdminController
         
         require __DIR__ . '/../../Views/Admin/Panel.php';
     }
-
     public function obtenDatosdelColaborador($public_id)
     {
         // API para obtener datos de un colaborador específico
@@ -702,7 +719,7 @@ class AdminController
             $keys_to_check[] = 'id_privada'; //Le damos el UUDI a la vista si la requiere
         }
 
-        // 3. Verificamos
+        //Verificamos
         if (!$verifier->verify($keys_to_check)) {
             http_response_code(401); // 401 Unauthorized, para rebotar
             
@@ -779,8 +796,14 @@ class AdminController
                 $assets['scripts'] = ['/js/Admin/admin_colaboradoresAnadir.js' , '/js/Admin/admin_colaboradores.js'];
                 break;
             case 'servicios':
+                $serviciosModel = new ServiciosModel(); // DECLARO EL MODELO Y MODELO DE UTILIDAD ANTES PARA NO REPETIR EN CADA CASO Y OPTIMIZAR
+                $utilityModel = new UtilityModel();
+                $servicios = $serviciosModel->obtenServicios($_SESSION['id_privada']);
+                //Almacena en un JSON los datos y el filtro definido
+                $data['servicios'] = $servicios;
+
                 $assets['styles'] = ['/css/Admin/admin_servicios.css'];
-                $assets['scripts'] = ['/js/Admin/admin_servicios.js' , '/js/Admin/admin_proveedor.js'];
+                $assets['scripts'] = ['/js/Admin/admin_servicios.js' , '/js/Admin/admin_serviciosAnadir.js'];
                 break;
             case 'configs':
                 $assets['styles'][] = '/css/Admin/config.css';

@@ -36,23 +36,16 @@ $(document).ready(function() {
             phones: data.telefonos ? [...data.telefonos] : []
         };
 
-        // Llenar campos simples
-        // OJO: Usamos el public_id como ID oculto para que el update sepa a quién actualizar
+        // Llenar campos simples de bases de datos de acuerdo a la ID en el modal y su grupo <div class="form-group">
         $('#collaboratorId').val(data.public_id); 
         $('#nombres').val(data.nombres);
         $('#apellido_p').val(data.apellido_p);
         $('#apellido_m').val(data.apellido_m);
         $('#rol').val(data.rol);
-        
-        // Para la privada, asegúrate de que el <select> tenga values de public_id, no nombres.
-        // Si tu modelo getCollaboratorByPublicId devuelve 'privada_nombre', 
-        // tal vez necesites ajustar el select para seleccionar por texto, 
-        // o mejor, devolver 'public_id_privada' desde el backend.
+        // Usamos nombres para dar opciones
         $('#privada option').filter(function() {
-            // Intentamos coincidir por texto (nombre) como lo tenías antes
             return $(this).text().trim() === data.privada_nombre; 
         }).prop('selected', true);
-
         $('#estatus').val(data.estatus);
 
         // Llenar selectores de contacto
@@ -118,15 +111,19 @@ $(document).ready(function() {
     });
 
     function populateContactSelector(type, items) {
+        //Referencia el ID de selectores
         const select = (type === 'email') ? $('#selectCorreo') : $('#selectTelefono');
         const input = (type === 'email') ? $('#inputCorreo') : $('#inputTelefono');
         select.empty();
         select.find('option').show(); 
-
+        //Declara una referencia en el for, y utiliza el campo de la base de datos (telefono y email)
         if (items && items.length > 0) {
             items.forEach(item => {
                 const key = (type === 'email') ? 'correo' : 'telefono';
                 select.append(`<option value="${item['id_' + key]}">${item[key]}</option>`);
+                // Debug for shows data not edit
+                // select.append(`<span class="badge-contact contact">${item.campoBD}</span>`);
+
             });
         } else {
             select.append('<option value="">No hay registros</option>');
@@ -139,7 +136,7 @@ $(document).ready(function() {
         const input = (this.id === 'selectCorreo') ? $('#inputCorreo') : $('#inputTelefono');
         input.val(selectedText !== 'No hay registros' ? selectedText : '');
     });
-
+    //Oculta el modal
     function hideModal() {
         populateContactSelector('email', originalContacts.emails);
         populateContactSelector('phone', originalContacts.phones);

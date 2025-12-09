@@ -15,15 +15,15 @@
     </div>
     
  <div class="section-card">  
-     <div class="card-header filter-header" style="position: relative;">
-    <div class="filter-container superposed">
-        <label for="residentFilter">Mostrar:</label>
-        <select id="residentFilter" name="residentFilter">
-            <option value="owners" <?php echo ($currentFilter === 'owners') ? 'selected' : ''; ?>>Solo Propietarios</option>
-            <option value="all" <?php echo ($currentFilter === 'all') ? 'selected' : ''; ?>>Todos</option>
-        </select>
+    <div class="card-header filter-header" style="position: relative;">
+        <div class="filter-container superposed">
+            <label for="residentFilter">Mostrar:</label>
+            <select id="residentFilter" name="residentFilter">
+                <option value="owners" <?php echo ($currentFilter === 'owners') ? 'selected' : ''; ?>>Solo Propietarios</option>
+                <option value="all" <?php echo ($currentFilter === 'all') ? 'selected' : ''; ?>>Todos</option>
+            </select>
+        </div>
     </div>
-</div>
 
 
      <table id="tablaResidentes" class="display" style="width:100%">

@@ -1,0 +1,9 @@
+GENERADA 07/12/25 A las 6:58pm
+
+Secciones Residentes y Colaboradores completados en Administrador
+UUID Implementado 
+Sección de Proveedores y Servicios en proceso
+PANELES INTEGRADOS:
+--ADMINISTRADORES
+--RESIDENTES
+--COLABORADORES

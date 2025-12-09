@@ -16,7 +16,7 @@ class AvisosModel
 
     /**
      * Obtiene todos los avisos de una privada específica.
-     * @param string $privadaPublicId El public_id de la privada (desde la sesión).
+     * @param string $privadaPublicId El public_id de la privada en sesion
      */
     public function getAllAvisos($privadaPublicId)
     {
@@ -45,20 +45,18 @@ class AvisosModel
     public function createAviso($data)
     {
         try {
-            // CORRECCIÓN 2: Insertamos en 'id_info'
             $sql = "INSERT INTO priv_avisos (
                         titulo, 
                         contenido, 
                         tipo, 
                         fecha_pub, 
-                        id_info  -- ¡Cambiado de id_usuario a id_info!
+                        id_info  
                     ) 
                     VALUES (
                         :titulo, 
                         :contenido, 
                         :tipo, 
                         NOW(), 
-                        -- Subconsulta: Obtenemos el id_info usando el public_id del usuario
                         (SELECT i.id_info 
                          FROM priv_infousuario i 
                          JOIN priv_usuarios u ON i.id_usuario = u.id_usuario 
@@ -71,7 +69,6 @@ class AvisosModel
             $stmt->bindParam(':contenido', $data['contenido']);
             $stmt->bindParam(':tipo', $data['tipo']);
             
-            // El controlador nos manda el user_public_id (session['user_id'])
             $stmt->bindParam(':user_public_id', $data['user_public_id']); 
 
             return $stmt->execute();
@@ -85,7 +82,7 @@ class AvisosModel
     public function deleteAviso($id_aviso, $userPublicId)
     {
         try {
-            // CORRECCIÓN 3: Validamos propiedad mediante id_info
+
             $sql = "DELETE FROM priv_avisos 
                     WHERE id_aviso = :id_aviso 
                     AND id_info = (
