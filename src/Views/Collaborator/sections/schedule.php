@@ -1,308 +1,130 @@
 <?php
-// Incluir el modelo (asumiendo que ya está inicializado y disponible)
 use App\Models\Collaborator\ScheduleModel;
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $scheduleModel = new ScheduleModel();
+$collaboratorPublicId = $_SESSION['user_id'] ?? null;
 
-// 1. Obtener mes y año de la URL o usar el actual por defecto.
-// Usamos el operador de coalescencia nula (??) para versiones recientes de PHP (7.4+)
-// y filtramos para asegurar que son valores enteros.
-$currentMonth = filter_input(INPUT_GET, 'month', FILTER_VALIDATE_INT) ?? date('m');
-$currentYear = filter_input(INPUT_GET, 'year', FILTER_VALIDATE_INT) ?? date('Y');
+// 1. Obtener mes y año actuales. El JS se encargará de la navegación.
+$currentYear = date('Y');
+$currentMonth = date('m');
 
-// Validar que el mes y el año estén dentro de un rango razonable
-if ($currentMonth < 1 || $currentMonth > 12) {
-    $currentMonth = date('m');
-}
-if ($currentYear < 2000 || $currentYear > 2099) {
-    $currentYear = date('Y');
-}
+$startDate = "$currentYear-$currentMonth-01";
+$endDate = date("Y-m-t", strtotime($startDate));
 
-// 2. Obtener los horarios para el mes y año seleccionados.
-// Necesitarás actualizar ScheduleModel.php para soportar esto (ver paso 3).
-$schedule = $scheduleModel->getMonthlySchedule($currentYear, $currentMonth);
-$scheduledDays = [];
-foreach ($schedule as $event) {
-    // Almacenar el día del mes y la información de la cita.
-    // Usamos DateTimeImmutable para un manejo de fechas moderno y seguro.
-    try {
-        $dateTime = new DateTimeImmutable($event['start_time']);
-        $dayOfMonth = (int) $dateTime->format('j');
-        if (!isset($scheduledDays[$dayOfMonth])) {
-            $scheduledDays[$dayOfMonth] = [];
-        }
-        $scheduledDays[$dayOfMonth][] = $event;
-    } catch (\Exception $e) {
-        // Manejar errores si la fecha es inválida
-        // Deberías registrar esto de alguna manera.
+// 2. Obtener un resumen de actividades para el mes actual.
+$summary = $scheduleModel->getMonthlyActivitySummary($startDate, $endDate, $collaboratorPublicId);
+
+// 3. Formatear los datos para el JS.
+$calendarData = [];
+foreach ($summary as $item) {
+    $date = $item['activity_date']; 
+    if (!isset($calendarData[$date])) {
+        $calendarData[$date] = [];
     }
-}
 
+    $statusClass = '';
+    switch (strtolower($item['status_name'])) {
+        case 'completada':
+            $statusClass = 'event-success';
+            break;
+        case 'pendiente':
+            $statusClass = 'event-warning';
+            break;
+        case 'cancelada':
+            $statusClass = 'event-danger';
+            break;
+        default:
+            $statusClass = 'event-info';
+            break;
+    }
 
-// --- Lógica del Calendario Dinámico ---
-
-$dateContext = new DateTimeImmutable("$currentYear-$currentMonth-01");
-$monthName = $dateContext->format('F');
-$yearDisplay = $dateContext->format('Y');
-
-// Días de la semana en español
-$daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-// El primer día del mes (1 = Lunes, 7 = Domingo)
-$firstDayOfWeek = (int) $dateContext->format('N'); // 1 (Lun) a 7 (Dom)
-$startDay = $firstDayOfWeek == 7 ? 0 : $firstDayOfWeek; // Queremos que el domingo sea el 0
-
-// Número de días en el mes
-$daysInMonth = (int) $dateContext->format('t');
-
-// Calcular el mes anterior y el siguiente
-$prevMonthDate = $dateContext->modify('-1 month');
-$nextMonthDate = $dateContext->modify('+1 month');
-
-$prevMonth = (int) $prevMonthDate->format('m');
-$prevYear = (int) $prevMonthDate->format('Y');
-$nextMonth = (int) $nextMonthDate->format('m');
-$nextYear = (int) $nextMonthDate->format('Y');
-
-// Función simple para traducir el nombre del mes (Idealmente, usaríamos un archivo de traducción o locale)
-function translateMonth($monthName) {
-    $months = [
-        'January' => 'Enero', 'February' => 'Febrero', 'March' => 'Marzo',
-        'April' => 'Abril', 'May' => 'Mayo', 'June' => 'Junio',
-        'July' => 'Julio', 'August' => 'Agosto', 'September' => 'Septiembre',
-        'October' => 'Octubre', 'November' => 'Noviembre', 'December' => 'Diciembre'
+    $calendarData[$date][] = [
+        'status_name' => htmlspecialchars($item['status_name']),
+        'count' => (int) $item['activity_count'],
+        'class' => $statusClass,
     ];
-    return $months[$monthName] ?? $monthName;
 }
 
-$displayMonthName = translateMonth($monthName);
-
+$jsonCalendarData = json_encode($calendarData);
 ?>
 
-<div class="schedule-container">
-    <div class="calendar-controls">
-        <!-- Controles para navegar al mes anterior/siguiente -->
-        <a href="?section=schedule&month=<?php echo $prevMonth; ?>&year=<?php echo $prevYear; ?>" class="control-arrow">&laquo;</a>
-        
-        <h2 class="current-month-year"><?php echo $displayMonthName . ' ' . $yearDisplay; ?></h2>
-        
-        <!-- Control para ir al mes siguiente -->
-        <a href="?section=schedule&month=<?php echo $nextMonth; ?>&year=<?php echo $nextYear; ?>" class="control-arrow">&raquo;</a>
+<!-- Contenedor principal para la vista del calendario -->
+<div id="schedule-container" data-calendardata='<?php echo $jsonCalendarData; ?>' class="schedule-wrapper">
+    
+    <!-- Tarjeta del Calendario -->
+    <div class="schedule-card calendar-card">
+        <!-- Controles del Calendario (si se necesitan, el JS podría generarlos también) -->
+        <div class="calendar-controls">
+            <!-- Estos pueden ser manejados por JS si se desea más dinamismo -->
+            <button id="prev-month-btn">&laquo; Mes Anterior</button>
+            <h2 id="month-year-title" class="month-title"></h2>
+            <button id="next-month-btn">Mes Siguiente &raquo;</button>
+        </div>
+
+        <!-- Encabezado con días de la semana -->
+        <div class="calendar-weekdays">
+            <div class="weekday">Domingo</div>
+            <div class="weekday">Lunes</div>
+            <div class="weekday">Martes</div>
+            <div class="weekday">Miércoles</div>
+            <div class="weekday">Jueves</div>
+            <div class="weekday">Viernes</div>
+            <div class="weekday">Sábado</div>
+        </div>
+
+        <!-- Grid donde el JS construirá el calendario -->
+        <div class="calendar-grid" id="calendar-grid">
+            <!-- Las celdas del día se insertarán aquí por JS -->
+        </div>
     </div>
 
-    <!-- Tabla del Calendario -->
-    <table class="calendar-table">
-        <thead>
-            <tr>
-                <?php foreach ($daysOfWeek as $day): ?>
-                    <th><?php echo $day; ?></th>
-                <?php endforeach; ?>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-            <?php
-            $dayCount = 1;
-            // Dibuja celdas vacías hasta el primer día del mes
-            // El formato 'N' da 1 (Lun) - 7 (Dom). Para empezar en Domingo (0), necesitamos ajustar
-            // Usaremos el ajuste donde 0 es Domingo, 1 es Lunes, etc.
-            // PHP date('N') devuelve 7 para Domingo. Si queremos que Domingo esté primero (índice 0)
-            $dayOfWeekIndex = (int) $dateContext->format('w'); // 0 (Sun) a 6 (Sat)
-            
-            for ($i = 0; $i < $dayOfWeekIndex; $i++): ?>
-                <td class="empty-day"></td>
-            <?php endfor;
-
-            // Dibuja los días del mes
-            for ($i = 1; $i <= $daysInMonth; $i++):
-                // Inicia una nueva fila si es Domingo (0)
-                if ((($i - 1 + $dayOfWeekIndex) % 7) == 0 && $i != 1) {
-                    echo '</tr><tr>';
-                }
-
-                $isToday = ($i == date('j') && $currentMonth == date('m') && $currentYear == date('Y'));
-                $hasSchedule = isset($scheduledDays[$i]);
-                $dayClass = $isToday ? 'today' : '';
-                $dayClass .= $hasSchedule ? ' has-schedule' : '';
-
-                $dateString = sprintf('%s-%s-%s', $currentYear, $currentMonth, $i);
-            ?>
-                <td class="day-cell <?php echo $dayClass; ?>" data-date="<?php echo $dateString; ?>">
-                    <div class="day-number"><?php echo $i; ?></div>
-                    <?php if ($hasSchedule): ?>
-                        <div class="schedule-indicator">
-                            <span class="schedule-count" title="<?php echo count($scheduledDays[$i]); ?> citas"><?php echo count($scheduledDays[$i]); ?></span>
-                        </div>
-                        <div class="schedule-details">
-                            <!-- Popover/tooltip para mostrar detalles del horario -->
-                            <?php foreach ($scheduledDays[$i] as $scheduleItem): ?>
-                                <p class="schedule-item">
-                                    <?php echo (new DateTimeImmutable($scheduleItem['start_time']))->format('H:i'); ?>
-                                    - <?php echo $scheduleItem['title']; ?>
-                                </p>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </td>
-            <?php endfor;
-
-            // Rellena las celdas restantes al final
-            $remainingCells = 7 - (($daysInMonth + $dayOfWeekIndex) % 7);
-            if ($remainingCells < 7) {
-                for ($i = 0; $i < $remainingCells; $i++) {
-                    echo '<td class="empty-day"></td>';
-                }
-            }
-            ?>
-            </tr>
-        </tbody>
-    </table>
+    <!-- Tarjeta: Mis actividades de hoy -->
+    <div class="schedule-card today-activities-card">
+        <h3 class="card-title">Mis actividades de hoy</h3>
+        <div id="today-activities" class="today-activities-list">
+            <!-- El JS cargará aquí las actividades asignadas al colaborador para hoy -->
+        </div>
+    </div>
 </div>
 
-<!-- Estilos básicos CSS para el calendario (DEBERÍAS MOVER ESTO A UN ARCHIVO CSS) -->
-<style>
-.schedule-container {
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+<!-- Modal para mostrar detalles de las actividades de un día -->
+<div id="activity-modal-overlay" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modal-title">Actividades del Día</h3>
+            <button id="modal-close-btn" class="modal-close-btn">&times;</button>
+        </div>
+        <div id="modal-content-body" class="modal-body">
+            <!-- El contenido se cargará aquí por AJAX -->
+        </div>
+    </div>
+</div>
 
-.calendar-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 0 10px;
-}
+<!-- Inclusión de los scripts necesarios -->
+<!-- Asegúrate de que jQuery esté disponible. Si no está global, cárgalo aquí. -->
+<!-- <script src="/path/to/your/jquery.min.js"></script> -->
+<script src="/js/Collaborator/schedule.js"></script>
 
-.current-month-year {
-    font-size: 1.8em;
-    color: #333;
-    font-weight: 600;
-}
+<!-- Popup helper markup / estilos para asegurar que los popups funcionen en esta sección -->
+<link href="/css/utilities/popup.css" rel="stylesheet">
+<div id="resultPopup" class="popup-overlay">
+    <div class="popup-content">
+        <h2 id="resultPopupTitle" class="popup-title"></h2>
+        <p id="resultPopupMessage" class="popup-message"></p>
+        <button id="resultPopupCloseBtn" class="popup-close-btn">Entendido</button>
+    </div>
+</div>
+<script src="/js/Utilities/popup.js"></script>
 
-.control-arrow {
-    font-size: 2em;
-    text-decoration: none;
-    color: #007bff;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.control-arrow:hover {
-    background-color: #f0f0f0;
-}
-
-.calendar-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-}
-
-.calendar-table th, .calendar-table td {
-    border: 1px solid #ddd;
-    padding: 0; /* Quitamos padding del td para que el div interno lo maneje */
-    text-align: center;
-    height: 100px; /* Altura para ver el contenido del día */
-    vertical-align: top;
-}
-
-.calendar-table th {
-    background-color: #f8f8f8;
-    color: #555;
-    font-weight: 700;
-    padding: 10px 0;
-}
-
-.day-cell {
-    position: relative;
-    cursor: default;
-    background-color: #fdfdfd;
-}
-
-.day-cell:hover {
-    background-color: #f4f4f4;
-}
-
-.day-number {
-    position: absolute;
-    top: 5px;
-    right: 8px;
-    font-size: 1.2em;
-    color: #888;
-    font-weight: 500;
-}
-
-.today {
-    background-color: #e6f7ff;
-    border: 2px solid #007bff;
-}
-
-.today .day-number {
-    color: #007bff;
-    font-weight: bold;
-}
-
-.empty-day {
-    background-color: #eee;
-    pointer-events: none;
-}
-
-/* Estilos de Citas (Schedule) */
-.has-schedule {
-    background-color: #eafbe1;
-}
-
-.schedule-indicator {
-    position: absolute;
-    bottom: 5px;
-    left: 5px;
-}
-
-.schedule-count {
-    display: inline-block;
-    background-color: #28a745;
-    color: white;
-    font-size: 0.8em;
-    padding: 2px 6px;
-    border-radius: 12px;
-    font-weight: bold;
-}
-
-.schedule-details {
-    /* Ocultar por defecto, mostrar al pasar el ratón (o con JS para popover) */
-    display: none;
-    position: absolute;
-    z-index: 10;
-    bottom: 100%; /* Aparece por encima de la celda */
-    left: 0;
-    width: 250px;
-    background-color: #343a40;
-    color: white;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    text-align: left;
-    transform: translateY(-5px); /* Pequeño desplazamiento */
-}
-
-.day-cell:hover .schedule-details {
-    /* Para demostración: mostrar al pasar el ratón */
-    display: block; 
-}
-
-.schedule-item {
-    font-size: 0.9em;
-    margin: 0 0 5px 0;
-    border-bottom: 1px solid #495057;
-    padding-bottom: 3px;
-}
-.schedule-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-</style>
+<!-- Inicialización del script del calendario -->
+<script>
+    // Esperar a que el DOM esté completamente cargado
+    document.addEventListener('DOMContentLoaded', function() {
+        // Llamar a la función principal de nuestro script
+        initializeScheduleView();
+    });
+</script>

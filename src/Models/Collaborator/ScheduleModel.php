@@ -71,37 +71,27 @@ class ScheduleModel
     /**
      * Obtiene un resumen numérico para pintar el calendario (los cuadritos de colores).
      */
-    public function getMonthlyActivitySummary($fecha_inicio, $fecha_fin, $userPublicId = null) {
+    public function getMonthlyActivitySummary($fecha_inicio, $fecha_fin, $collaboratorPublicId) {
         
         $sql = "
             SELECT
-                P.fecha_programada,
-                E.estatus AS nombre_estatus,
-                COUNT(P.programada_id) AS total_actividades
+                P.fecha_programada AS activity_date,
+                E.estatus AS status_name,
+                COUNT(P.programada_id) AS activity_count
             FROM
                 priv_actividades_programadas AS P
             JOIN
                 priv_estatus AS E ON P.id_estatus = E.id_estatus
+            JOIN 
+                priv_usuarios AS U ON P.usuario_id_responsable = U.id_usuario
+            WHERE P.fecha_programada BETWEEN ? AND ? 
+            AND U.public_id = ?
+            GROUP BY P.fecha_programada, E.estatus
         ";
-
-        // Joins necesarios para filtros
-        if ($userPublicId !== null) {
-            $sql .= " LEFT JOIN priv_usuarios AS U ON P.usuario_id_responsable = U.id_usuario ";
-        }
-
-        $sql .= " WHERE P.fecha_programada BETWEEN ? AND ? ";
-        $params = [$fecha_inicio, $fecha_fin];
-
-        if ($userPublicId !== null) {
-            $sql .= " AND U.public_id = ? ";
-            $params[] = $userPublicId;
-        }
-
-        $sql .= " GROUP BY P.fecha_programada, E.estatus";
 
         try {
             $stmt = $this->conn->prepare($sql);
-            $stmt->execute($params);
+            $stmt->execute([$fecha_inicio, $fecha_fin, $collaboratorPublicId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error en getMonthlyActivitySummary: " . $e->getMessage());
@@ -111,20 +101,22 @@ class ScheduleModel
 
     /**
      * Obtiene los detalles (Lista de actividades) para el modal.
-     * AJUSTADO A TU BASE DE DATOS: Sin hora_inicio, hora_fin, ni descripción manual.
+     * Filtra por fecha y por las privadas asignadas al colaborador.
+     * 
+     * @param string $fecha La fecha en formato YYYY-MM-DD
+     * @param string $collaboratorPublicId El public_id del colaborador
+     * @return array Lista de actividades para esa fecha en las privadas del colaborador
      */
-    public function getActivitiesForDate($fecha, $userPublicId = null) {
+    public function getActivitiesForDate($fecha, $collaboratorPublicId) {
         $sql = "
             SELECT
                 P.programada_id,
                 P.fecha_programada,
-                -- Usamos el nombre del tipo de actividad como descripción principal
                 T.nombre AS nombre_actividad, 
                 S.nom_serv AS nombre_servicio,
-                -- Validamos si hay responsable asignado
                 COALESCE(U.usuario, 'Sin Asignar') AS nombre_responsable,
                 E.estatus AS nombre_estatus,
-                PR.nombre_privada
+                PR.nombre AS nombre_privada
             FROM
                 priv_actividades_programadas AS P
             JOIN priv_privadas AS PR ON P.id_privada_fk = PR.id_privada
@@ -134,21 +126,110 @@ class ScheduleModel
             LEFT JOIN priv_usuarios AS U ON P.usuario_id_responsable = U.id_usuario
             WHERE
                 P.fecha_programada = ?
+                AND P.id_privada_fk IN (
+                    SELECT id_privada FROM priv_usuarios 
+                    WHERE public_id = ?
+                )
+            ORDER BY T.nombre ASC
         ";
-
-        $params = [$fecha];
-
-        if ($userPublicId !== null) {
-            $sql .= " AND U.public_id = ?";
-            $params[] = $userPublicId;
-        }
 
         try {
             $stmt = $this->conn->prepare($sql);
-            $stmt->execute($params);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->execute([$fecha, $collaboratorPublicId]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Log para debuggeo
+            error_log("getActivitiesForDate - Fecha: $fecha, PublicId: $collaboratorPublicId, Resultados: " . count($result));
+            
+            return $result;
         } catch (PDOException $e) {
             error_log("Error en getActivitiesForDate: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Crea un reporte para una actividad programada.
+     * 
+     * @param int $programada_id ID de la actividad programada
+     * @param int $usuario_id_reporta ID del usuario que reporta
+     * @param string $descripcion_ejecucion Descripción de cómo se ejecutó
+     * @param int $hubo_incidencia Si hubo incidencia (0 o 1)
+     * @param string|null $descripcion_incidencia Descripción de la incidencia
+     * @return array Array con 'success' => true/false y 'message'
+     */
+    public function createActivityReport($programada_id, $usuario_id_reporta, $descripcion_ejecucion, $hubo_incidencia, $descripcion_incidencia = null) {
+        $sql = "
+            INSERT INTO priv_actividades_reportes 
+            (programada_id, usuario_id_reporta, descripcion_ejecucion, hubo_incidencia, descripcion_incidencia)
+            VALUES (?, ?, ?, ?, ?)
+        ";
+
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([
+                $programada_id,
+                $usuario_id_reporta,
+                $descripcion_ejecucion,
+                $hubo_incidencia,
+                $descripcion_incidencia
+            ]);
+
+            error_log("Reporte creado exitosamente para actividad $programada_id");
+            return [
+                'success' => true,
+                'message' => 'Reporte guardado correctamente'
+            ];
+        } catch (PDOException $e) {
+            error_log("Error al crear reporte: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => 'Error al guardar el reporte: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Obtiene todos los reportes para las actividades de una privada.
+     * 
+     * @param int $id_privada ID de la privada
+     * @return array Lista de reportes
+     */
+    public function getReportsByPrivada($id_privada) {
+        $sql = "
+            SELECT
+                R.reporte_id,
+                R.public_id,
+                R.fecha_reporte,
+                R.descripcion_ejecucion,
+                R.hubo_incidencia,
+                R.descripcion_incidencia,
+                P.programada_id,
+                P.fecha_programada,
+                T.nombre AS nombre_actividad,
+                U.usuario AS nombre_usuario_reporta,
+                UR.usuario AS nombre_responsable,
+                PR.nombre AS nombre_privada,
+                E.estatus AS nombre_estatus
+            FROM
+                priv_actividades_reportes AS R
+            JOIN priv_actividades_programadas AS P ON R.programada_id = P.programada_id
+            JOIN priv_actividades_tipos AS T ON P.actividad_tipo_id = T.actividad_tipo_id
+            JOIN priv_usuarios AS U ON R.usuario_id_reporta = U.id_usuario
+            LEFT JOIN priv_usuarios AS UR ON P.usuario_id_responsable = UR.id_usuario
+            JOIN priv_privadas AS PR ON P.id_privada_fk = PR.id_privada
+            JOIN priv_estatus AS E ON P.id_estatus = E.id_estatus
+            WHERE
+                P.id_privada_fk = ?
+            ORDER BY R.fecha_reporte DESC
+        ";
+
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$id_privada]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error en getReportsByPrivada: " . $e->getMessage());
             return [];
         }
     }

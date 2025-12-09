@@ -358,13 +358,28 @@ class Router
 
             $controller = new CollaboratorController();
 
-            // --- MANEJO DE PETICIONES POST ---
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // --- MANEJO DE PETICIONES GET ---
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                // Ruta para la API del calendario mensual
+                if ($url === '/collaborator/getScheduleForMonth') {
+                    $controller->getScheduleForMonth();
+                    return;
+                }
+                // Ruta para obtener actividades de un día específico
                 if ($url === '/collaborator/getActivitiesForDate') {
                     $controller->getActivitiesForDate();
                     return;
                 }
             }
+
+            // --- MANEJO DE PETICIONES POST ---
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                if ($url === '/collaborator/createActivityReport') {
+                    $controller->createActivityReport();
+                    return;
+                }
+            }
+
             // A. CARGA DE CONTENIDO MEDIANTE EL SIDEBAR
             if (preg_match('/^\/collaborator\/content\/(\w+)$/', $url, $matches)) {
                 $sectionName = $matches[1]; // Captura 'dashboard' de la URL

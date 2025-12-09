@@ -1,90 +1,152 @@
-/* --- Contenedor del Calendario --- */
-#schedule-container {
-    max-width: 900px;
+/* --- Contenedor Principal Wrapper --- */
+.schedule-wrapper {
+    max-width: 1100px;
     margin: 20px auto;
+    padding: 0;
     font-family: Arial, sans-serif;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
 }
 
-.calendar-header {
-    padding: 15px;
-    background-color: #f7f7f7;
+/* --- Tarjetas Comunes --- */
+.schedule-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    transition: box-shadow 0.3s ease;
+}
+
+.schedule-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.schedule-card .card-title {
+    margin: 0 0 20px 0;
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 600;
+}
+
+/* --- Tarjeta del Calendario --- */
+.calendar-card {
+    /* Heredar estilos de .schedule-card */
+}
+
+.calendar-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.calendar-controls h2 {
+    font-size: 1.8em;
+    color: #333;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
     text-align: center;
-    border-bottom: 1px solid #ddd;
 }
 
-/* --- Cuadrícula Principal (Grid) --- */
-.calendar-weekdays,
-.calendar-grid {
+.calendar-controls button {
+    font-size: 1em;
+    padding: 8px 16px;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 120px;
+}
+
+.calendar-controls button:hover {
+    background-color: #0056b3;
+}
+
+/* --- Encabezado con Días de la Semana --- */
+.calendar-weekdays {
     display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 columnas iguales */
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    margin-bottom: 0;
 }
 
 .weekday {
+    padding: 12px;
     text-align: center;
-    padding: 10px 0;
-    font-weight: bold;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
     color: #555;
-    background-color: #fcfcfc;
+}
+
+/* --- Cuadrícula del Calendario (Grid) --- */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
 }
 
 .day-cell {
-    min-height: 100px; /* Altura de la celda */
-    border-right: 1px solid #eee;
-    border-top: 1px solid #eee;
-    padding: 5px;
-    box-sizing: border-box;
-    cursor: pointer;
+    min-height: 120px;
+    padding: 8px;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    background-color: #fdfdfd;
+    position: relative;
     transition: background-color 0.2s;
-    font-size: 0.9em;
 }
 
 .day-cell:hover {
-    background-color: #fafafa;
+    background-color: #f4f4f4;
 }
 
-/* Celdas vacías (días del mes anterior/siguiente) */
-.empty-cell {
-    background-color: #f9f9f9;
-    cursor: default;
-}
-
-/* El número del día */
 .day-number {
-    font-weight: bold;
+    font-size: 1.1em;
+    font-weight: 500;
     color: #333;
+    margin-bottom: 8px;
 }
 
-/* --- Bloques de Actividad (como en tu imagen) --- */
+.day-cell.empty-cell {
+    background-color: #f7f7f7;
+    pointer-events: none;
+}
+
+/* --- Resumen de Actividades en la celda --- */
+.day-events {
+    cursor: pointer;
+}
+
 .activity-summary-block {
-    padding: 4px 6px;
+    padding: 4px 8px;
     margin-top: 5px;
     border-radius: 4px;
     color: white;
     font-size: 0.8em;
     font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* Crea clases para tus estatus. 
-   El JS las usará basándose en los datos del controlador.
-*/
-.status-Pendiente {
-    background-color: #ffc107; /* Amarillo */
-    color: #333;
-}
-.status-Completado {
-    background-color: #28a745; /* Verde */
-}
-.status-Cancelado {
-    background-color: #dc3545; /* Rojo */
+.badge-count {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.9em;
 }
 
-.status-Activo {
-    background-color: #17a2b8; /* Cyan/Azul */
-    color: white;
-}
+/* Colores para los eventos */
+.event-success { background-color: #28a745; } /* Verde - Completada */
+.event-warning { background-color: #ffc107; color: #333; } /* Amarillo - Pendiente */
+.event-danger { background-color: #dc3545; }  /* Rojo - Cancelada */
+.event-info { background-color: #17a2b8; }   /* Azul - Otro */
 
 /* --- Estilos del Modal --- */
 .modal-overlay {
@@ -93,19 +155,21 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 1050;
 }
 
-.modal-dialog {
+.modal-content {
     background-color: white;
     border-radius: 8px;
     width: 90%;
-    max-width: 600px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    max-width: 700px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
@@ -114,30 +178,329 @@
     align-items: center;
     padding: 15px 20px;
     border-bottom: 1px solid #eee;
+    background-color: #f8f9fa;
 }
 
-.modal-close {
+.modal-header h3 {
+    margin: 0;
     font-size: 1.5rem;
+    color: #333;
+}
+
+.modal-close-btn {
+    font-size: 1.8rem;
     font-weight: bold;
-    cursor: pointer;
     color: #888;
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 .modal-body {
     padding: 20px;
-    max-height: 400px;
+    max-height: 500px;
     overflow-y: auto;
 }
 
-/* Estilos para cada actividad en el modal */
-.activity-detail-item {
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 10px;
+/* Estilos para la lista de actividades en el modal */
+.loading-spinner {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+}
+
+.error-msg, .no-data {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.1em;
+    color: #777;
+}
+
+.activity-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activity-item {
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #fafafa;
+}
+
+.act-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
 }
-.activity-detail-item:last-child {
-    border-bottom: none;
+
+.act-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #0056b3;
 }
-.activity-detail-item strong {
-    color: #0056b3; /* Un color para resaltar */
+
+.act-status.pill {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: white;
+    background-color: #6c757d; /* Gris por defecto */
+}
+
+/* Aquí puedes agregar colores específicos por estatus si quieres */
+/* .act-status.pill.completada { background-color: #28a745; } */
+
+.act-details p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.act-details strong {
+    color: #333;
+}
+
+/* --- Botón de Reporte --- */
+.report-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.report-btn:hover {
+    background-color: #218838;
+}
+
+.report-btn:active {
+    background-color: #1e7e34;
+}
+
+/* --- Formulario de Reporte --- */
+.report-form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+}
+
+.report-form h4 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95em;
+}
+
+.form-group textarea,
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95em;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-group textarea:focus,
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-submit, .btn-cancel {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-submit {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+
+.btn-cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background-color: #5a6268;
+}
+
+/* Estilos de colores para el badge de estatus en el modal */
+.act-status.pill.pendiente { background-color: #ffc107; color: #333; }
+.act-status.pill.completada { background-color: #28a745; }
+.act-status.pill.cancelada { background-color: #dc3545; }
+.act-status.pill.proceso { background-color: #17a2b8; }
+
+/* Estilos para botón de reporte deshabilitado */
+.report-btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* --- Tarjeta: Mis actividades de hoy --- */
+.today-activities-card {
+    /* Heredar estilos de .schedule-card */
+}
+
+.today-activities-list {
+    display: grid;
+    gap: 15px;
+}
+
+.today-activities-list .no-data {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+    font-size: 1.05rem;
+}
+
+.today-activities-list .loading-spinner {
+    text-align: center;
+    padding: 30px;
+    font-size: 1.1rem;
+}
+
+.today-list {
+    display: grid;
+    gap: 15px;
+}
+
+.today-activity-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    transition: all 0.2s ease;
+}
+
+.today-activity-card:hover {
+    background-color: #f0f8ff;
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+.today-activity-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.today-activity-card .card-header .act-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+}
+
+.today-activity-card .card-header .act-status {
+    white-space: nowrap;
+}
+
+.today-activity-card .card-body {
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.today-activity-card .card-body p {
+    margin: 6px 0;
+    color: #555;
+}
+
+.today-activity-card .card-body strong {
+    color: #333;
+}
+
+.today-activity-card .card-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.today-activity-card .report-btn {
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.today-activity-card .report-btn:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.today-activity-card .report-btn[disabled] {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
